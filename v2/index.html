@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictor Multicifra Pro - Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .canvas-container { position: relative; width: 100%; height: 250px; }
+        canvas { width: 100%; height: 100%; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .loading { animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .matrix-bg { background-color: #0f172a; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center">
+            <i data-lucide="cpu" class="w-12 h-12 text-indigo-600 animate-pulse mb-3"></i>
+            <h2 class="text-xl font-bold text-slate-800" id="loadingText">Procesando...</h2>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto p-3 sm:p-6 lg:p-8">
+        
+        <div class="bg-slate-800 p-3 rounded-t-xl flex flex-col md:flex-row items-center justify-between border-b border-slate-700 shadow-md gap-3">
+            <div class="flex items-center text-white space-x-3 w-full md:w-auto">
+                <i data-lucide="server" class="text-indigo-400"></i>
+                <span class="font-bold text-xs tracking-wide">MÁQUINA ACTIVA:</span>
+                <select id="machineSelector" onchange="switchMachine(this.value)" class="bg-slate-900 border border-slate-600 rounded-lg text-sm text-white px-3 py-1.5 outline-none focus:border-indigo-500 w-full md:w-auto font-semibold cursor-pointer truncate max-w-[200px]"></select>
+            </div>
+            <div class="flex flex-wrap justify-center gap-2 w-full md:w-auto">
+                <button onclick="promptNewMachine()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center">
+                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Nueva
+                </button>
+                <button onclick="renameActiveMachine()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center">
+                    <i data-lucide="edit-2" class="w-4 h-4 mr-1"></i> Renombrar
+                </button>
+                <button onclick="deleteActiveMachine()" class="bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center">
+                    <i data-lucide="trash" class="w-4 h-4 mr-1"></i> Eliminar
+                </button>
+            </div>
+        </div>
+
+        <header class="mb-6 glass-panel rounded-b-xl shadow-sm border border-t-0 border-slate-200 p-4">
+            <div class="flex flex-col xl:flex-row justify-between gap-4">
+                
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg text-white shadow-md hidden sm:block">
+                        <i data-lucide="activity"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900" id="headerMachineName">Suite de Análisis</h1>
+                        <p class="text-xs text-slate-500 flex items-center mt-1">
+                            <span id="dbIndicator" class="w-2 h-2 rounded-full bg-red-500 mr-2 shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
+                            BD Exclusiva: <span id="dbStatusLabel" class="ml-1 font-semibold mr-2">Conectando...</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200 shadow-inner w-full xl:w-auto justify-center xl:justify-start">
+                    <div class="flex items-center space-x-2">
+                        <label class="text-[10px] sm:text-xs font-bold text-slate-600 uppercase flex items-center">
+                            <i data-lucide="hash" class="w-3 h-3 mr-1"></i> Formato:
+                        </label>
+                        <select id="digitSelector" onchange="changeDigitCount(this.value)" class="bg-white border border-slate-300 text-slate-800 text-xs rounded-md focus:ring-indigo-500 block px-2 py-1 font-bold outline-none cursor-pointer">
+                            <option value="2">2 Cifras</option><option value="3">3 Cifras</option>
+                            <option value="4">4 Cifras</option><option value="5">5 Cifras</option>
+                            <option value="6">6 Cifras</option>
+                        </select>
+                    </div>
+                    <span class="text-slate-300 hidden sm:inline">|</span>
+                    <div class="flex items-center space-x-2">
+                        <label class="text-[10px] sm:text-xs font-bold text-slate-600 uppercase">Max Rango:</label>
+                        <input type="number" id="maxRangeLimit" value="99" onchange="updateMaxLimit()" class="w-16 bg-white border border-slate-300 text-slate-800 text-xs rounded-md focus:ring-indigo-500 px-2 py-1 font-bold outline-none text-center">
+                    </div>
+                    <span id="viewSelectorDivider" class="text-slate-300 hidden sm:inline hidden">|</span>
+                    <div id="viewSelectorContainer" class="hidden flex items-center bg-indigo-50 px-2 py-1 rounded-md border border-indigo-200">
+                        <label class="text-[10px] sm:text-xs font-bold text-indigo-800 uppercase flex items-center mr-2">
+                            <i data-lucide="eye" class="w-3 h-3 mr-1"></i> Analizando:
+                        </label>
+                        <select id="seriesViewSelector" onchange="changeSeriesView(this.value)" class="bg-white border border-indigo-300 text-indigo-800 text-xs rounded-md focus:ring-indigo-500 block px-2 py-1 font-bold outline-none cursor-pointer"></select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-center space-x-2 w-full xl:w-auto">
+                    <input type="file" id="importFileInput" accept=".par,.json" class="hidden" onchange="importSession(event)">
+                    <button onclick="triggerImport()" class="flex-1 xl:flex-none text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center border border-blue-200 shadow-sm" title="Restaurar backup">
+                        <i data-lucide="upload" class="w-4 h-4 mr-1"></i> Cargar (.par)
+                    </button>
+                    <button onclick="exportSession()" class="flex-1 xl:flex-none text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center border border-emerald-200 shadow-sm" title="Crear backup">
+                        <i data-lucide="download" class="w-4 h-4 mr-1"></i> Guardar (.par)
+                    </button>
+                    <button onclick="confirmClearDB()" class="text-red-500 hover:text-red-700 bg-white hover:bg-red-50 px-3 py-2 rounded-lg text-xs font-bold transition-colors border border-red-200 shadow-sm" title="Limpiar historial">
+                        <i data-lucide="eraser" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex space-x-2 bg-slate-100 p-1 rounded-xl w-full max-w-md mt-4">
+                <button onclick="switchTab('analisis')" id="tab-btn-analisis" class="flex-1 py-2 px-4 rounded-lg text-sm font-bold transition-all bg-white shadow text-indigo-700 border border-slate-200">
+                    <i data-lucide="line-chart" class="w-4 h-4 inline-block mr-1"></i> Predictor
+                </button>
+                <button onclick="switchTab('generador')" id="tab-btn-generador" class="flex-1 py-2 px-4 rounded-lg text-sm font-bold transition-all text-slate-500 hover:text-slate-800">
+                    <i data-lucide="shield-alert" class="w-4 h-4 inline-block mr-1"></i> Generador Seguro
+                </button>
+            </div>
+        </header>
+
+        <div id="tab-analisis" class="tab-content active">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                
+                <!-- Panel Izquierdo: Entradas -->
+                <div class="xl:col-span-1 space-y-6">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <h2 class="text-sm font-bold text-slate-800 uppercase flex items-center">
+                                <i data-lucide="keyboard" class="w-4 h-4 mr-2 text-indigo-500"></i> Ingreso Manual
+                            </h2>
+                            <button type="button" onclick="toggleConfig()" class="text-slate-400 hover:text-indigo-600 transition-colors" title="Configurar Muestras Paralelas">
+                                <i data-lucide="settings" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <div id="inputConfigPanel" class="hidden bg-indigo-50/50 p-4 rounded-lg mb-4 border border-indigo-100 text-xs space-y-3">
+                            <div>
+                                <label class="font-bold text-indigo-900 block mb-1">Muestras Simultáneas</label>
+                                <select id="simulCount" onchange="handleSimulCountChange()" class="w-full p-2 border border-indigo-200 rounded-md focus:ring-indigo-500 outline-none text-slate-700 font-medium">
+                                    <option value="1">1 Muestra</option><option value="2">2 Muestras</option>
+                                    <option value="3">3 Muestras</option><option value="4">4 Muestras</option>
+                                    <option value="5">5 Muestras</option><option value="6">6 Muestras</option>
+                                    <option value="7">7 Muestras</option><option value="8">8 Muestras</option>
+                                    <option value="9">9 Muestras</option><option value="10">10 Muestras</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="font-bold text-indigo-900 block mb-1">Tratamiento de Datos</label>
+                                <select id="streamMode" onchange="handleModeChange()" class="w-full p-2 border border-indigo-200 rounded-md focus:ring-indigo-500 outline-none text-slate-700 font-medium">
+                                    <option value="global">Modo Global (Mezclados en 1 serie)</option>
+                                    <option value="independent">Modo Independiente (Series Paralelas)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <form id="dynamicInputForm" class="mt-2"></form>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative">
+                        <h2 class="text-sm font-bold text-slate-800 uppercase mb-2 flex items-center">
+                            <i data-lucide="blocks" class="w-4 h-4 mr-2 text-indigo-500"></i> Carga Masiva (Chorizos/Lotes)
+                        </h2>
+                        <p class="text-[10px] text-slate-500 mb-2 leading-tight">Pega números separados o cadenas de 16/20 cifras juntas. El sistema los rebanará automáticamente según tu formato y modo.</p>
+                        <textarea id="historyInput" class="w-full h-24 p-3 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none mb-3 font-mono" placeholder="Ej: 0105122433414850..."></textarea>
+                        <button onclick="processBatchData()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-bold transition-colors shadow flex items-center justify-center">
+                            <i data-lucide="zap" class="w-4 h-4 mr-2 text-yellow-400"></i> Guardar Lote
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Muestras Totales</div>
+                            <div id="totalSamples" class="text-2xl font-black text-slate-800">0</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center relative overflow-hidden">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Último Ingreso</div>
+                            <div id="lastSampleLabel" class="text-2xl font-black font-mono text-indigo-600">--</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col h-[220px]">
+                        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center">
+                            <i data-lucide="history" class="w-4 h-4 mr-2"></i> Últimas 100 Anotaciones
+                        </h2>
+                        <div id="recentNumbersList" class="flex flex-wrap content-start gap-1.5 overflow-y-auto custom-scroll p-2 bg-slate-50 rounded-lg border border-slate-100 flex-1">
+                            <div class="text-xs text-slate-400 w-full text-center py-2 italic">Sin registros aún</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="xl:col-span-2 space-y-6">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-indigo-900 p-6 rounded-xl shadow-md text-white relative overflow-hidden group">
+                            <i data-lucide="git-merge" class="absolute -right-6 -bottom-6 w-32 h-32 text-indigo-800 opacity-40 transition-transform group-hover:scale-110"></i>
+                            <div class="relative z-10">
+                                <h3 class="text-[10px] font-bold text-indigo-300 tracking-widest uppercase mb-1 flex items-center">
+                                    <i data-lucide="target" class="w-3 h-3 mr-1"></i> Modelo Markov Exacto
+                                </h3>
+                                <p class="text-[11px] text-indigo-200 mb-4">Después del <span id="currentAnchor" class="font-bold text-white bg-indigo-500/50 px-1.5 py-0.5 rounded ml-1 font-mono shadow-inner">--</span></p>
+                                <div class="flex justify-between items-end border-t border-indigo-700/50 pt-3">
+                                    <div id="predictedNext" class="text-5xl sm:text-6xl font-black font-mono text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]">--</div>
+                                    <div class="text-right">
+                                        <div class="text-[10px] uppercase text-indigo-300 font-bold">Probabilidad</div>
+                                        <div id="predictionConfidence" class="text-xl font-black text-white">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-sky-900 p-6 rounded-xl shadow-md text-white relative overflow-hidden group">
+                            <i data-lucide="pie-chart" class="absolute -right-6 -bottom-6 w-32 h-32 text-sky-800 opacity-40 transition-transform group-hover:scale-110"></i>
+                            <div class="relative z-10">
+                                <h3 class="text-[10px] font-bold text-sky-300 tracking-widest uppercase mb-1 flex items-center">
+                                    <i data-lucide="layers" class="w-3 h-3 mr-1"></i> Modelo por Sectores
+                                </h3>
+                                <p class="text-[11px] text-sky-200 mb-4">Estando en la familia <span id="currentSectorAnchor" class="font-bold text-white bg-sky-500/50 px-1.5 py-0.5 rounded ml-1 font-mono shadow-inner">--</span></p>
+                                
+                                <div class="flex justify-between items-end mb-3 border-b border-sky-700/50 pb-2">
+                                    <div>
+                                        <div class="text-[9px] uppercase text-sky-400 font-bold mb-0.5">Siguiente exacto más común:</div>
+                                        <div id="predictedNextBySector" class="text-2xl font-black font-mono text-white">--</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[9px] uppercase text-sky-400 font-bold">Acierto</div>
+                                        <div id="confidenceBySector" class="text-sm font-bold text-white">0%</div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <div class="text-[9px] uppercase text-sky-400 font-bold mb-0.5">Suele saltar a la familia:</div>
+                                        <div id="predictedNextSector" class="text-xl font-bold font-mono text-purple-300">--</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[9px] uppercase text-sky-400 font-bold">Tendencia</div>
+                                        <div id="confidenceNextSector" class="text-sm font-bold text-white">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 mr-2 text-emerald-500"></i> Top 10 Histórico
+                            </h3>
+                            <div class="canvas-container h-[200px]"><canvas id="frequencyChart"></canvas></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center">
+                                <i data-lucide="trending-up" class="w-4 h-4 mr-2 text-rose-500"></i> Tendencia Media (Últimos 30)
+                            </h3>
+                            <div class="canvas-container h-[200px]"><canvas id="trendChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mt-6">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4">
+                            <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center">
+                                <i data-lucide="dna" class="w-4 h-4 mr-2 text-purple-500"></i> Análisis Estructural: Afinidad de Extremos
+                            </h3>
+                            <p class="text-[10px] text-slate-400 mt-1 sm:mt-0">¿Con qué unidad prefiere terminar cada prefijo?</p>
+                        </div>
+                        <div id="tensAffinityTable" class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                            <!-- Inyectado por JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-generador" class="tab-content matrix-bg rounded-2xl p-6 lg:p-8 min-h-[600px] border border-slate-700 shadow-2xl relative overflow-hidden mt-2">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-80 pointer-events-none"></div>
+            
+            <div class="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
+                <div class="text-center mb-10">
+                    <i data-lucide="shield-check" class="w-16 h-16 text-emerald-400 mx-auto mb-4 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]"></i>
+                    <h2 class="text-3xl font-black text-white mb-2 tracking-tight">Motor de Entropía Segura</h2>
+                    <p class="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
+                        Sistema inquebrantable basado en hardware (<code class="bg-slate-800 px-1.5 py-0.5 rounded text-emerald-300 font-mono text-[11px]">window.crypto</code>).<br>
+                        Regla Activa: <span class="text-rose-400 font-bold">Anti-Markov</span> (0% probabilidad de repetición inmediata).
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 backdrop-blur-md p-10 rounded-3xl border border-slate-600 shadow-2xl shadow-emerald-900/20 mb-10 flex flex-col items-center w-full max-w-md">
+                    <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4 flex items-center">
+                        <i data-lucide="lock" class="w-3 h-3 mr-1"></i> Resultado Aislado
+                    </div>
+                    <div id="secureNumberDisplay" class="text-7xl font-black font-mono text-white tracking-widest drop-shadow-[0_0_15px_rgba(52,211,153,0.6)]">--</div>
+                    <div class="mt-6 flex items-center text-[10px] text-slate-400 bg-slate-900/80 px-4 py-2 rounded-full border border-slate-700">
+                        <div id="secureStatus" class="w-2 h-2 rounded-full bg-slate-500 mr-2 shadow-[0_0_5px_currentColor]"></div>
+                        <span id="secureStatusText">En espera...</span>
+                    </div>
+                </div>
+
+                <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="generateSingleSecureNumber()" class="w-full flex justify-center items-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-slate-900 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+                        <i data-lucide="zap" class="w-5 h-5 mr-2"></i> Extraer 1 Muestra Segura
+                    </button>
+                    
+                    <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-col justify-center shadow-inner">
+                        <p class="text-[10px] text-slate-400 mb-2 font-bold uppercase">Inyección Masiva de Ruido:</p>
+                        <div class="flex space-x-2">
+                            <input type="number" id="secureBatchAmount" value="100" min="10" max="5000" class="w-24 bg-slate-900 border border-slate-600 rounded-lg text-emerald-400 px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 text-center font-mono font-bold shadow-inner">
+                            <button onclick="generateBatchSecureData()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition-colors shadow">
+                                Inyectar Lote al DB
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full mt-8">
+                    <div id="cryptoLog" class="bg-black/80 border border-slate-700 rounded-xl p-4 h-32 overflow-y-auto font-mono text-[10px] text-emerald-400/80 custom-scroll break-all leading-relaxed shadow-inner">
+                        > Módulo Criptográfico HWS inicializado.<br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables Globales de la App
+        let machines = [];
+        let activeMachineId = null;
+
+        let currentDigits = 2; 
+        let customMaxValue = 50; 
+        let numSimulInputs = 8;  
+        let activeInputMode = 'independent';
+        let currentView = 'serie_1';
+        
+        let DB_NAME = ''; 
+        const DB_VERSION = 1;
+        const STORE_NAME = 'samples';
+        let db = null;
+
+        // Variables analíticas en Memoria (Mapas Dispersos para escalabilidad)
+        let totalRecords = 0;
+        let lastValue = null;
+        let frequencies = new Map(); 
+        let transitions = new Map(); 
+        let sectorTransitions = new Map(); 
+        let sectorToSector = new Map();    
+        let firstToLastDigit = Array.from({ length: 10 }, () => new Array(10).fill(0));
+        let recentHistory = []; 
+
+        // DOM Elements
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const dbStatusLabel = document.getElementById('dbStatusLabel');
+        const dbIndicator = document.getElementById('dbIndicator');
+        const ctxFreq = document.getElementById('frequencyChart').getContext('2d');
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+
+        function showLoading(txt) { loadingText.textContent = txt || "Procesando..."; loadingOverlay.classList.remove('hidden'); }
+        function hideLoading() { loadingOverlay.classList.add('hidden'); }
+
+        // --- SISTEMA MULTI-MÁQUINA ---
+        function initMachineSystem() {
+            const stored = localStorage.getItem('predictor_machines');
+            if (stored) {
+                machines = JSON.parse(stored);
+            } else {
+                machines = [{
+                    id: 'm_' + Date.now(),
+                    name: 'Máquina 1 (Keno/Sorteo)',
+                    digits: 2,
+                    max: 50,
+                    simulCount: 8,
+                    streamMode: 'independent'
+                }];
+                localStorage.setItem('predictor_machines', JSON.stringify(machines));
+            }
+            
+            const storedActive = localStorage.getItem('predictor_active_machine');
+            if (storedActive && machines.find(m => m.id === storedActive)) {
+                activeMachineId = storedActive;
+            } else {
+                activeMachineId = machines[0].id;
+                localStorage.setItem('predictor_active_machine', activeMachineId);
+            }
+
+            renderMachineSelector();
+            applyMachineConfig(activeMachineId);
+        }
+
+        async function applyMachineConfig(machineId) {
+            showLoading("Cargando Máquina...");
+            const machine = machines.find(m => m.id === machineId);
+            if (!machine) return hideLoading();
+
+            currentDigits = parseInt(machine.digits, 10);
+            customMaxValue = parseInt(machine.max, 10);
+            numSimulInputs = parseInt(machine.simulCount, 10);
+            activeInputMode = machine.streamMode;
+            currentView = activeInputMode === 'independent' ? 'serie_1' : 'global';
+
+            document.getElementById('headerMachineName').textContent = machine.name;
+            document.getElementById('digitSelector').value = currentDigits;
+            document.getElementById('maxRangeLimit').value = customMaxValue;
+            document.getElementById('simulCount').value = numSimulInputs;
+            document.getElementById('streamMode').value = activeInputMode;
+
+            if (db) { db.close(); dbIndicator.classList.replace('bg-green-500', 'bg-red-500'); }
+            DB_NAME = `PredictorDB_${machineId}`;
+
+            // Reset RAM
+            frequencies.clear(); transitions.clear(); sectorTransitions.clear(); sectorToSector.clear();
+            firstToLastDigit = Array.from({ length: 10 }, () => new Array(10).fill(0));
+            recentHistory = []; totalRecords = 0; lastValue = null;
+            resetUIStats();
+            
+            renderInputFields();
+
+            try {
+                await initDB();
+                await loadDataFromDB();
+            } catch (e) {
+                console.error("Error BD:", e);
+                alert("Error local de base de datos. Tal vez estés en modo incógnito estricto.");
+            }
+            hideLoading();
+        }
+
+        function renderMachineSelector() {
+            const selector = document.getElementById('machineSelector');
+            selector.innerHTML = '';
+            machines.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = `${m.name}`;
+                selector.appendChild(opt);
+            });
+            selector.value = activeMachineId;
+        }
+
+        function switchMachine(newId) {
+            if (newId === activeMachineId) return;
+            activeMachineId = newId;
+            localStorage.setItem('predictor_active_machine', activeMachineId);
+            applyMachineConfig(activeMachineId);
+        }
+
+        function saveActiveMachineConfig() {
+            const machine = machines.find(m => m.id === activeMachineId);
+            if (machine) {
+                machine.digits = currentDigits;
+                machine.max = customMaxValue;
+                machine.simulCount = numSimulInputs;
+                machine.streamMode = activeInputMode;
+                localStorage.setItem('predictor_machines', JSON.stringify(machines));
+            }
+        }
+
+        function promptNewMachine() {
+            const name = prompt("Nombre del nuevo espacio de trabajo:", "Nueva Máquina");
+            if (!name) return;
+            const newMachine = { id: 'm_' + Date.now(), name: name, digits: 2, max: 99, simulCount: 1, streamMode: 'global' };
+            machines.push(newMachine);
+            localStorage.setItem('predictor_machines', JSON.stringify(machines));
+            renderMachineSelector();
+            switchMachine(newMachine.id);
+        }
+
+        function renameActiveMachine() {
+            const machine = machines.find(m => m.id === activeMachineId);
+            if(!machine) return;
+            const newName = prompt("Nuevo nombre:", machine.name);
+            if(newName && newName.trim() !== '') {
+                machine.name = newName.trim();
+                localStorage.setItem('predictor_machines', JSON.stringify(machines));
+                document.getElementById('headerMachineName').textContent = machine.name;
+                renderMachineSelector();
+            }
+        }
+
+        function deleteActiveMachine() {
+            if (machines.length <= 1) return alert("Debe quedar al menos una máquina.");
+            if (confirm(`¿Eliminar la máquina permanentemente?`)) {
+                indexedDB.deleteDatabase(`PredictorDB_${activeMachineId}`);
+                machines = machines.filter(m => m.id !== activeMachineId);
+                localStorage.setItem('predictor_machines', JSON.stringify(machines));
+                activeMachineId = machines[0].id;
+                localStorage.setItem('predictor_active_machine', activeMachineId);
+                renderMachineSelector();
+                applyMachineConfig(activeMachineId);
+            }
+        }
+
+        function toggleConfig() { document.getElementById('inputConfigPanel').classList.toggle('hidden'); }
+
+        function changeDigitCount(newVal) {
+            currentDigits = parseInt(newVal, 10);
+            customMaxValue = Math.pow(10, currentDigits) - 1;
+            document.getElementById('maxRangeLimit').value = customMaxValue;
+            saveActiveMachineConfig();
+            applyMachineConfig(activeMachineId); 
+        }
+
+        function updateMaxLimit() {
+            let val = parseInt(document.getElementById('maxRangeLimit').value, 10);
+            if(!isNaN(val) && val > 0) {
+                customMaxValue = val;
+                saveActiveMachineConfig();
+                renderInputFields();
+            }
+        }
+
+        function handleSimulCountChange() {
+            numSimulInputs = parseInt(document.getElementById('simulCount').value, 10);
+            saveActiveMachineConfig(); renderInputFields();
+        }
+
+        function handleModeChange() {
+            activeInputMode = document.getElementById('streamMode').value;
+            saveActiveMachineConfig(); renderInputFields();
+        }
+
+        function renderInputFields() {
+            const form = document.getElementById('dynamicInputForm');
+            const placeholderStr = "0".repeat(currentDigits);
+            let html = '';
+            
+            for(let i = 1; i <= numSimulInputs; i++) {
+                let label = activeInputMode === 'independent' ? `<div class="text-[10px] text-indigo-600 font-bold mb-1 truncate">Serie ${i}</div>` : '';
+                html += `
+                    <div class="flex flex-col">
+                        ${label}
+                        <input type="number" id="sampleInput_${i}" min="0" max="${customMaxValue}" class="w-full px-2 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-sm text-center font-mono bg-white shadow-inner transition-all" placeholder="${placeholderStr}">
+                    </div>
+                `;
+            }
+            html += `
+                <div class="col-span-full mt-2">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow flex items-center justify-center w-full">
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Agregar Manual
+                    </button>
+                </div>
+            `;
+            
+            // Función para evitar el desastre visual de las grillas aplastadas
+            const getGridClass = (n) => {
+                if(n===1) return 'grid-cols-1'; if(n===2) return 'grid-cols-2';
+                if(n===3) return 'grid-cols-3'; if(n===4) return 'grid-cols-4';
+                if(n===5) return 'grid-cols-3 sm:grid-cols-5';
+                if(n===6) return 'grid-cols-3 sm:grid-cols-6';
+                if(n===7) return 'grid-cols-4 sm:grid-cols-7';
+                if(n===8) return 'grid-cols-4 sm:grid-cols-4'; // Obliga 2 filas de 4 (Perfecto para 16 cifras/8 series)
+                if(n===9) return 'grid-cols-3 sm:grid-cols-3';
+                if(n===10) return 'grid-cols-5 sm:grid-cols-5';
+                return 'grid-cols-4';
+            }
+            form.className = `grid ${getGridClass(numSimulInputs)} gap-3`;
+            form.innerHTML = html;
+            lucide.createIcons();
+            updateSeriesViewSelector();
+        }
+
+        function updateSeriesViewSelector() {
+            const container = document.getElementById('viewSelectorContainer');
+            const divider = document.getElementById('viewSelectorDivider');
+            const selector = document.getElementById('seriesViewSelector');
+            
+            if (activeInputMode === 'independent' && numSimulInputs > 1) {
+                container.classList.remove('hidden');
+                divider.classList.remove('hidden');
+                let html = `<option value="global">Mezclado Global</option>`;
+                for(let i = 1; i <= numSimulInputs; i++) html += `<option value="serie_${i}">Serie ${i}</option>`;
+                
+                let currentVal = selector.value;
+                selector.innerHTML = html;
+                
+                if(currentVal.startsWith('serie_') && parseInt(currentVal.split('_')[1]) > numSimulInputs) {
+                    selector.value = 'serie_1';
+                } else {
+                    selector.value = currentVal === 'global' && activeInputMode === 'independent' ? 'serie_1' : currentVal;
+                }
+                if (currentView !== selector.value) changeSeriesView(selector.value);
+            } else {
+                container.classList.add('hidden');
+                divider.classList.add('hidden');
+                if (currentView !== 'global') changeSeriesView('global');
+            }
+        }
+
+        async function changeSeriesView(viewId) { currentView = viewId; await loadDataFromDB(); }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            ['analisis', 'generador'].forEach(id => {
+                let btn = document.getElementById(`tab-btn-${id}`);
+                btn.classList.replace('bg-white', 'bg-transparent');
+                btn.classList.replace('text-indigo-700', 'text-slate-500');
+                btn.classList.remove('shadow');
+            });
+            let activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.classList.replace('bg-transparent', 'bg-white');
+            activeBtn.classList.replace('text-slate-500', 'text-indigo-700');
+            activeBtn.classList.add('shadow');
+            if(tabId === 'analisis' && totalRecords > 0) setTimeout(() => { drawFrequencyChart(); drawTrendChart(); }, 50);
+        }
+
+        function formatNumber(num) { return num.toString().padStart(currentDigits, '0'); }
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = () => { dbStatusLabel.textContent = "Error BD"; reject("Error DB"); };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    dbStatusLabel.textContent = `Lista Local`;
+                    dbIndicator.classList.replace('bg-red-500', 'bg-green-500');
+                    dbIndicator.classList.replace('shadow-[0_0_5px_rgba(239,68,68,0.8)]', 'shadow-[0_0_5px_rgba(34,197,94,0.8)]');
+                    resolve(db);
+                };
+                request.onupgradeneeded = (e) => {
+                    db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                        store.createIndex('streamId', 'streamId', { unique: false });
+                    }
+                };
+            });
+        }
+
+        async function loadDataFromDB() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], "readonly");
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+
+                request.onsuccess = () => {
+                    let allSamples = request.result.filter(item => (item.streamId || 'global') === currentView);
+                    allSamples.sort((a, b) => a.id - b.id);
+                    
+                    frequencies.clear(); transitions.clear(); sectorTransitions.clear(); sectorToSector.clear();
+                    for(let i=0; i<10; i++) firstToLastDigit[i].fill(0);
+                    recentHistory = []; totalRecords = allSamples.length;
+
+                    if (totalRecords > 0) {
+                        let previousVal = null;
+                        allSamples.forEach(item => {
+                            const val = item.value;
+                            let paddedStr = formatNumber(val);
+                            let currentSector = parseInt(paddedStr[0], 10);
+                            
+                            frequencies.set(val, (frequencies.get(val) || 0) + 1);
+                            
+                            if (previousVal !== null) {
+                                if (!transitions.has(previousVal)) transitions.set(previousVal, new Map());
+                                let nextMap = transitions.get(previousVal);
+                                nextMap.set(val, (nextMap.get(val) || 0) + 1);
+
+                                let prevSector = parseInt(formatNumber(previousVal)[0], 10);
+                                if (!sectorTransitions.has(prevSector)) sectorTransitions.set(prevSector, new Map());
+                                let stMap = sectorTransitions.get(prevSector);
+                                stMap.set(val, (stMap.get(val) || 0) + 1);
+
+                                if (!sectorToSector.has(prevSector)) sectorToSector.set(prevSector, new Map());
+                                let ssMap = sectorToSector.get(prevSector);
+                                ssMap.set(currentSector, (ssMap.get(currentSector) || 0) + 1);
+                            }
+                            previousVal = val;
+                            firstToLastDigit[currentSector][val % 10]++;
+                        });
+                        lastValue = allSamples[allSamples.length - 1].value;
+                        const limit = Math.min(100, totalRecords);
+                        recentHistory = allSamples.slice(-limit).map(item => item.value);
+                    } else { lastValue = null; }
+
+                    updateUI(); resolve();
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function addSampleToDB(value, streamId = 'global') {
+            return new Promise((resolve) => {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const store = transaction.objectStore(STORE_NAME);
+                store.add({ value: value, timestamp: Date.now(), streamId: streamId });
+                transaction.oncomplete = () => {
+                    if (streamId === currentView || streamId === 'global') loadDataFromDB().then(resolve);
+                    else resolve();
+                };
+            });
+        }
+
+        async function addBatchToDB(valuesArray, streamId = 'global', isSilent = false) {
+            if(!isSilent) showLoading(`Procesando ${valuesArray.length} registros seguros...`);
+            return new Promise((resolve) => {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const store = transaction.objectStore(STORE_NAME);
+                let time = Date.now();
+                valuesArray.forEach((val, index) => {
+                    store.add({ value: val, timestamp: time + index, streamId: streamId });
+                });
+                transaction.oncomplete = () => {
+                    if (streamId === currentView || streamId === 'global') loadDataFromDB().then(() => { if(!isSilent) hideLoading(); resolve(); }); 
+                    else { if(!isSilent) hideLoading(); resolve(); }
+                };
+            });
+        }
+
+        async function clearDB() {
+            showLoading("Purgando registros...");
+            return new Promise((resolve) => {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const store = transaction.objectStore(STORE_NAME);
+                store.clear().onsuccess = () => loadDataFromDB().then(() => { hideLoading(); resolve(); });
+            });
+        }
+        function confirmClearDB() { if(confirm(`¿Eliminar historial histórico actual?`)) clearDB(); }
+
+        document.getElementById('dynamicInputForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let valuesToProcess = [];
+            for(let i = 1; i <= numSimulInputs; i++) {
+                const inputEl = document.getElementById(`sampleInput_${i}`);
+                if(inputEl && inputEl.value !== '') {
+                    const val = parseInt(inputEl.value, 10);
+                    if (!isNaN(val) && val >= 0 && val <= customMaxValue) valuesToProcess.push({ val: val, id: i, el: inputEl });
+                }
+            }
+            if(valuesToProcess.length === 0) return;
+
+            if (activeInputMode === 'global') {
+                await addBatchToDB(valuesToProcess.map(v => v.val), 'global', true);
+                valuesToProcess.forEach(v => v.el.value = ''); 
+            } else {
+                showLoading("Guardando paralelo...");
+                for(let item of valuesToProcess) { await addSampleToDB(item.val, `serie_${item.id}`); item.el.value = ''; }
+                hideLoading();
+            }
+            document.getElementById('sampleInput_1')?.focus();
+        });
+
+        async function processBatchData() {
+            const rawText = document.getElementById('historyInput').value.trim();
+            if(rawText.length === 0) return;
+
+            // Algoritmo infalible de extracción de cadenas
+            let rawNumbers = [];
+            let tokens = rawText.split(/[\s,;-]+/); 
+
+            for(let token of tokens) {
+                let cleanToken = token.replace(/\D/g, ''); // Deja solo dígitos limpios
+                if(!cleanToken) continue;
+
+                // Si detecta un "chorizo" continuo de números múltiplo exacto (Ej. 16 cifras pegadas)
+                if(cleanToken.length > currentDigits && cleanToken.length % currentDigits === 0) {
+                    for(let i = 0; i < cleanToken.length; i += currentDigits) {
+                        rawNumbers.push(cleanToken.substring(i, i + currentDigits));
+                    }
+                } 
+                // Si es más largo pero no múltiplo (texto pegado anómalo), rescata todo lo que pueda por chunks
+                else if (cleanToken.length > currentDigits) {
+                    for(let i = 0; i + currentDigits <= cleanToken.length; i += currentDigits) {
+                        rawNumbers.push(cleanToken.substring(i, i + currentDigits));
+                    }
+                }
+                // Tamaño normal o menor
+                else {
+                    rawNumbers.push(cleanToken);
+                }
+            }
+
+            if (rawNumbers.length === 0) return alert("No se detectaron secuencias numéricas válidas en el texto.");
+            
+            // Filtro estricto respetando el customMaxValue
+            const parsedNumbers = rawNumbers
+                .map(n => parseInt(n, 10))
+                .filter(n => !isNaN(n) && n >= 0 && n <= customMaxValue);
+            
+            if(parsedNumbers.length === 0) {
+                return alert(`Ningún número rescatado cumplió el requisito de estar entre 0 y ${customMaxValue}. Verifica el Max Rango y el Formato.`);
+            }
+
+            document.getElementById('historyInput').value = '';
+            
+            // Inyección a Base de Datos
+            if (activeInputMode === 'independent' && numSimulInputs > 1) {
+                showLoading("Repartiendo lote a series paralelas...");
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const store = transaction.objectStore(STORE_NAME);
+                let time = Date.now();
+                
+                for (let i = 0; i < parsedNumbers.length; i++) {
+                    let seriesIndex = (i % numSimulInputs) + 1; // Reparte en ciclo (1,2,3...8, 1,2,3...8)
+                    store.add({ value: parsedNumbers[i], timestamp: time + i, streamId: `serie_${seriesIndex}` });
+                }
+                
+                transaction.oncomplete = () => loadDataFromDB().then(hideLoading);
+                transaction.onerror = () => { hideLoading(); alert("Fallo al guardar paralelo."); };
+            } else {
+                await addBatchToDB(parsedNumbers, currentView);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('totalSamples').textContent = totalRecords.toLocaleString();
+            document.getElementById('lastSampleLabel').textContent = lastValue !== null ? formatNumber(lastValue) : '--';
+            document.getElementById('currentAnchor').textContent = lastValue !== null ? formatNumber(lastValue) : '--';
+
+            if (lastValue !== null) {
+                calculateMarkov(lastValue);
+                calculateSectorMarkov(lastValue); 
+            } else { resetUIStats(); }
+
+            drawFrequencyChart(); drawTrendChart(); renderRecentNumbers(); renderAffinityTable();
+        }
+
+        function resetUIStats() {
+            document.getElementById('predictedNext').textContent = '--';
+            document.getElementById('predictionConfidence').textContent = '0%';
+            document.getElementById('predictedNextBySector').textContent = '--';
+            document.getElementById('confidenceBySector').textContent = '0%';
+            document.getElementById('predictedNextSector').textContent = '--';
+            document.getElementById('confidenceNextSector').textContent = '0%';
+            document.getElementById('currentSectorAnchor').textContent = '--';
+        }
+
+        function renderRecentNumbers() {
+            const container = document.getElementById('recentNumbersList');
+            container.innerHTML = '';
+            if(recentHistory.length === 0) {
+                container.innerHTML = '<div class="text-xs text-slate-400 w-full text-center py-2 italic">Sin registros</div>';
+                return;
+            }
+            [...recentHistory].reverse().forEach(num => {
+                const span = document.createElement('span');
+                span.className = "text-[11px] font-mono bg-white border border-slate-200 text-indigo-700 px-1.5 py-0.5 rounded shadow-sm";
+                span.textContent = formatNumber(num);
+                container.appendChild(span);
+            });
+        }
+
+        function renderAffinityTable() {
+            const container = document.getElementById('tensAffinityTable');
+            container.innerHTML = '';
+            for(let initD = 0; initD < 10; initD++) {
+                const arrUnidades = firstToLastDigit[initD];
+                let maxCount = 0; let favUnit = -1; let total = 0;
+
+                for(let u=0; u<10; u++) {
+                    total += arrUnidades[u];
+                    if(arrUnidades[u] > maxCount) { maxCount = arrUnidades[u]; favUnit = u; }
+                }
+                let displayUnit = favUnit !== -1 && total > 0 ? favUnit : '-';
+                let percent = total > 0 ? ((maxCount / total) * 100).toFixed(1) + '%' : '0%';
+                
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200 rounded-lg p-2 flex flex-col justify-center items-center text-center shadow-sm";
+                card.innerHTML = `
+                    <div class="text-[9px] text-slate-500 font-bold mb-1 uppercase">Prefijo ${initD}</div>
+                    <div class="text-2xl font-black text-slate-700 leading-none">${displayUnit}</div>
+                    <div class="text-[9px] text-purple-600 font-bold mt-1">${percent}</div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        function calculateMarkov(currentVal) {
+            let maxCount = 0; let predictedVal = -1; let total = 0;
+            if (transitions.has(currentVal)) {
+                for (let [nextVal, count] of transitions.get(currentVal).entries()) {
+                    total += count;
+                    if (count > maxCount) { maxCount = count; predictedVal = nextVal; }
+                }
+            }
+            if (total > 0 && predictedVal !== -1) {
+                document.getElementById('predictedNext').textContent = formatNumber(predictedVal);
+                document.getElementById('predictionConfidence').textContent = ((maxCount / total) * 100).toFixed(1) + '%';
+            } else {
+                document.getElementById('predictedNext').textContent = "?";
+                document.getElementById('predictionConfidence').textContent = "N/A";
+            }
+        }
+
+        function calculateSectorMarkov(currentVal) {
+            let paddedStr = formatNumber(currentVal);
+            let currentSector = parseInt(paddedStr[0], 10);
+            let sectorMask = currentSector.toString() + "X".repeat(Math.max(1, currentDigits - 1));
+            document.getElementById('currentSectorAnchor').textContent = sectorMask;
+
+            let maxC = 0; let pExact = -1; let tExact = 0;
+            if (sectorTransitions.has(currentSector)) {
+                for (let [nextVal, count] of sectorTransitions.get(currentSector).entries()) {
+                    tExact += count;
+                    if (count > maxC) { maxC = count; pExact = nextVal; }
+                }
+            }
+            if (tExact > 0 && pExact !== -1) {
+                document.getElementById('predictedNextBySector').textContent = formatNumber(pExact);
+                document.getElementById('confidenceBySector').textContent = ((maxC / tExact) * 100).toFixed(1) + '%';
+            } else {
+                document.getElementById('predictedNextBySector').textContent = "?";
+                document.getElementById('confidenceBySector').textContent = "N/A";
+            }
+
+            let mSec = 0; let pSec = -1; let tSec = 0;
+            if (sectorToSector.has(currentSector)) {
+                for (let [nextSec, count] of sectorToSector.get(currentSector).entries()) {
+                    tSec += count;
+                    if (count > mSec) { mSec = count; pSec = nextSec; }
+                }
+            }
+            if (tSec > 0 && pSec !== -1) {
+                document.getElementById('predictedNextSector').textContent = pSec.toString() + "X".repeat(Math.max(1, currentDigits - 1));
+                document.getElementById('confidenceNextSector').textContent = ((mSec / tSec) * 100).toFixed(1) + '%';
+            } else {
+                document.getElementById('predictedNextSector').textContent = "?";
+                document.getElementById('confidenceNextSector').textContent = "N/A";
+            }
+        }
+
+        function drawFrequencyChart() {
+            const canvas = document.getElementById('frequencyChart');
+            if(!canvas.offsetParent) return;
+            canvas.width = canvas.parentElement.clientWidth * 2; canvas.height = canvas.parentElement.clientHeight * 2;
+            const w = canvas.width, h = canvas.height; ctxFreq.clearRect(0, 0, w, h);
+
+            if (frequencies.size === 0) return;
+            let freqsArray = [...frequencies.entries()].map(e => ({ num: e[0], count: e[1] }));
+            freqsArray.sort((a, b) => b.count - a.count);
+            const top10 = freqsArray.slice(0, 10);
+            const maxVal = top10[0].count;
+            if(maxVal === 0) return;
+
+            const barW = (w / 10) - 10;
+            top10.forEach((item, i) => {
+                const barH = (item.count / maxVal) * (h * 0.7);
+                const x = (i * (w / 10)) + 5; const y = h - barH - 30;
+                ctxFreq.fillStyle = '#10b981'; 
+                ctxFreq.fillRect(x, y, barW, barH);
+                ctxFreq.fillStyle = '#64748b'; ctxFreq.font = 'bold 20px monospace'; ctxFreq.textAlign = 'center';
+                ctxFreq.fillText(formatNumber(item.num), x + (barW/2), h - 5);
+            });
+        }
+
+        function drawTrendChart() {
+            const canvas = document.getElementById('trendChart');
+            if(!canvas.offsetParent) return;
+            canvas.width = canvas.parentElement.clientWidth * 2; canvas.height = canvas.parentElement.clientHeight * 2;
+            const w = canvas.width, h = canvas.height; ctxTrend.clearRect(0, 0, w, h);
+
+            const data = recentHistory.slice(-30);
+            if (data.length < 2) return;
+            const stepX = w / (data.length - 1);
+            const scaleY = (val) => h - ((val / customMaxValue) * (h * 0.8) + (h * 0.1));
+
+            ctxTrend.beginPath();
+            let windowSize = 3;
+            for (let i = 0; i < data.length; i++) {
+                let start = Math.max(0, i - windowSize + 1); let sum = 0;
+                for(let j = start; j <= i; j++) sum += data[j];
+                let avg = sum / (i - start + 1);
+                if (i === 0) ctxTrend.moveTo(0, scaleY(avg)); else ctxTrend.lineTo(i * stepX, scaleY(avg));
+            }
+            ctxTrend.strokeStyle = '#f43f5e'; ctxTrend.lineWidth = 6; ctxTrend.lineJoin = 'round'; ctxTrend.stroke();
+
+            ctxTrend.fillStyle = 'rgba(100, 116, 139, 0.5)';
+            for (let i = 0; i < data.length; i++) {
+                ctxTrend.beginPath(); ctxTrend.arc(i * stepX, scaleY(data[i]), 5, 0, Math.PI * 2); ctxTrend.fill();
+            }
+        }
+        window.addEventListener('resize', () => { drawFrequencyChart(); drawTrendChart(); });
+
+        const cryptoLog = document.getElementById('cryptoLog');
+        const secureNumberDisplay = document.getElementById('secureNumberDisplay');
+        const secureStatus = document.getElementById('secureStatus');
+        const secureStatusText = document.getElementById('secureStatusText');
+        let lastSecureNumber = null;
+
+        function appendToLog(msg) {
+            const time = new Date().toISOString().split('T')[1].substring(0, 8);
+            cryptoLog.innerHTML += `[${time}] ${msg}<br>`; cryptoLog.scrollTop = cryptoLog.scrollHeight;
+        }
+
+        function generateTrueRandomInt(min, max) {
+            const range = max - min + 1;
+            let bytesNeeded = 1; if(range > 256) bytesNeeded = 2; if(range > 65536) bytesNeeded = 3; if(range > 16777216) bytesNeeded = 4;
+            const maxValidValue = Math.pow(256, bytesNeeded) - (Math.pow(256, bytesNeeded) % range);
+            const randomBytes = new Uint8Array(bytesNeeded);
+            let randomValue;
+            do {
+                window.crypto.getRandomValues(randomBytes);
+                randomValue = 0;
+                for (let i = 0; i < bytesNeeded; i++) randomValue = (randomValue << 8) | randomBytes[i];
+            } while (randomValue >= maxValidValue); 
+            return min + (randomValue % range);
+        }
+
+        function getSecureNumberAntiMarkov() {
+            let nextNum; let attempts = 0;
+            do { nextNum = generateTrueRandomInt(0, customMaxValue); attempts++; } while (nextNum === lastSecureNumber);
+            lastSecureNumber = nextNum; return { num: nextNum, attempts: attempts };
+        }
+
+        async function generateSingleSecureNumber() {
+            secureStatus.classList.replace('bg-slate-500', 'bg-emerald-500'); secureStatus.classList.add('animate-pulse');
+            secureStatusText.textContent = `Extrayendo de Hardware...`; secureNumberDisplay.style.opacity = 0.5;
+            setTimeout(async () => {
+                const result = getSecureNumberAntiMarkov();
+                secureNumberDisplay.textContent = formatNumber(result.num);
+                secureNumberDisplay.style.opacity = 1; secureStatus.classList.remove('animate-pulse');
+                secureStatusText.textContent = `OK - Ciclos: ${result.attempts}`;
+                appendToLog(`> Gen=<b>${formatNumber(result.num)}</b> en [${currentView}]`);
+                await addSampleToDB(result.num, currentView);
+            }, 300);
+        }
+
+        async function generateBatchSecureData() {
+            const amount = parseInt(document.getElementById('secureBatchAmount').value, 10);
+            if(isNaN(amount) || amount < 1 || amount > 5000) return alert("Cantidad inválida.");
+            let secureValues = [];
+            for(let i=0; i<amount; i++) secureValues.push(getSecureNumberAntiMarkov().num);
+            await addBatchToDB(secureValues, currentView, true); 
+            appendToLog(`> Inyectados ${amount} registros puros.`);
+        }
+
+        function exportSession() {
+            showLoading("Generando Backup (.par)...");
+            const transaction = db.transaction([STORE_NAME], "readonly");
+            const request = transaction.objectStore(STORE_NAME).getAll();
+            request.onsuccess = () => {
+                const machineObj = machines.find(m => m.id === activeMachineId);
+                const sessionData = { metadata: { app: "Predictor_Workspace", date: new Date().toISOString() }, machine: machineObj, records: request.result };
+                const blob = new Blob([JSON.stringify(sessionData)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url;
+                a.download = `${machineObj.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.par`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                hideLoading();
+            };
+        }
+
+        function triggerImport() { document.getElementById('importFileInput').click(); }
+        function importSession(event) {
+            const file = event.target.files[0]; if (!file) return;
+            showLoading("Restaurando máquina...");
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const sessionData = JSON.parse(e.target.result);
+                    if (!sessionData.machine || !sessionData.records) throw new Error("Archivo .par inválido.");
+                    const importedMachine = sessionData.machine;
+                    const newId = 'm_' + Date.now();
+                    importedMachine.id = newId; importedMachine.name = importedMachine.name + " (Backup)";
+                    machines.push(importedMachine); localStorage.setItem('predictor_machines', JSON.stringify(machines));
+                    activeMachineId = newId; localStorage.setItem('predictor_active_machine', activeMachineId);
+                    renderMachineSelector(); await applyMachineConfig(newId);
+                    if(sessionData.records.length > 0) {
+                        const addTx = db.transaction([STORE_NAME], "readwrite");
+                        const addStore = addTx.objectStore(STORE_NAME);
+                        sessionData.records.forEach(record => { delete record.id; addStore.add(record); });
+                        addTx.oncomplete = () => loadDataFromDB().then(() => { document.getElementById('importFileInput').value = ''; hideLoading(); });
+                    } else hideLoading();
+                } catch (error) { hideLoading(); alert("El archivo está dañado o no es compatible."); }
+            };
+            reader.readAsText(file);
+        }
+
+        window.onload = () => initMachineSystem();
+    </script>
+</body>
+</html>
