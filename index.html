@@ -72,9 +72,22 @@
                     </select>
                 </div>
 
-                <button onclick="confirmClearDB()" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center border border-gray-100">
-                    <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Limpiar DB Actual
-                </button>
+                <!-- NUEVO: Botones de Guardar, Cargar y Limpiar -->
+                <div class="flex items-center space-x-2 border-l border-gray-200 pl-4">
+                    <input type="file" id="importFileInput" accept=".par,.json" class="hidden" onchange="importSession(event)">
+                    
+                    <button onclick="triggerImport()" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center border border-blue-100" title="Cargar archivo de trabajo (.par)">
+                        <i data-lucide="upload" class="w-4 h-4 mr-1"></i> Cargar
+                    </button>
+                    
+                    <button onclick="exportSession()" class="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center border border-emerald-100" title="Guardar sesión actual (.par)">
+                        <i data-lucide="download" class="w-4 h-4 mr-1"></i> Guardar
+                    </button>
+
+                    <button onclick="confirmClearDB()" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center border border-red-100">
+                        <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Limpiar
+                    </button>
+                </div>
             </div>
 
             <!-- Botones Pestañas -->
@@ -1122,6 +1135,149 @@
             await addBatchToDB(secureValues, currentView, true); 
             appendToLog(`> Lote Inyectado. Modelo predictivo corrompido con éxito.`);
             alert(`Inyectados ${amount} valores a la base de datos (${currentView}).`);
+        }
+
+        // ==========================================
+        // GESTIÓN DE ARCHIVOS .PAR (GUARDAR/CARGAR)
+        // ==========================================
+        
+        function exportSession() {
+            loadingOverlay.classList.remove('hidden');
+            document.getElementById('loadingText').textContent = "Generando archivo .par...";
+            
+            const transaction = db.transaction([STORE_NAME], "readonly");
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                const data = request.result;
+                // Empaquetar configuración + base de datos
+                const sessionData = {
+                    metadata: {
+                        app: "PredictorMulticifra",
+                        exportDate: new Date().toISOString()
+                    },
+                    config: {
+                        currentDigits: currentDigits,
+                        customMaxValue: customMaxValue,
+                        activeInputMode: activeInputMode,
+                        numSimulInputs: numSimulInputs,
+                        currentView: currentView
+                    },
+                    records: data
+                };
+
+                // Crear archivo JSON pero con extensión .par
+                const jsonString = JSON.stringify(sessionData);
+                const blob = new Blob([jsonString], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                const dateStr = new Date().toISOString().split('T')[0];
+                a.download = `Sesion_${currentDigits}Cifras_${dateStr}.par`;
+                document.body.appendChild(a);
+                a.click();
+                
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                loadingOverlay.classList.add('hidden');
+                document.getElementById('loadingText').textContent = "Procesando...";
+            };
+
+            request.onerror = () => {
+                loadingOverlay.classList.add('hidden');
+                alert("Error al intentar exportar los datos de la Base de Datos.");
+            };
+        }
+
+        function triggerImport() {
+            document.getElementById('importFileInput').click();
+        }
+
+        function importSession(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            loadingOverlay.classList.remove('hidden');
+            document.getElementById('loadingText').textContent = "Restaurando sesión...";
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const sessionData = JSON.parse(e.target.result);
+                    
+                    if (!sessionData.config || !sessionData.records) {
+                        throw new Error("Archivo .par inválido o corrupto.");
+                    }
+
+                    // 1. Restaurar valores de la Interfaz de Usuario
+                    document.getElementById('digitSelector').value = sessionData.config.currentDigits;
+                    document.getElementById('maxRangeLimit').value = sessionData.config.customMaxValue;
+                    document.getElementById('simulCount').value = sessionData.config.numSimulInputs;
+                    document.getElementById('streamMode').value = sessionData.config.activeInputMode;
+                    
+                    // 2. Restaurar variables globales
+                    currentDigits = sessionData.config.currentDigits;
+                    customMaxValue = sessionData.config.customMaxValue;
+                    activeInputMode = sessionData.config.activeInputMode;
+                    numSimulInputs = sessionData.config.numSimulInputs;
+                    
+                    // 3. Apuntar a la base de datos correcta y regenerar cajas de texto
+                    DB_NAME = `PredictorMultiseriesDB_${currentDigits}`;
+                    renderInputFields(); 
+                    
+                    // 4. Cerrar DB actual y abrir la del archivo
+                    if (db) db.close();
+                    await initDB();
+                    
+                    // 5. Borrar datos viejos y cargar el historial del archivo
+                    const clearTx = db.transaction([STORE_NAME], "readwrite");
+                    const clearStore = clearTx.objectStore(STORE_NAME);
+                    clearStore.clear().onsuccess = () => {
+                        
+                        if (sessionData.records.length === 0) {
+                            currentView = sessionData.config.currentView || 'global';
+                            updateSeriesViewSelector();
+                            loadDataFromDB().then(() => loadingOverlay.classList.add('hidden'));
+                            return;
+                        }
+
+                        const addTx = db.transaction([STORE_NAME], "readwrite");
+                        const addStore = addTx.objectStore(STORE_NAME);
+                        
+                        // Insertar uno por uno restaurando su estructura original
+                        sessionData.records.forEach(record => {
+                            delete record.id; // Quitar ID para que auto-incremente limpiamente
+                            addStore.add(record);
+                        });
+
+                        addTx.oncomplete = () => {
+                            // 6. Restaurar la vista (ej. regresar a la Serie 3 si ahí estábamos)
+                            currentView = sessionData.config.currentView || 'global';
+                            updateSeriesViewSelector(); 
+                            
+                            const selector = document.getElementById('seriesViewSelector');
+                            if(selector) selector.value = currentView;
+                            
+                            // 7. Cargar matemáticas y gráficas
+                            loadDataFromDB().then(() => {
+                                loadingOverlay.classList.add('hidden');
+                                document.getElementById('loadingText').textContent = "Procesando...";
+                                // Limpiar el input file por si quieren volver a cargar el mismo
+                                document.getElementById('importFileInput').value = ''; 
+                            });
+                        };
+                    };
+
+                } catch (error) {
+                    console.error("Fallo al leer archivo .par", error);
+                    loadingOverlay.classList.add('hidden');
+                    alert("El archivo no es compatible o está dañado.");
+                }
+            };
+            
+            reader.readAsText(file);
         }
 
         // ==========================================
