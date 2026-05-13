@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictor & Generador Multicifra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .canvas-container { position: relative; width: 100%; height: 250px; }
+        canvas { width: 100%; height: 100%; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .loading { animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .matrix-bg { background-color: #0f172a; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Modal de Carga -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden">
+        <i data-lucide="cpu" class="w-16 h-16 text-indigo-600 animate-pulse mb-4"></i>
+        <h2 class="text-2xl font-bold text-gray-800" id="loadingText">Procesando...</h2>
+    </div>
+
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg text-white shadow-md">
+                        <i data-lucide="layers"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Suite de Análisis Multicifra</h1>
+                        <p class="text-sm text-gray-500 flex items-center">
+                            <span id="dbIndicator" class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                            DB: <span id="dbStatusLabel" class="ml-1 font-semibold mr-2">Conectando...</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <label for="digitSelector" class="text-sm font-semibold text-slate-600 flex items-center">
+                        <i data-lucide="hash" class="w-4 h-4 mr-1"></i> Formato:
+                    </label>
+                    <select id="digitSelector" onchange="changeDigitCount(this.value)" class="bg-white border border-slate-300 text-slate-800 text-sm rounded focus:ring-indigo-500 focus:border-indigo-500 block px-3 py-1 font-bold outline-none cursor-pointer">
+                        <option value="2" selected>2 Cifras</option>
+                        <option value="3">3 Cifras</option>
+                        <option value="4">4 Cifras</option>
+                        <option value="5">5 Cifras</option>
+                        <option value="6">6 Cifras</option>
+                    </select>
+                    <span class="text-slate-300 mx-1">|</span>
+                    <label for="maxRangeLimit" class="text-sm font-semibold text-slate-600">Max:</label>
+                    <input type="number" id="maxRangeLimit" value="99" onchange="updateMaxLimit()" class="w-16 bg-white border border-slate-300 text-slate-800 text-sm rounded focus:ring-indigo-500 px-2 py-1 font-bold outline-none text-center" title="Límite numérico del sorteo (Ej: 50)">
+                </div>
+
+                <!-- NUEVO: Selector de Vista de Series -->
+                <div id="viewSelectorContainer" class="hidden flex items-center space-x-3 bg-indigo-50 p-2 rounded-lg border border-indigo-200">
+                    <label class="text-sm font-semibold text-indigo-800 flex items-center">
+                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Serie:
+                    </label>
+                    <select id="seriesViewSelector" onchange="changeSeriesView(this.value)" class="bg-white border border-indigo-300 text-indigo-800 text-sm rounded focus:ring-indigo-500 block px-3 py-1 font-bold outline-none cursor-pointer">
+                        <option value="global">Global</option>
+                    </select>
+                </div>
+
+                <button onclick="confirmClearDB()" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center border border-gray-100">
+                    <i data-lucide="trash-2" class="w-4 h-4 mr-2"></i> Limpiar DB Actual
+                </button>
+            </div>
+
+            <!-- Botones Pestañas -->
+            <div class="flex space-x-2 bg-gray-200 p-1 rounded-xl w-full max-w-md">
+                <button onclick="switchTab('analisis')" id="tab-btn-analisis" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white shadow-sm text-indigo-700">
+                    <i data-lucide="line-chart" class="w-4 h-4 inline-block mr-1"></i> Análisis & Predicción
+                </button>
+                <button onclick="switchTab('generador')" id="tab-btn-generador" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-gray-600 hover:text-gray-900">
+                    <i data-lucide="shield-alert" class="w-4 h-4 inline-block mr-1"></i> Generador Seguro
+                </button>
+            </div>
+        </header>
+
+        <!-- PESTAÑA 1 -->
+        <div id="tab-analisis" class="tab-content active">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Panel Izquierdo -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-t-indigo-500">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-lg font-bold">Ingresar Muestra</h2>
+                            <button type="button" onclick="toggleConfig()" class="text-gray-400 hover:text-indigo-600 transition-colors" title="Configurar Múltiples Entradas">
+                                <i data-lucide="settings" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <!-- Panel de Configuración -->
+                        <div id="inputConfigPanel" class="hidden bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200 text-xs space-y-3">
+                            <div>
+                                <label class="font-bold text-gray-700 block mb-1">Muestras Simultáneas (Ej: 8 para sorteos)</label>
+                                <select id="simulCount" onchange="renderInputFields()" class="w-full p-2 border border-gray-300 rounded focus:ring-indigo-500 outline-none">
+                                    <option value="1" selected>1 Muestra</option>
+                                    <option value="2">2 Muestras</option>
+                                    <option value="3">3 Muestras</option>
+                                    <option value="4">4 Muestras</option>
+                                    <option value="5">5 Muestras</option>
+                                    <option value="6">6 Muestras</option>
+                                    <option value="7">7 Muestras</option>
+                                    <option value="8">8 Muestras (16 Cifras)</option>
+                                    <option value="9">9 Muestras</option>
+                                    <option value="10">10 Muestras</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="font-bold text-gray-700 block mb-1">Tratamiento de los datos</label>
+                                <select id="streamMode" onchange="handleModeChange()" class="w-full p-2 border border-gray-300 rounded focus:ring-indigo-500 outline-none">
+                                    <option value="global" selected>Opción 1: Global (Mezclados en el mismo historial)</option>
+                                    <option value="independent">Opción 2: Independiente (Cada uno a su propia serie)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <form id="dynamicInputForm" class="mt-2">
+                            <!-- Inyectado por JS -->
+                        </form>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h2 class="text-sm font-bold mb-2 flex items-center"><i data-lucide="database" class="w-4 h-4 mr-2"></i> Carga Masiva (En Serie Actual)</h2>
+                        <textarea id="historyInput" class="w-full h-24 p-3 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none mb-3 font-mono" placeholder="Pegar miles de números separados por comas..."></textarea>
+                        <button onclick="processBatchData()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-medium transition-colors">Guardar Lote</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center">
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Muestras</div>
+                            <div id="totalSamples" class="text-2xl font-black text-gray-800">0</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center">
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Último Ingreso</div>
+                            <div id="lastSampleLabel" class="text-2xl font-black font-mono text-indigo-600">--</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center">
+                            <i data-lucide="history" class="w-4 h-4 mr-2"></i> Últimos 100 Registros
+                        </h2>
+                        <div id="recentNumbersList" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto custom-scroll p-2 bg-gray-50 rounded-lg border border-gray-100">
+                            <div class="text-xs text-gray-400 w-full text-center py-2">Sin registros</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Derecho -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div class="bg-indigo-900 p-6 rounded-xl shadow-md text-white relative overflow-hidden">
+                            <i data-lucide="git-merge" class="absolute -right-6 -bottom-6 w-32 h-32 text-indigo-800 opacity-50"></i>
+                            <div class="relative z-10">
+                                <h3 class="text-[10px] font-bold text-indigo-300 tracking-widest uppercase mb-1">Modelo Markov Exacto</h3>
+                                <p class="text-[11px] text-gray-400 mb-4">Después del <span id="currentAnchor" class="font-bold text-white bg-white/20 px-1 rounded">--</span> (Exacto)</p>
+                                <div class="flex justify-between items-end">
+                                    <div id="predictedNext" class="text-4xl sm:text-5xl lg:text-5xl font-black font-mono text-green-400">--</div>
+                                    <div class="text-right">
+                                        <div class="text-[10px] uppercase text-indigo-300">Confianza</div>
+                                        <div id="predictionConfidence" class="text-lg font-bold">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NUEVO: TARJETA DE MODELO POR SECTORES (RANGOS) -->
+                        <div class="bg-cyan-900 p-6 rounded-xl shadow-md text-white relative overflow-hidden">
+                            <i data-lucide="pie-chart" class="absolute -right-6 -bottom-6 w-32 h-32 text-cyan-800 opacity-50"></i>
+                            <div class="relative z-10">
+                                <h3 class="text-[10px] font-bold text-cyan-300 tracking-widest uppercase mb-1">Modelo por Sectores (Rangos)</h3>
+                                <p class="text-[11px] text-gray-300 mb-4">Estando en la zona <span id="currentSectorAnchor" class="font-bold text-white bg-white/20 px-1 rounded font-mono">--</span></p>
+                                
+                                <div class="flex justify-between items-end mb-3 border-b border-cyan-700/50 pb-2">
+                                    <div>
+                                        <div class="text-[9px] uppercase text-cyan-400">Num. Exacto que sigue:</div>
+                                        <div id="predictedNextBySector" class="text-2xl font-black font-mono text-white">--</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[9px] uppercase text-cyan-400">Certeza</div>
+                                        <div id="confidenceBySector" class="text-sm font-bold">0%</div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <div class="text-[9px] uppercase text-cyan-400">Salta a la zona:</div>
+                                        <div id="predictedNextSector" class="text-xl font-bold font-mono text-purple-300">--</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-[9px] uppercase text-cyan-400">Certeza</div>
+                                        <div id="confidenceNextSector" class="text-sm font-bold">0%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 relative overflow-hidden">
+                            <div class="relative z-10">
+                                <h3 class="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-1">Estructura Interna del Número</h3>
+                                <p class="text-[11px] text-gray-500 mb-4">
+                                    Si la <b class="text-slate-700">primera cifra</b> es <span id="currentFirstDigit" class="font-bold text-slate-800 bg-slate-100 px-1 rounded">--</span>
+                                </p>
+                                <div class="flex items-center space-x-6">
+                                    <div class="flex flex-col items-center">
+                                        <div class="text-[10px] text-gray-400 uppercase mb-1">Última Cifra Fav.</div>
+                                        <div id="favoriteUnit" class="text-4xl font-black font-mono text-orange-500">--</div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-[10px] text-gray-400 uppercase mb-1">Frecuencia de este patrón</div>
+                                        <div class="w-full bg-gray-100 rounded-full h-2 mb-1">
+                                            <div id="unitAffinityBar" class="bg-orange-500 h-2 rounded-full" style="width: 0%"></div>
+                                        </div>
+                                        <div id="unitAffinityText" class="text-[10px] text-gray-500 font-medium">0% de las veces que inicia en X</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Top 10 Frecuencias</h3>
+                            <div class="canvas-container h-[200px]"><canvas id="frequencyChart"></canvas></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Tendencia (Últimos 30)</h3>
+                            <div class="canvas-container h-[200px]"><canvas id="trendChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mt-6">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center">
+                            <i data-lucide="list-tree" class="w-4 h-4 mr-2"></i> Afinidad: Última cifra favorita según la Primera Cifra (0 a 9)
+                        </h3>
+                        <div id="tensAffinityTable" class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                            <!-- Inyectado por JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2 -->
+        <div id="tab-generador" class="tab-content matrix-bg rounded-2xl p-6 lg:p-8 min-h-[600px] border border-slate-700 shadow-2xl relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-80 pointer-events-none"></div>
+            
+            <div class="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
+                <div class="text-center mb-10">
+                    <i data-lucide="shield-check" class="w-16 h-16 text-emerald-400 mx-auto mb-4"></i>
+                    <h2 class="text-3xl font-black text-white mb-2 tracking-tight">Motor de Entropía Segura</h2>
+                    <p class="text-slate-400 text-sm max-w-xl mx-auto">
+                        Genera secuencias matemáticamente inquebrantables. Usa <code class="bg-slate-800 px-1 rounded text-emerald-300">window.crypto</code> y destruye repeticiones inmediatas para que la probabilidad del Modelo de Markov siempre falle.
+                    </p>
+                </div>
+
+                <div class="bg-slate-800/80 backdrop-blur-md p-10 rounded-3xl border border-slate-600 shadow-2xl shadow-emerald-900/20 mb-10 flex flex-col items-center w-full max-w-sm">
+                    <div class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-4">Resultado Seguro</div>
+                    <div id="secureNumberDisplay" class="text-6xl font-black font-mono text-white tracking-widest drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]">
+                        --
+                    </div>
+                    <div class="mt-6 flex items-center text-xs text-slate-400 bg-slate-900/50 px-4 py-2 rounded-full">
+                        <div id="secureStatus" class="w-2 h-2 rounded-full bg-slate-500 mr-2"></div>
+                        <span id="secureStatusText">Esperando generación...</span>
+                    </div>
+                </div>
+
+                <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button onclick="generateSingleSecureNumber()" class="w-full flex justify-center py-4 px-4 border border-transparent text-sm font-bold rounded-xl text-slate-900 bg-emerald-400 hover:bg-emerald-300 transition-all shadow-[0_0_20px_rgba(52,211,153,0.3)]">
+                        <i data-lucide="zap" class="w-5 h-5 mr-2"></i> Generar 1 Muestra Segura
+                    </button>
+                    
+                    <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-col justify-center">
+                        <p class="text-xs text-slate-400 mb-2">Generar e inyectar al historial para corromper predicciones:</p>
+                        <div class="flex space-x-2">
+                            <input type="number" id="secureBatchAmount" value="100" min="10" max="5000" class="w-24 bg-slate-900 border border-slate-600 rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-emerald-400 text-center font-mono">
+                            <button onclick="generateBatchSecureData()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition-colors">
+                                Inyectar Lote
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full mt-10">
+                    <div id="cryptoLog" class="bg-black/50 border border-slate-700 rounded-xl p-4 h-32 overflow-y-auto font-mono text-[10px] text-emerald-400/70 custom-scroll break-all leading-relaxed">
+                        > Motor inicializado. Resoluciones dinámicas activadas.<br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ==========================================
+        // CONFIGURACIÓN DINÁMICA DE CIFRAS Y SERIES
+        // ==========================================
+        let currentDigits = 2; 
+        
+        // Cambiamos el nombre de la DB (añadiendo Multiseries) para separar los datos nuevos.
+        let DB_NAME = `PredictorMultiseriesDB_${currentDigits}`; 
+        const DB_VERSION = 1;
+        const STORE_NAME = 'samples';
+        let db = null;
+
+        // ESTADO MULTISERIES
+        let currentView = 'global'; 
+        let activeInputMode = 'global'; 
+        let numSimulInputs = 1;
+        let customMaxValue = 99; // Límite configurable por el usuario (ej: 50)
+
+        // ESTADO EN MEMORIA (USANDO MAPS PARA SOPORTAR MILLONES DE POSIBILIDADES)
+        let totalRecords = 0;
+        let lastValue = null;
+        
+        // Estructuras de datos dispersas (Sparse)
+        let frequencies = new Map(); // Mapa de: { número: cantidadVeces }
+        let transitions = new Map(); // Mapa de: { numeroAnterior: Mapa{ numeroSiguiente: cantidadVeces } }
+        let recentHistory = []; 
+        
+        // NUEVAS VARIABLES PARA SECTORES
+        let sectorTransitions = new Map(); // Mapa: { sectorAnterior: Mapa{ numeroSiguienteExacto: cantidadVeces } }
+        let sectorToSector = new Map();    // Mapa: { sectorAnterior: Mapa{ sectorSiguiente: cantidadVeces } }
+
+        // Estructura generalizada: Primera Cifra vs Última Cifra (Siempre es 10x10)
+        let firstToLastDigit = Array.from({ length: 10 }, () => new Array(10).fill(0));
+
+        // UI
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const dbStatusLabel = document.getElementById('dbStatusLabel');
+        const dbIndicator = document.getElementById('dbIndicator');
+        const ctxFreq = document.getElementById('frequencyChart').getContext('2d');
+        const ctxTrend = document.getElementById('trendChart').getContext('2d');
+
+        // ==========================================
+        // FUNCIONES DE UI MULTISERIES
+        // ==========================================
+        function toggleConfig() {
+            const panel = document.getElementById('inputConfigPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        function renderInputFields() {
+            numSimulInputs = parseInt(document.getElementById('simulCount').value, 10);
+            const form = document.getElementById('dynamicInputForm');
+            const maxVal = getMaxValidNumber();
+            const placeholderStr = "0".repeat(currentDigits);
+            
+            let html = '';
+            for(let i = 1; i <= numSimulInputs; i++) {
+                let label = activeInputMode === 'independent' ? `<div class="text-[9px] text-gray-500 font-bold mb-1 tracking-wider uppercase truncate">Serie ${i}</div>` : '';
+                html += `
+                    <div class="flex flex-col">
+                        ${label}
+                        <input type="number" id="sampleInput_${i}" min="0" max="${maxVal}" required class="w-full px-1 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm lg:text-base text-center font-mono bg-gray-50 transition-all" placeholder="${placeholderStr}">
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div class="col-span-full mt-2">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-all shadow-md flex items-center justify-center w-full">
+                        <i data-lucide="plus" class="w-5 h-5 mr-2"></i> Agregar
+                    </button>
+                </div>
+            `;
+            
+            let gridCols = numSimulInputs <= 4 ? `grid-cols-${numSimulInputs}` : (numSimulInputs <= 5 ? 'grid-cols-5' : 'grid-cols-4 sm:grid-cols-4 lg:grid-cols-8');
+            form.className = `grid ${gridCols} gap-2`;
+            form.innerHTML = html;
+            lucide.createIcons();
+            updateSeriesViewSelector();
+        }
+
+        function handleModeChange() {
+            activeInputMode = document.getElementById('streamMode').value;
+            renderInputFields();
+        }
+
+        function updateSeriesViewSelector() {
+            const container = document.getElementById('viewSelectorContainer');
+            const selector = document.getElementById('seriesViewSelector');
+            
+            if (activeInputMode === 'independent' && numSimulInputs > 1) {
+                container.classList.remove('hidden');
+                
+                let html = `<option value="global">Global (Mezclados)</option>`;
+                for(let i = 1; i <= numSimulInputs; i++) {
+                    html += `<option value="serie_${i}">Serie Independiente ${i}</option>`;
+                }
+                
+                let currentVal = selector.value;
+                selector.innerHTML = html;
+                
+                if(currentVal.startsWith('serie_') && parseInt(currentVal.split('_')[1]) > numSimulInputs) {
+                    selector.value = 'serie_1';
+                } else {
+                    selector.value = currentVal === 'global' && activeInputMode === 'independent' ? 'serie_1' : currentVal;
+                }
+                
+                if (currentView !== selector.value) {
+                    changeSeriesView(selector.value);
+                }
+            } else {
+                container.classList.add('hidden');
+                if (currentView !== 'global') {
+                    changeSeriesView('global');
+                }
+            }
+        }
+
+        async function changeSeriesView(viewId) {
+            currentView = viewId;
+            await loadDataFromDB(); 
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            ['analisis', 'generador'].forEach(id => {
+                let btn = document.getElementById(`tab-btn-${id}`);
+                btn.classList.replace('bg-white', 'bg-transparent');
+                btn.classList.replace('text-indigo-700', 'text-gray-600');
+                btn.classList.remove('shadow-sm');
+            });
+            let activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.classList.replace('bg-transparent', 'bg-white');
+            activeBtn.classList.replace('text-gray-600', 'text-indigo-700');
+            activeBtn.classList.add('shadow-sm');
+            if(tabId === 'analisis' && totalRecords > 0) {
+                setTimeout(() => { drawFrequencyChart(); drawTrendChart(); }, 50);
+            }
+        }
+
+        // Formatea el número garantizando ceros a la izquierda según los dígitos seleccionados
+        function formatNumber(num) { 
+            return num.toString().padStart(currentDigits, '0'); 
+        }
+
+        // Obtener el límite máximo (ej: 99 para 2 cifras, 999 para 3 cifras...)
+        function getMaxValidNumber() {
+            return customMaxValue;
+        }
+
+        function updateMaxLimit() {
+            let val = parseInt(document.getElementById('maxRangeLimit').value, 10);
+            if(!isNaN(val) && val > 0) {
+                customMaxValue = val;
+                renderInputFields();
+            }
+        }
+
+        // ==========================================
+        // CAMBIO DE FORMATO (2, 3, 4, 5, 6 Cifras)
+        // ==========================================
+        async function changeDigitCount(newVal) {
+            currentDigits = parseInt(newVal, 10);
+            
+            // Auto-actualizar el límite máximo según las cifras
+            customMaxValue = Math.pow(10, currentDigits) - 1;
+            document.getElementById('maxRangeLimit').value = customMaxValue;
+
+            const maxVal = getMaxValidNumber();
+            
+            // Cerrar conexión actual y abrir la base de datos correspondiente al número de cifras
+            if (db) {
+                db.close();
+                dbIndicator.classList.replace('bg-green-500', 'bg-red-500');
+                dbStatusLabel.textContent = "Cambiando DB...";
+            }
+            
+            DB_NAME = `PredictorMultiseriesDB_${currentDigits}`;
+            currentView = activeInputMode === 'independent' ? 'serie_1' : 'global';
+            
+            // Purgar memoria RAM local
+            frequencies.clear();
+            transitions.clear();
+            sectorTransitions.clear(); // Limpiar sectores
+            sectorToSector.clear();    // Limpiar saltos de sector
+            firstToLastDigit = Array.from({ length: 10 }, () => new Array(10).fill(0));
+            recentHistory = [];
+            totalRecords = 0;
+            lastValue = null;
+            resetUIStats();
+            
+            renderInputFields();
+            
+            try {
+                await initDB();
+                await loadDataFromDB();
+            } catch (e) {
+                console.error("Error al cambiar de base de datos", e);
+            }
+        }
+
+        // ==========================================
+        // INDEXEDDB LOGIC
+        // ==========================================
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = (e) => {
+                    dbStatusLabel.textContent = "Error BD";
+                    reject("Error IndexedDB");
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    dbStatusLabel.textContent = `Lista (${currentDigits} Cifras)`;
+                    dbIndicator.classList.replace('bg-red-500', 'bg-green-500');
+                    resolve(db);
+                };
+                request.onupgradeneeded = (e) => {
+                    db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                        // Índice para separar las series
+                        store.createIndex('streamId', 'streamId', { unique: false });
+                    }
+                };
+            });
+        }
+
+        async function loadDataFromDB() {
+            loadingOverlay.classList.remove('hidden');
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], "readonly");
+                const store = transaction.objectStore(STORE_NAME);
+                const request = store.getAll();
+
+                request.onsuccess = () => {
+                    // Filtrar por la vista de serie seleccionada
+                    let allSamples = request.result.filter(item => (item.streamId || 'global') === currentView);
+                    
+                    // Asegurar orden temporal
+                    allSamples.sort((a, b) => a.id - b.id);
+                    
+                    frequencies.clear();
+                    transitions.clear();
+                    sectorTransitions.clear(); // Limpiar sectores
+                    sectorToSector.clear();    // Limpiar saltos de sector
+                    for(let i=0; i<10; i++) firstToLastDigit[i].fill(0);
+                    recentHistory = [];
+                    totalRecords = allSamples.length;
+
+                    if (totalRecords > 0) {
+                        let previousVal = null;
+                        
+                        allSamples.forEach(item => {
+                            const val = item.value;
+                            let paddedStr = formatNumber(val);
+                            let currentSector = parseInt(paddedStr[0], 10);
+                            
+                            // 1. Stats Generales usando MAP
+                            frequencies.set(val, (frequencies.get(val) || 0) + 1);
+                            
+                            // 2. Markov Exacto y Por Sectores
+                            if (previousVal !== null) {
+                                // Markov Exacto
+                                if (!transitions.has(previousVal)) transitions.set(previousVal, new Map());
+                                let nextMap = transitions.get(previousVal);
+                                nextMap.set(val, (nextMap.get(val) || 0) + 1);
+
+                                // Markov Sectores
+                                let prevSector = parseInt(formatNumber(previousVal)[0], 10);
+                                
+                                // De sector anterior -> Número exacto
+                                if (!sectorTransitions.has(prevSector)) sectorTransitions.set(prevSector, new Map());
+                                let stMap = sectorTransitions.get(prevSector);
+                                stMap.set(val, (stMap.get(val) || 0) + 1);
+
+                                // De sector anterior -> Sector siguiente
+                                if (!sectorToSector.has(prevSector)) sectorToSector.set(prevSector, new Map());
+                                let ssMap = sectorToSector.get(prevSector);
+                                ssMap.set(currentSector, (ssMap.get(currentSector) || 0) + 1);
+                            }
+                            previousVal = val;
+
+                            // 3. Afinidad Primera-Última cifra
+                            let firstD = currentSector;
+                            let lastD = val % 10;
+                            firstToLastDigit[firstD][lastD]++;
+                        });
+
+                        lastValue = allSamples[allSamples.length - 1].value;
+                        const limit = Math.min(100, totalRecords);
+                        recentHistory = allSamples.slice(-limit).map(item => item.value);
+                    } else {
+                        lastValue = null;
+                    }
+
+                    updateUI();
+                    loadingOverlay.classList.add('hidden');
+                    resolve();
+                };
+
+                request.onerror = () => {
+                    loadingOverlay.classList.add('hidden');
+                    reject(request.error);
+                };
+            });
+        }
+
+        async function addSampleToDB(value, streamId = 'global') {
+            return new Promise((resolve) => {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const store = transaction.objectStore(STORE_NAME);
+                store.add({ value: value, timestamp: Date.now(), streamId: streamId });
+
+                transaction.oncomplete = () => {
+                    if (streamId === currentView) {
+                        requestAnimationFrame(() => {
+                            // Update MAPS in memory
+                            frequencies.set(value, (frequencies.get(value) || 0) + 1);
+                            let paddedStr = formatNumber(value);
+                            let currentSector = parseInt(paddedStr[0], 10);
+                            
+                            if (lastValue !== null) {
+                                // Markov Exacto
+                                if (!transitions.has(lastValue)) transitions.set(lastValue, new Map());
+                                let nextMap = transitions.get(lastValue);
+                                nextMap.set(value, (nextMap.get(value) || 0) + 1);
+
+                                // Markov Sectores
+                                let prevSector = parseInt(formatNumber(lastValue)[0], 10);
+                                
+                                if (!sectorTransitions.has(prevSector)) sectorTransitions.set(prevSector, new Map());
+                                let stMap = sectorTransitions.get(prevSector);
+                                stMap.set(value, (stMap.get(value) || 0) + 1);
+
+                                if (!sectorToSector.has(prevSector)) sectorToSector.set(prevSector, new Map());
+                                let ssMap = sectorToSector.get(prevSector);
+                                ssMap.set(currentSector, (ssMap.get(currentSector) || 0) + 1);
+                            }
+                            
+                            let firstD = currentSector;
+                            let lastD = value % 10;
+                            firstToLastDigit[firstD][lastD]++;
+
+                            lastValue = value;
+                            totalRecords++;
+                            recentHistory.push(value);
+                            if (recentHistory.length > 100) recentHistory.shift();
+
+                            updateUI();
+                        });
+                    }
+                    resolve();
+                };
+            });
+        }
+
+        async function addBatchToDB(valuesArray, streamId = 'global', isSilent = false) {
+            if(!isSilent) loadingOverlay.classList.remove('hidden');
+            return new Promise((resolve) => {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const store = transaction.objectStore(STORE_NAME);
+                
+                let time = Date.now();
+                valuesArray.forEach((val, index) => {
+                    store.add({ value: val, timestamp: time + index, streamId: streamId });
+                });
+
+                transaction.oncomplete = () => {
+                    if (streamId === currentView || streamId === 'global') {
+                        loadDataFromDB().then(resolve); 
+                    } else {
+                        if(!isSilent) loadingOverlay.classList.add('hidden');
+                        resolve();
+                    }
+                };
+            });
+        }
+
+        async function clearDB() {
+            loadingOverlay.classList.remove('hidden');
+            return new Promise((resolve) => {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                const store = transaction.objectStore(STORE_NAME);
+                store.clear().onsuccess = () => {
+                    loadDataFromDB().then(resolve);
+                };
+            });
+        }
+
+        function confirmClearDB() {
+            if(confirm(`¿Eliminar todos los datos de la base de datos actual (${currentDigits} Cifras)?`)) clearDB();
+        }
+
+        // ==========================================
+        // LÓGICA DE ANÁLISIS Y UI
+        // ==========================================
+
+        document.getElementById('dynamicInputForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const maxValid = getMaxValidNumber();
+            let valuesToProcess = [];
+            
+            // Recolectar valores de los inputs dinámicos
+            for(let i = 1; i <= numSimulInputs; i++) {
+                const inputEl = document.getElementById(`sampleInput_${i}`);
+                if(inputEl && inputEl.value !== '') {
+                    const val = parseInt(inputEl.value, 10);
+                    if (!isNaN(val) && val >= 0 && val <= maxValid) {
+                        valuesToProcess.push({ val: val, id: i, el: inputEl });
+                    }
+                }
+            }
+
+            if(valuesToProcess.length === 0) return;
+
+            if (activeInputMode === 'global') {
+                // Opción 1: Global. Todos los números van al mismo historial en secuencia.
+                let valsArray = valuesToProcess.map(v => v.val);
+                await addBatchToDB(valsArray, 'global', true);
+                valuesToProcess.forEach(v => v.el.value = ''); 
+            } else {
+                // Opción 2: Independiente. Cada caja va a su propia serie (serie_1, serie_2...)
+                for(let item of valuesToProcess) {
+                    await addSampleToDB(item.val, `serie_${item.id}`);
+                    item.el.value = '';
+                }
+            }
+            
+            // Re-enfocar la caja 1 para poder seguir tecleando
+            const firstInput = document.getElementById('sampleInput_1');
+            if(firstInput) firstInput.focus();
+        });
+
+        async function processBatchData() {
+            const rawText = document.getElementById('historyInput').value;
+            
+            let rawNumbers = [];
+            const cleanText = rawText.trim();
+            
+            if (/^\d+$/.test(cleanText) && cleanText.length > currentDigits) {
+                for (let i = 0; i < cleanText.length; i += currentDigits) {
+                    rawNumbers.push(cleanText.substring(i, i + currentDigits));
+                }
+            } else {
+                rawNumbers = cleanText.match(/\d+/g) || [];
+            }
+            
+            if (rawNumbers.length === 0) return alert("No hay números válidos para procesar.");
+            
+            const maxValid = getMaxValidNumber();
+            const parsedNumbers = rawNumbers.map(n => parseInt(n, 10)).filter(n => n >= 0 && n <= maxValid);
+            
+            if(parsedNumbers.length > 0) {
+                document.getElementById('historyInput').value = '';
+                
+                // Distribución inteligente si está en modo independiente
+                if (activeInputMode === 'independent' && numSimulInputs > 1) {
+                    loadingOverlay.classList.remove('hidden');
+                    const transaction = db.transaction([STORE_NAME], "readwrite");
+                    const store = transaction.objectStore(STORE_NAME);
+                    let time = Date.now();
+                    
+                    for (let i = 0; i < parsedNumbers.length; i++) {
+                        // El residuo distribuye: 0->Serie1, 1->Serie2 ... 7->Serie8
+                        let seriesIndex = (i % numSimulInputs) + 1;
+                        store.add({ value: parsedNumbers[i], timestamp: time + i, streamId: `serie_${seriesIndex}` });
+                    }
+                    
+                    transaction.oncomplete = () => {
+                        loadDataFromDB().then(() => loadingOverlay.classList.add('hidden'));
+                    };
+                } else {
+                    await addBatchToDB(parsedNumbers, currentView);
+                }
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('totalSamples').textContent = totalRecords.toLocaleString();
+            document.getElementById('lastSampleLabel').textContent = lastValue !== null ? formatNumber(lastValue) : '--';
+            document.getElementById('currentAnchor').textContent = lastValue !== null ? formatNumber(lastValue) : '--';
+
+            if (lastValue !== null) {
+                calculateMarkov(lastValue);
+                calculateSectorMarkov(lastValue); // Llama al nuevo cálculo
+                calculateInternalStructure(lastValue);
+            } else {
+                resetUIStats();
+            }
+
+            drawFrequencyChart();
+            drawTrendChart();
+            renderRecentNumbers();
+            renderAffinityTable();
+        }
+
+        function resetUIStats() {
+            document.getElementById('predictedNext').textContent = '--';
+            document.getElementById('predictionConfidence').textContent = '0%';
+            document.getElementById('predictedNextBySector').textContent = '--';
+            document.getElementById('confidenceBySector').textContent = '0%';
+            document.getElementById('predictedNextSector').textContent = '--';
+            document.getElementById('confidenceNextSector').textContent = '0%';
+            document.getElementById('currentFirstDigit').textContent = '--';
+            document.getElementById('currentSectorAnchor').textContent = '--';
+        }
+
+        function renderRecentNumbers() {
+            const container = document.getElementById('recentNumbersList');
+            container.innerHTML = '';
+            if(recentHistory.length === 0) {
+                container.innerHTML = '<div class="text-xs text-gray-400 w-full text-center py-2">Sin registros</div>';
+                return;
+            }
+            const reversedHistory = [...recentHistory].reverse();
+            reversedHistory.forEach(num => {
+                const span = document.createElement('span');
+                span.className = "text-[11px] font-mono bg-white border border-gray-200 text-indigo-700 px-1.5 py-0.5 rounded shadow-sm";
+                span.textContent = formatNumber(num);
+                container.appendChild(span);
+            });
+        }
+
+        function renderAffinityTable() {
+            const container = document.getElementById('tensAffinityTable');
+            container.innerHTML = '';
+            
+            for(let initD = 0; initD < 10; initD++) {
+                const arrUnidades = firstToLastDigit[initD];
+                let maxCount = 0; let favUnit = -1; let total = 0;
+
+                for(let u=0; u<10; u++) {
+                    total += arrUnidades[u];
+                    if(arrUnidades[u] > maxCount) { maxCount = arrUnidades[u]; favUnit = u; }
+                }
+
+                let displayUnit = favUnit !== -1 && total > 0 ? favUnit : '-';
+                let percent = total > 0 ? ((maxCount / total) * 100).toFixed(1) + '%' : '0%';
+                
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200 rounded-lg p-3 text-center flex flex-col justify-center items-center transition-all hover:shadow-md";
+                card.innerHTML = `
+                    <div class="text-[9px] text-slate-400 font-bold mb-1 uppercase">Inicia con ${initD}</div>
+                    <div class="text-2xl font-black text-slate-700 leading-none">${displayUnit}</div>
+                    <div class="text-[9px] text-orange-500 font-bold mt-2 bg-orange-100 px-2 py-0.5 rounded-full">${percent}</div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        function calculateMarkov(currentVal) {
+            let maxCount = 0; let predictedVal = -1; let total = 0;
+
+            if (transitions.has(currentVal)) {
+                let possibleNexts = transitions.get(currentVal);
+                // Iterar sobre el mapa de siguientes posibilidades
+                for (let [nextVal, count] of possibleNexts.entries()) {
+                    total += count;
+                    if (count > maxCount) {
+                        maxCount = count; predictedVal = nextVal;
+                    }
+                }
+            }
+
+            if (total > 0 && predictedVal !== -1) {
+                document.getElementById('predictedNext').textContent = formatNumber(predictedVal);
+                document.getElementById('predictionConfidence').textContent = ((maxCount / total) * 100).toFixed(1) + '%';
+            } else {
+                document.getElementById('predictedNext').textContent = "?";
+                document.getElementById('predictionConfidence').textContent = "N/A";
+            }
+        }
+
+        // NUEVO: Análisis de probabilidades usando Sectores (Primera cifra como rango)
+        function calculateSectorMarkov(currentVal) {
+            let paddedStr = formatNumber(currentVal);
+            let currentSector = parseInt(paddedStr[0], 10);
+            
+            // Crear una máscara visual para el rango (ej: si son 5 cifras y el sector es 4, será "4XXXX")
+            let sectorMask = currentSector.toString() + "X".repeat(currentDigits - 1);
+            document.getElementById('currentSectorAnchor').textContent = sectorMask;
+
+            // 1. Calcular qué NÚMERO EXACTO sigue más frecuentemente a este SECTOR
+            let maxCountExact = 0; let predictedExact = -1; let totalExact = 0;
+            if (sectorTransitions.has(currentSector)) {
+                let possibleNexts = sectorTransitions.get(currentSector);
+                for (let [nextVal, count] of possibleNexts.entries()) {
+                    totalExact += count;
+                    if (count > maxCountExact) { maxCountExact = count; predictedExact = nextVal; }
+                }
+            }
+
+            if (totalExact > 0 && predictedExact !== -1) {
+                document.getElementById('predictedNextBySector').textContent = formatNumber(predictedExact);
+                document.getElementById('confidenceBySector').textContent = ((maxCountExact / totalExact) * 100).toFixed(1) + '%';
+            } else {
+                document.getElementById('predictedNextBySector').textContent = "?";
+                document.getElementById('confidenceBySector').textContent = "N/A";
+            }
+
+            // 2. Calcular a qué SECTOR salta más frecuentemente desde este SECTOR
+            let maxCountSec = 0; let predictedSec = -1; let totalSec = 0;
+            if (sectorToSector.has(currentSector)) {
+                let possibleSecs = sectorToSector.get(currentSector);
+                for (let [nextSec, count] of possibleSecs.entries()) {
+                    totalSec += count;
+                    if (count > maxCountSec) { maxCountSec = count; predictedSec = nextSec; }
+                }
+            }
+
+            if (totalSec > 0 && predictedSec !== -1) {
+                let pMask = predictedSec.toString() + "X".repeat(currentDigits - 1);
+                document.getElementById('predictedNextSector').textContent = pMask;
+                document.getElementById('confidenceNextSector').textContent = ((maxCountSec / totalSec) * 100).toFixed(1) + '%';
+            } else {
+                document.getElementById('predictedNextSector').textContent = "?";
+                document.getElementById('confidenceNextSector').textContent = "N/A";
+            }
+        }
+
+        function calculateInternalStructure(currentVal) {
+            const paddedStr = formatNumber(currentVal);
+            const firstDigit = parseInt(paddedStr[0], 10);
+            document.getElementById('currentFirstDigit').textContent = firstDigit;
+
+            const arrUnidades = firstToLastDigit[firstDigit];
+            let maxCount = 0; let favUnit = -1; let totalAp = 0;
+
+            for(let u=0; u<10; u++) {
+                totalAp += arrUnidades[u];
+                if(arrUnidades[u] > maxCount) {
+                    maxCount = arrUnidades[u];
+                    favUnit = u;
+                }
+            }
+
+            if(totalAp > 0 && favUnit !== -1) {
+                document.getElementById('favoriteUnit').textContent = favUnit;
+                const percentage = ((maxCount / totalAp) * 100).toFixed(1);
+                document.getElementById('unitAffinityBar').style.width = `${percentage}%`;
+                document.getElementById('unitAffinityText').textContent = `${percentage}% de las veces termina en ${favUnit}`;
+            } else {
+                document.getElementById('favoriteUnit').textContent = "?";
+                document.getElementById('unitAffinityBar').style.width = '0%';
+                document.getElementById('unitAffinityText').textContent = 'Sin historial';
+            }
+        }
+
+        // ==========================================
+        // GRÁFICAS CANVAS
+        // ==========================================
+        function drawFrequencyChart() {
+            const canvas = document.getElementById('frequencyChart');
+            if(!canvas.offsetParent) return;
+            canvas.width = canvas.parentElement.clientWidth * 2;
+            canvas.height = canvas.parentElement.clientHeight * 2;
+            const w = canvas.width, h = canvas.height;
+            ctxFreq.clearRect(0, 0, w, h);
+
+            if (frequencies.size === 0) return;
+
+            // Convertir mapa a array para ordenar
+            let freqsArray = [...frequencies.entries()].map(e => ({ num: e[0], count: e[1] }));
+            freqsArray.sort((a, b) => b.count - a.count);
+            const top10 = freqsArray.slice(0, 10);
+            const maxVal = top10[0].count;
+            if(maxVal === 0) return;
+
+            const barW = (w / 10) - 10;
+            top10.forEach((item, i) => {
+                const barH = (item.count / maxVal) * (h * 0.7);
+                const x = (i * (w / 10)) + 5;
+                const y = h - barH - 30;
+
+                ctxFreq.fillStyle = '#4f46e5'; 
+                ctxFreq.fillRect(x, y, barW, barH);
+                ctxFreq.fillStyle = '#64748b';
+                
+                // Ajustar tamaño fuente si son muchas cifras
+                ctxFreq.font = currentDigits > 4 ? '14px monospace' : '20px monospace';
+                ctxFreq.textAlign = 'center';
+                ctxFreq.fillText(formatNumber(item.num), x + (barW/2), h - 5);
+            });
+        }
+
+        function drawTrendChart() {
+            const canvas = document.getElementById('trendChart');
+            if(!canvas.offsetParent) return;
+            canvas.width = canvas.parentElement.clientWidth * 2;
+            canvas.height = canvas.parentElement.clientHeight * 2;
+            const w = canvas.width, h = canvas.height;
+            ctxTrend.clearRect(0, 0, w, h);
+
+            const data = recentHistory.slice(-30);
+            if (data.length < 2) return;
+
+            const stepX = w / (data.length - 1);
+            const maxValOverall = getMaxValidNumber();
+            const scaleY = (val) => h - ((val / maxValOverall) * (h * 0.8) + (h * 0.1));
+
+            ctxTrend.beginPath();
+            let windowSize = 3;
+            for (let i = 0; i < data.length; i++) {
+                let start = Math.max(0, i - windowSize + 1);
+                let sum = 0;
+                for(let j = start; j <= i; j++) sum += data[j];
+                let avg = sum / (i - start + 1);
+                if (i === 0) ctxTrend.moveTo(0, scaleY(avg));
+                else ctxTrend.lineTo(i * stepX, scaleY(avg));
+            }
+            ctxTrend.strokeStyle = '#22c55e';
+            ctxTrend.lineWidth = 6;
+            ctxTrend.lineJoin = 'round';
+            ctxTrend.stroke();
+
+            ctxTrend.fillStyle = 'rgba(100, 116, 139, 0.5)';
+            for (let i = 0; i < data.length; i++) {
+                ctxTrend.beginPath();
+                ctxTrend.arc(i * stepX, scaleY(data[i]), 4, 0, Math.PI * 2);
+                ctxTrend.fill();
+            }
+        }
+
+        window.addEventListener('resize', () => { drawFrequencyChart(); drawTrendChart(); });
+
+        // ==========================================
+        // MOTOR CRIPTOGRÁFICO (ANTI-PREDICCIÓN)
+        // ==========================================
+        const cryptoLog = document.getElementById('cryptoLog');
+        const secureNumberDisplay = document.getElementById('secureNumberDisplay');
+        const secureStatus = document.getElementById('secureStatus');
+        const secureStatusText = document.getElementById('secureStatusText');
+        let lastSecureNumber = null;
+
+        function appendToLog(msg) {
+            const time = new Date().toISOString().split('T')[1].substring(0, 8);
+            cryptoLog.innerHTML += `[${time}] ${msg}<br>`;
+            cryptoLog.scrollTop = cryptoLog.scrollHeight;
+        }
+
+        function generateTrueRandomInt(min, max) {
+            const range = max - min + 1;
+            // Calcular cuántos bytes necesitamos según el tamaño del rango
+            let bytesNeeded = 1;
+            if(range > 256) bytesNeeded = 2;
+            if(range > 65536) bytesNeeded = 3; // Hasta 16.7 millones, cubre 6 cifras
+            if(range > 16777216) bytesNeeded = 4;
+
+            const maxValidValue = Math.pow(256, bytesNeeded) - (Math.pow(256, bytesNeeded) % range);
+            const randomBytes = new Uint8Array(bytesNeeded);
+
+            let randomValue;
+            do {
+                window.crypto.getRandomValues(randomBytes);
+                randomValue = 0;
+                for (let i = 0; i < bytesNeeded; i++) {
+                    randomValue = (randomValue << 8) | randomBytes[i];
+                }
+            } while (randomValue >= maxValidValue); 
+
+            return min + (randomValue % range);
+        }
+
+        function getSecureNumberAntiMarkov() {
+            let nextNum;
+            let attempts = 0;
+            const maxLimit = getMaxValidNumber();
+            
+            do {
+                nextNum = generateTrueRandomInt(0, maxLimit);
+                attempts++;
+            } while (nextNum === lastSecureNumber);
+
+            lastSecureNumber = nextNum;
+            return { num: nextNum, attempts: attempts };
+        }
+
+        async function generateSingleSecureNumber() {
+            secureStatus.classList.replace('bg-slate-500', 'bg-emerald-500');
+            secureStatus.classList.add('animate-pulse');
+            secureStatusText.textContent = `Extrayendo entropía (Rango: 0-${getMaxValidNumber()})...`;
+            secureNumberDisplay.style.opacity = 0.5;
+
+            setTimeout(async () => {
+                const result = getSecureNumberAntiMarkov();
+                const finalStr = formatNumber(result.num);
+                
+                // Ajustar tamaño del texto si son 6 cifras para que quepa bien
+                secureNumberDisplay.style.fontSize = currentDigits > 4 ? '3.5rem' : '4rem';
+                
+                secureNumberDisplay.textContent = finalStr;
+                secureNumberDisplay.style.opacity = 1;
+                
+                secureStatus.classList.remove('animate-pulse');
+                secureStatusText.textContent = `Generado en ${result.attempts} ciclos.`;
+                
+                let viewTarget = currentView === 'global' ? 'Global' : currentView;
+                appendToLog(`> Gen=<b>${finalStr}</b> Inyectado a: [${viewTarget}]`);
+                await addSampleToDB(result.num, currentView);
+            }, 300);
+        }
+
+        async function generateBatchSecureData() {
+            const amount = parseInt(document.getElementById('secureBatchAmount').value, 10);
+            if(isNaN(amount) || amount < 1 || amount > 10000) return alert("Cantidad inválida (1-10000).");
+
+            appendToLog(`> INYECTANDO LOTE: ${amount} valores de ${currentDigits} cifras a [${currentView}]...`);
+            let secureValues = [];
+            
+            for(let i=0; i<amount; i++) {
+                secureValues.push(getSecureNumberAntiMarkov().num);
+            }
+            
+            await addBatchToDB(secureValues, currentView, true); 
+            appendToLog(`> Lote Inyectado. Modelo predictivo corrompido con éxito.`);
+            alert(`Inyectados ${amount} valores a la base de datos (${currentView}).`);
+        }
+
+        // ==========================================
+        // INIT APP
+        // ==========================================
+        window.onload = async () => {
+            try {
+                renderInputFields(); // Inicializa las cajas de input dinámicas
+                await initDB();
+                await loadDataFromDB();
+            } catch (e) {
+                console.error("Fallo Init", e);
+            }
+        };
+
+    </script>
+</body>
+</html>
