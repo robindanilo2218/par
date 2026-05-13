@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Predictor & Generador Multicifra</title>
+    <title>Predictor Multicifra Pro - Entorno de Trabajo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -31,71 +31,103 @@
     </div>
 
     <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="mb-8">
-            <div class="flex flex-col md:flex-row md:items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 gap-4">
+        
+        <!-- NUEVO: BARRA DE GESTIÓN DE MÁQUINAS (WORKSPACE) -->
+        <div class="bg-slate-800 p-3 rounded-t-xl flex flex-col md:flex-row items-center justify-between border-b border-slate-700 shadow-md">
+            <div class="flex items-center text-white space-x-3 w-full md:w-auto mb-3 md:mb-0">
+                <i data-lucide="server" class="text-indigo-400"></i>
+                <span class="font-bold text-sm tracking-wide">MÁQUINA ACTIVA:</span>
+                <select id="machineSelector" onchange="switchMachine(this.value)" class="bg-slate-900 border border-slate-600 rounded-lg text-sm text-white px-3 py-1.5 outline-none focus:border-indigo-500 w-full md:w-auto font-semibold cursor-pointer">
+                    <!-- Inyectado por JS -->
+                </select>
+            </div>
+            <div class="flex space-x-2 w-full md:w-auto">
+                <button onclick="promptNewMachine()" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-center">
+                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Nueva
+                </button>
+                <button onclick="renameActiveMachine()" class="flex-1 md:flex-none bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-center">
+                    <i data-lucide="edit-2" class="w-4 h-4 mr-1"></i> Renombrar
+                </button>
+                <button onclick="deleteActiveMachine()" class="flex-1 md:flex-none bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center justify-center">
+                    <i data-lucide="trash" class="w-4 h-4 mr-1"></i> Eliminar
+                </button>
+            </div>
+        </div>
+
+        <header class="mb-8 bg-white rounded-b-xl shadow-sm border border-t-0 border-gray-200 p-4">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-4">
+                
                 <div class="flex items-center space-x-4">
-                    <div class="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg text-white shadow-md">
+                    <div class="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg text-white shadow-md hidden sm:block">
                         <i data-lucide="layers"></i>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-gray-900">Suite de Análisis Multicifra</h1>
-                        <p class="text-sm text-gray-500 flex items-center">
+                        <h1 class="text-xl font-bold text-gray-900" id="headerMachineName">Suite de Análisis</h1>
+                        <p class="text-xs text-gray-500 flex items-center mt-1">
                             <span id="dbIndicator" class="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
-                            DB: <span id="dbStatusLabel" class="ml-1 font-semibold mr-2">Conectando...</span>
+                            BD Independiente: <span id="dbStatusLabel" class="ml-1 font-semibold mr-2">Conectando...</span>
                         </p>
                     </div>
                 </div>
                 
-                <div class="flex items-center space-x-3 bg-slate-50 p-2 rounded-lg border border-slate-200">
-                    <label for="digitSelector" class="text-sm font-semibold text-slate-600 flex items-center">
-                        <i data-lucide="hash" class="w-4 h-4 mr-1"></i> Formato:
-                    </label>
-                    <select id="digitSelector" onchange="changeDigitCount(this.value)" class="bg-white border border-slate-300 text-slate-800 text-sm rounded focus:ring-indigo-500 focus:border-indigo-500 block px-3 py-1 font-bold outline-none cursor-pointer">
-                        <option value="2" selected>2 Cifras</option>
-                        <option value="3">3 Cifras</option>
-                        <option value="4">4 Cifras</option>
-                        <option value="5">5 Cifras</option>
-                        <option value="6">6 Cifras</option>
-                    </select>
-                    <span class="text-slate-300 mx-1">|</span>
-                    <label for="maxRangeLimit" class="text-sm font-semibold text-slate-600">Max:</label>
-                    <input type="number" id="maxRangeLimit" value="99" onchange="updateMaxLimit()" class="w-16 bg-white border border-slate-300 text-slate-800 text-sm rounded focus:ring-indigo-500 px-2 py-1 font-bold outline-none text-center" title="Límite numérico del sorteo (Ej: 50)">
+                <!-- Panel de Configuración de la Máquina Actual -->
+                <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <div class="flex items-center">
+                        <label for="digitSelector" class="text-xs font-semibold text-slate-600 flex items-center mr-2">
+                            <i data-lucide="hash" class="w-4 h-4 mr-1"></i> Cifras:
+                        </label>
+                        <select id="digitSelector" onchange="changeDigitCount(this.value)" class="bg-white border border-slate-300 text-slate-800 text-xs rounded focus:ring-indigo-500 block px-2 py-1 font-bold outline-none cursor-pointer">
+                            <option value="2">2 Cifras</option>
+                            <option value="3">3 Cifras</option>
+                            <option value="4">4 Cifras</option>
+                            <option value="5">5 Cifras</option>
+                            <option value="6">6 Cifras</option>
+                        </select>
+                    </div>
+
+                    <span class="text-slate-300 hidden sm:inline">|</span>
+                    
+                    <div class="flex items-center">
+                        <label for="maxRangeLimit" class="text-xs font-semibold text-slate-600 mr-2">Max Rango:</label>
+                        <input type="number" id="maxRangeLimit" value="99" onchange="updateMaxLimit()" class="w-16 bg-white border border-slate-300 text-slate-800 text-xs rounded focus:ring-indigo-500 px-2 py-1 font-bold outline-none text-center">
+                    </div>
+
+                    <span class="text-slate-300 hidden sm:inline">|</span>
+
+                    <div id="viewSelectorContainer" class="hidden flex items-center bg-indigo-50 px-2 py-1 rounded border border-indigo-200">
+                        <label class="text-xs font-semibold text-indigo-800 flex items-center mr-2">
+                            <i data-lucide="eye" class="w-3 h-3 mr-1"></i> Serie:
+                        </label>
+                        <select id="seriesViewSelector" onchange="changeSeriesView(this.value)" class="bg-white border border-indigo-300 text-indigo-800 text-xs rounded focus:ring-indigo-500 block px-2 py-1 font-bold outline-none cursor-pointer">
+                            <option value="global">Global</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- NUEVO: Selector de Vista de Series -->
-                <div id="viewSelectorContainer" class="hidden flex items-center space-x-3 bg-indigo-50 p-2 rounded-lg border border-indigo-200">
-                    <label class="text-sm font-semibold text-indigo-800 flex items-center">
-                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Serie:
-                    </label>
-                    <select id="seriesViewSelector" onchange="changeSeriesView(this.value)" class="bg-white border border-indigo-300 text-indigo-800 text-sm rounded focus:ring-indigo-500 block px-3 py-1 font-bold outline-none cursor-pointer">
-                        <option value="global">Global</option>
-                    </select>
-                </div>
-
-                <!-- NUEVO: Botones de Guardar, Cargar y Limpiar -->
-                <div class="flex items-center space-x-2 border-l border-gray-200 pl-4">
+                <!-- Botones de Guardar, Cargar y Limpiar -->
+                <div class="flex items-center space-x-2">
                     <input type="file" id="importFileInput" accept=".par,.json" class="hidden" onchange="importSession(event)">
                     
-                    <button onclick="triggerImport()" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center border border-blue-100" title="Cargar archivo de trabajo (.par)">
+                    <button onclick="triggerImport()" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center border border-blue-100" title="Cargar archivo de máquina (.par)">
                         <i data-lucide="upload" class="w-4 h-4 mr-1"></i> Cargar
                     </button>
                     
-                    <button onclick="exportSession()" class="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center border border-emerald-100" title="Guardar sesión actual (.par)">
+                    <button onclick="exportSession()" class="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center border border-emerald-100" title="Guardar máquina actual (.par)">
                         <i data-lucide="download" class="w-4 h-4 mr-1"></i> Guardar
                     </button>
 
-                    <button onclick="confirmClearDB()" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center border border-red-100">
-                        <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Limpiar
+                    <button onclick="confirmClearDB()" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center border border-red-100">
+                        <i data-lucide="x-circle" class="w-4 h-4 mr-1"></i> Purgar
                     </button>
                 </div>
             </div>
 
             <!-- Botones Pestañas -->
-            <div class="flex space-x-2 bg-gray-200 p-1 rounded-xl w-full max-w-md">
-                <button onclick="switchTab('analisis')" id="tab-btn-analisis" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white shadow-sm text-indigo-700">
-                    <i data-lucide="line-chart" class="w-4 h-4 inline-block mr-1"></i> Análisis & Predicción
+            <div class="flex space-x-2 bg-gray-100 p-1 rounded-xl w-full max-w-md">
+                <button onclick="switchTab('analisis')" id="tab-btn-analisis" class="flex-1 py-2 px-4 rounded-lg text-sm font-bold transition-all bg-white shadow text-indigo-700">
+                    <i data-lucide="line-chart" class="w-4 h-4 inline-block mr-1"></i> Predictor
                 </button>
-                <button onclick="switchTab('generador')" id="tab-btn-generador" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-gray-600 hover:text-gray-900">
+                <button onclick="switchTab('generador')" id="tab-btn-generador" class="flex-1 py-2 px-4 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-800">
                     <i data-lucide="shield-alert" class="w-4 h-4 inline-block mr-1"></i> Generador Seguro
                 </button>
             </div>
@@ -103,9 +135,9 @@
 
         <!-- PESTAÑA 1 -->
         <div id="tab-analisis" class="tab-content active">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 <!-- Panel Izquierdo -->
-                <div class="lg:col-span-1 space-y-6">
+                <div class="xl:col-span-1 space-y-6">
                     <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-t-indigo-500">
                         <div class="flex justify-between items-center mb-2">
                             <h2 class="text-lg font-bold">Ingresar Muestra</h2>
@@ -117,16 +149,16 @@
                         <!-- Panel de Configuración -->
                         <div id="inputConfigPanel" class="hidden bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200 text-xs space-y-3">
                             <div>
-                                <label class="font-bold text-gray-700 block mb-1">Muestras Simultáneas (Ej: 8 para sorteos)</label>
-                                <select id="simulCount" onchange="renderInputFields()" class="w-full p-2 border border-gray-300 rounded focus:ring-indigo-500 outline-none">
-                                    <option value="1" selected>1 Muestra</option>
+                                <label class="font-bold text-gray-700 block mb-1">Muestras Simultáneas</label>
+                                <select id="simulCount" onchange="handleSimulCountChange()" class="w-full p-2 border border-gray-300 rounded focus:ring-indigo-500 outline-none">
+                                    <option value="1">1 Muestra</option>
                                     <option value="2">2 Muestras</option>
                                     <option value="3">3 Muestras</option>
                                     <option value="4">4 Muestras</option>
                                     <option value="5">5 Muestras</option>
                                     <option value="6">6 Muestras</option>
                                     <option value="7">7 Muestras</option>
-                                    <option value="8">8 Muestras (16 Cifras)</option>
+                                    <option value="8">8 Muestras</option>
                                     <option value="9">9 Muestras</option>
                                     <option value="10">10 Muestras</option>
                                 </select>
@@ -134,8 +166,8 @@
                             <div>
                                 <label class="font-bold text-gray-700 block mb-1">Tratamiento de los datos</label>
                                 <select id="streamMode" onchange="handleModeChange()" class="w-full p-2 border border-gray-300 rounded focus:ring-indigo-500 outline-none">
-                                    <option value="global" selected>Opción 1: Global (Mezclados en el mismo historial)</option>
-                                    <option value="independent">Opción 2: Independiente (Cada uno a su propia serie)</option>
+                                    <option value="global">Opción 1: Global (Mezclados)</option>
+                                    <option value="independent">Opción 2: Independiente (Series Separadas)</option>
                                 </select>
                             </div>
                         </div>
@@ -146,9 +178,9 @@
                     </div>
 
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <h2 class="text-sm font-bold mb-2 flex items-center"><i data-lucide="database" class="w-4 h-4 mr-2"></i> Carga Masiva (En Serie Actual)</h2>
-                        <textarea id="historyInput" class="w-full h-24 p-3 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none mb-3 font-mono" placeholder="Pegar miles de números separados por comas..."></textarea>
-                        <button onclick="processBatchData()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-medium transition-colors">Guardar Lote</button>
+                        <h2 class="text-sm font-bold mb-2 flex items-center"><i data-lucide="database" class="w-4 h-4 mr-2"></i> Carga Masiva Rápida</h2>
+                        <textarea id="historyInput" class="w-full h-24 p-3 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none resize-none mb-3 font-mono" placeholder="Pegar cadena de texto o números separados..."></textarea>
+                        <button onclick="processBatchData()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg text-sm font-bold transition-colors shadow">Guardar Lote</button>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -162,26 +194,26 @@
                         </div>
                     </div>
 
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col h-48">
                         <h2 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center">
                             <i data-lucide="history" class="w-4 h-4 mr-2"></i> Últimos 100 Registros
                         </h2>
-                        <div id="recentNumbersList" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto custom-scroll p-2 bg-gray-50 rounded-lg border border-gray-100">
+                        <div id="recentNumbersList" class="flex flex-wrap content-start gap-1.5 overflow-y-auto custom-scroll p-2 bg-gray-50 rounded-lg border border-gray-100 flex-1">
                             <div class="text-xs text-gray-400 w-full text-center py-2">Sin registros</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Panel Derecho -->
-                <div class="lg:col-span-2 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div class="xl:col-span-2 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-indigo-900 p-6 rounded-xl shadow-md text-white relative overflow-hidden">
                             <i data-lucide="git-merge" class="absolute -right-6 -bottom-6 w-32 h-32 text-indigo-800 opacity-50"></i>
                             <div class="relative z-10">
                                 <h3 class="text-[10px] font-bold text-indigo-300 tracking-widest uppercase mb-1">Modelo Markov Exacto</h3>
                                 <p class="text-[11px] text-gray-400 mb-4">Después del <span id="currentAnchor" class="font-bold text-white bg-white/20 px-1 rounded">--</span> (Exacto)</p>
                                 <div class="flex justify-between items-end">
-                                    <div id="predictedNext" class="text-4xl sm:text-5xl lg:text-5xl font-black font-mono text-green-400">--</div>
+                                    <div id="predictedNext" class="text-4xl sm:text-5xl font-black font-mono text-green-400">--</div>
                                     <div class="text-right">
                                         <div class="text-[10px] uppercase text-indigo-300">Confianza</div>
                                         <div id="predictionConfidence" class="text-lg font-bold">0%</div>
@@ -190,7 +222,6 @@
                             </div>
                         </div>
 
-                        <!-- NUEVO: TARJETA DE MODELO POR SECTORES (RANGOS) -->
                         <div class="bg-cyan-900 p-6 rounded-xl shadow-md text-white relative overflow-hidden">
                             <i data-lucide="pie-chart" class="absolute -right-6 -bottom-6 w-32 h-32 text-cyan-800 opacity-50"></i>
                             <div class="relative z-10">
@@ -199,7 +230,7 @@
                                 
                                 <div class="flex justify-between items-end mb-3 border-b border-cyan-700/50 pb-2">
                                     <div>
-                                        <div class="text-[9px] uppercase text-cyan-400">Num. Exacto que sigue:</div>
+                                        <div class="text-[9px] uppercase text-cyan-400">Exacto que sigue:</div>
                                         <div id="predictedNextBySector" class="text-2xl font-black font-mono text-white">--</div>
                                     </div>
                                     <div class="text-right">
@@ -219,25 +250,25 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 relative overflow-hidden">
-                            <div class="relative z-10">
-                                <h3 class="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-1">Estructura Interna del Número</h3>
-                                <p class="text-[11px] text-gray-500 mb-4">
-                                    Si la <b class="text-slate-700">primera cifra</b> es <span id="currentFirstDigit" class="font-bold text-slate-800 bg-slate-100 px-1 rounded">--</span>
-                                </p>
-                                <div class="flex items-center space-x-6">
-                                    <div class="flex flex-col items-center">
-                                        <div class="text-[10px] text-gray-400 uppercase mb-1">Última Cifra Fav.</div>
-                                        <div id="favoriteUnit" class="text-4xl font-black font-mono text-orange-500">--</div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 relative overflow-hidden hidden" id="internalStructurePanel">
+                        <div class="relative z-10">
+                            <h3 class="text-[10px] font-bold text-slate-500 tracking-widest uppercase mb-1">Estructura Interna del Número</h3>
+                            <p class="text-[11px] text-gray-500 mb-4">
+                                Si la <b class="text-slate-700">primera cifra</b> es <span id="currentFirstDigit" class="font-bold text-slate-800 bg-slate-100 px-1 rounded">--</span>
+                            </p>
+                            <div class="flex items-center space-x-6">
+                                <div class="flex flex-col items-center">
+                                    <div class="text-[10px] text-gray-400 uppercase mb-1">Última Cifra Fav.</div>
+                                    <div id="favoriteUnit" class="text-4xl font-black font-mono text-orange-500">--</div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-[10px] text-gray-400 uppercase mb-1">Frecuencia de este patrón</div>
+                                    <div class="w-full bg-gray-100 rounded-full h-2 mb-1">
+                                        <div id="unitAffinityBar" class="bg-orange-500 h-2 rounded-full" style="width: 0%"></div>
                                     </div>
-                                    <div class="flex-1">
-                                        <div class="text-[10px] text-gray-400 uppercase mb-1">Frecuencia de este patrón</div>
-                                        <div class="w-full bg-gray-100 rounded-full h-2 mb-1">
-                                            <div id="unitAffinityBar" class="bg-orange-500 h-2 rounded-full" style="width: 0%"></div>
-                                        </div>
-                                        <div id="unitAffinityText" class="text-[10px] text-gray-500 font-medium">0% de las veces que inicia en X</div>
-                                    </div>
+                                    <div id="unitAffinityText" class="text-[10px] text-gray-500 font-medium">0% de las veces que inicia en X</div>
                                 </div>
                             </div>
                         </div>
@@ -275,7 +306,7 @@
                     <i data-lucide="shield-check" class="w-16 h-16 text-emerald-400 mx-auto mb-4"></i>
                     <h2 class="text-3xl font-black text-white mb-2 tracking-tight">Motor de Entropía Segura</h2>
                     <p class="text-slate-400 text-sm max-w-xl mx-auto">
-                        Genera secuencias matemáticamente inquebrantables. Usa <code class="bg-slate-800 px-1 rounded text-emerald-300">window.crypto</code> y destruye repeticiones inmediatas para que la probabilidad del Modelo de Markov siempre falle.
+                        Genera secuencias matemáticamente inquebrantables. Usa <code class="bg-slate-800 px-1 rounded text-emerald-300">window.crypto</code> y destruye repeticiones inmediatas para que la probabilidad siempre falle.
                     </p>
                 </div>
 
@@ -308,7 +339,7 @@
 
                 <div class="w-full mt-10">
                     <div id="cryptoLog" class="bg-black/50 border border-slate-700 rounded-xl p-4 h-32 overflow-y-auto font-mono text-[10px] text-emerald-400/70 custom-scroll break-all leading-relaxed">
-                        > Motor inicializado. Resoluciones dinámicas activadas.<br>
+                        > Motor criptográfico inicializado.<br>
                     </div>
                 </div>
             </div>
@@ -319,57 +350,248 @@
         lucide.createIcons();
 
         // ==========================================
-        // CONFIGURACIÓN DINÁMICA DE CIFRAS Y SERIES
+        // GESTIÓN MULTI-MÁQUINA (ESPACIOS DE TRABAJO)
         // ==========================================
+        let machines = [];
+        let activeMachineId = null;
+
+        // Variables Globales atadas a la máquina actual
         let currentDigits = 2; 
+        let customMaxValue = 99;
+        let numSimulInputs = 1;
+        let activeInputMode = 'global';
+        let currentView = 'global';
         
-        // Cambiamos el nombre de la DB (añadiendo Multiseries) para separar los datos nuevos.
-        let DB_NAME = `PredictorMultiseriesDB_${currentDigits}`; 
+        let DB_NAME = ''; 
         const DB_VERSION = 1;
         const STORE_NAME = 'samples';
         let db = null;
 
-        // ESTADO MULTISERIES
-        let currentView = 'global'; 
-        let activeInputMode = 'global'; 
-        let numSimulInputs = 1;
-        let customMaxValue = 99; // Límite configurable por el usuario (ej: 50)
-
-        // ESTADO EN MEMORIA (USANDO MAPS PARA SOPORTAR MILLONES DE POSIBILIDADES)
+        // Variables en RAM para análisis
         let totalRecords = 0;
         let lastValue = null;
-        
-        // Estructuras de datos dispersas (Sparse)
-        let frequencies = new Map(); // Mapa de: { número: cantidadVeces }
-        let transitions = new Map(); // Mapa de: { numeroAnterior: Mapa{ numeroSiguiente: cantidadVeces } }
+        let frequencies = new Map(); 
+        let transitions = new Map(); 
         let recentHistory = []; 
-        
-        // NUEVAS VARIABLES PARA SECTORES
-        let sectorTransitions = new Map(); // Mapa: { sectorAnterior: Mapa{ numeroSiguienteExacto: cantidadVeces } }
-        let sectorToSector = new Map();    // Mapa: { sectorAnterior: Mapa{ sectorSiguiente: cantidadVeces } }
-
-        // Estructura generalizada: Primera Cifra vs Última Cifra (Siempre es 10x10)
+        let sectorTransitions = new Map(); 
+        let sectorToSector = new Map();    
         let firstToLastDigit = Array.from({ length: 10 }, () => new Array(10).fill(0));
 
         // UI
         const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
         const dbStatusLabel = document.getElementById('dbStatusLabel');
         const dbIndicator = document.getElementById('dbIndicator');
         const ctxFreq = document.getElementById('frequencyChart').getContext('2d');
         const ctxTrend = document.getElementById('trendChart').getContext('2d');
 
-        // ==========================================
-        // FUNCIONES DE UI MULTISERIES
-        // ==========================================
+        function showLoading(txt) {
+            loadingText.textContent = txt || "Procesando...";
+            loadingOverlay.classList.remove('hidden');
+        }
+        function hideLoading() { loadingOverlay.classList.add('hidden'); }
+
+        // Inicializar el sistema de máquinas al abrir la app
+        function initMachineSystem() {
+            const stored = localStorage.getItem('predictor_machines');
+            if (stored) {
+                machines = JSON.parse(stored);
+            } else {
+                // Crear la máquina por defecto si es la primera vez
+                machines = [{
+                    id: 'm_' + Date.now(),
+                    name: 'Máquina Principal',
+                    digits: 2,
+                    max: 99,
+                    simulCount: 1,
+                    streamMode: 'global'
+                }];
+                localStorage.setItem('predictor_machines', JSON.stringify(machines));
+            }
+            
+            const storedActive = localStorage.getItem('predictor_active_machine');
+            if (storedActive && machines.find(m => m.id === storedActive)) {
+                activeMachineId = storedActive;
+            } else {
+                activeMachineId = machines[0].id;
+                localStorage.setItem('predictor_active_machine', activeMachineId);
+            }
+
+            renderMachineSelector();
+            applyMachineConfig(activeMachineId);
+        }
+
+        // Aplicar la configuración de la máquina seleccionada
+        async function applyMachineConfig(machineId) {
+            showLoading("Cargando Máquina...");
+            const machine = machines.find(m => m.id === machineId);
+            if (!machine) return hideLoading();
+
+            // Asignar variables globales
+            currentDigits = parseInt(machine.digits, 10);
+            customMaxValue = parseInt(machine.max, 10);
+            numSimulInputs = parseInt(machine.simulCount, 10);
+            activeInputMode = machine.streamMode;
+            currentView = activeInputMode === 'independent' ? 'serie_1' : 'global';
+
+            // Sincronizar Interfaz Gráfica
+            document.getElementById('headerMachineName').textContent = machine.name;
+            document.getElementById('digitSelector').value = currentDigits;
+            document.getElementById('maxRangeLimit').value = customMaxValue;
+            document.getElementById('simulCount').value = numSimulInputs;
+            document.getElementById('streamMode').value = activeInputMode;
+
+            // Preparar Base de Datos Exclusiva
+            if (db) {
+                db.close();
+                dbIndicator.classList.replace('bg-green-500', 'bg-red-500');
+            }
+            DB_NAME = `PredictorDB_${machineId}`;
+
+            // Purgar RAM
+            frequencies.clear();
+            transitions.clear();
+            sectorTransitions.clear();
+            sectorToSector.clear();
+            firstToLastDigit = Array.from({ length: 10 }, () => new Array(10).fill(0));
+            recentHistory = [];
+            totalRecords = 0;
+            lastValue = null;
+            resetUIStats();
+            
+            renderInputFields();
+
+            try {
+                await initDB();
+                await loadDataFromDB();
+            } catch (e) {
+                console.error("Error abriendo máquina", e);
+            }
+            hideLoading();
+        }
+
+        function renderMachineSelector() {
+            const selector = document.getElementById('machineSelector');
+            selector.innerHTML = '';
+            machines.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                // Mostrar un resumen útil en el desplegable
+                opt.textContent = `${m.name} (${m.digits}C | Max ${m.max})`;
+                selector.appendChild(opt);
+            });
+            selector.value = activeMachineId;
+        }
+
+        function switchMachine(newId) {
+            if (newId === activeMachineId) return;
+            activeMachineId = newId;
+            localStorage.setItem('predictor_active_machine', activeMachineId);
+            applyMachineConfig(activeMachineId);
+        }
+
+        function saveActiveMachineConfig() {
+            const machine = machines.find(m => m.id === activeMachineId);
+            if (machine) {
+                machine.digits = currentDigits;
+                machine.max = customMaxValue;
+                machine.simulCount = numSimulInputs;
+                machine.streamMode = activeInputMode;
+                localStorage.setItem('predictor_machines', JSON.stringify(machines));
+                renderMachineSelector(); // Actualizar texto del desplegable
+            }
+        }
+
+        function promptNewMachine() {
+            const name = prompt("Nombre de la nueva máquina:", "Máquina Nueva");
+            if (!name) return;
+            
+            const newMachine = {
+                id: 'm_' + Date.now(),
+                name: name,
+                digits: 2,
+                max: 99,
+                simulCount: 1,
+                streamMode: 'global'
+            };
+            
+            machines.push(newMachine);
+            localStorage.setItem('predictor_machines', JSON.stringify(machines));
+            renderMachineSelector();
+            switchMachine(newMachine.id);
+        }
+
+        function renameActiveMachine() {
+            const machine = machines.find(m => m.id === activeMachineId);
+            if(!machine) return;
+            const newName = prompt("Nuevo nombre:", machine.name);
+            if(newName && newName.trim() !== '') {
+                machine.name = newName.trim();
+                localStorage.setItem('predictor_machines', JSON.stringify(machines));
+                document.getElementById('headerMachineName').textContent = machine.name;
+                renderMachineSelector();
+            }
+        }
+
+        function deleteActiveMachine() {
+            if (machines.length <= 1) {
+                alert("No puedes borrar la única máquina que queda.");
+                return;
+            }
+            if (confirm(`¿Eliminar la máquina actual y todos sus datos históricos? Esto no se puede deshacer.`)) {
+                // Borrar de IndexedDB
+                indexedDB.deleteDatabase(`PredictorDB_${activeMachineId}`);
+                
+                // Borrar de LocalStorage
+                machines = machines.filter(m => m.id !== activeMachineId);
+                localStorage.setItem('predictor_machines', JSON.stringify(machines));
+                
+                // Cambiar a la primera disponible
+                activeMachineId = machines[0].id;
+                localStorage.setItem('predictor_active_machine', activeMachineId);
+                renderMachineSelector();
+                applyMachineConfig(activeMachineId);
+            }
+        }
+
         function toggleConfig() {
-            const panel = document.getElementById('inputConfigPanel');
-            panel.classList.toggle('hidden');
+            document.getElementById('inputConfigPanel').classList.toggle('hidden');
+        }
+
+        function changeDigitCount(newVal) {
+            currentDigits = parseInt(newVal, 10);
+            customMaxValue = Math.pow(10, currentDigits) - 1;
+            document.getElementById('maxRangeLimit').value = customMaxValue;
+            saveActiveMachineConfig();
+            
+            // Recalcular todo en memoria sin borrar DB (la DB soporta n cifras gracias a Sparse Maps)
+            // Pero es mejor purgar memoria y releer DB
+            applyMachineConfig(activeMachineId); 
+        }
+
+        function updateMaxLimit() {
+            let val = parseInt(document.getElementById('maxRangeLimit').value, 10);
+            if(!isNaN(val) && val > 0) {
+                customMaxValue = val;
+                saveActiveMachineConfig();
+                renderInputFields();
+            }
+        }
+
+        function handleSimulCountChange() {
+            numSimulInputs = parseInt(document.getElementById('simulCount').value, 10);
+            saveActiveMachineConfig();
+            renderInputFields();
+        }
+
+        function handleModeChange() {
+            activeInputMode = document.getElementById('streamMode').value;
+            saveActiveMachineConfig();
+            renderInputFields();
         }
 
         function renderInputFields() {
-            numSimulInputs = parseInt(document.getElementById('simulCount').value, 10);
             const form = document.getElementById('dynamicInputForm');
-            const maxVal = getMaxValidNumber();
             const placeholderStr = "0".repeat(currentDigits);
             
             let html = '';
@@ -378,14 +600,14 @@
                 html += `
                     <div class="flex flex-col">
                         ${label}
-                        <input type="number" id="sampleInput_${i}" min="0" max="${maxVal}" required class="w-full px-1 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm lg:text-base text-center font-mono bg-gray-50 transition-all" placeholder="${placeholderStr}">
+                        <input type="number" id="sampleInput_${i}" min="0" max="${customMaxValue}" required class="w-full px-1 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm lg:text-base text-center font-mono bg-gray-50 transition-all" placeholder="${placeholderStr}">
                     </div>
                 `;
             }
             
             html += `
                 <div class="col-span-full mt-2">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition-all shadow-md flex items-center justify-center w-full">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold transition-all shadow flex items-center justify-center w-full">
                         <i data-lucide="plus" class="w-5 h-5 mr-2"></i> Agregar
                     </button>
                 </div>
@@ -398,23 +620,16 @@
             updateSeriesViewSelector();
         }
 
-        function handleModeChange() {
-            activeInputMode = document.getElementById('streamMode').value;
-            renderInputFields();
-        }
-
         function updateSeriesViewSelector() {
             const container = document.getElementById('viewSelectorContainer');
             const selector = document.getElementById('seriesViewSelector');
             
             if (activeInputMode === 'independent' && numSimulInputs > 1) {
                 container.classList.remove('hidden');
-                
                 let html = `<option value="global">Global (Mezclados)</option>`;
                 for(let i = 1; i <= numSimulInputs; i++) {
-                    html += `<option value="serie_${i}">Serie Independiente ${i}</option>`;
+                    html += `<option value="serie_${i}">Serie ${i}</option>`;
                 }
-                
                 let currentVal = selector.value;
                 selector.innerHTML = html;
                 
@@ -424,14 +639,10 @@
                     selector.value = currentVal === 'global' && activeInputMode === 'independent' ? 'serie_1' : currentVal;
                 }
                 
-                if (currentView !== selector.value) {
-                    changeSeriesView(selector.value);
-                }
+                if (currentView !== selector.value) changeSeriesView(selector.value);
             } else {
                 container.classList.add('hidden');
-                if (currentView !== 'global') {
-                    changeSeriesView('global');
-                }
+                if (currentView !== 'global') changeSeriesView('global');
             }
         }
 
@@ -446,92 +657,32 @@
             ['analisis', 'generador'].forEach(id => {
                 let btn = document.getElementById(`tab-btn-${id}`);
                 btn.classList.replace('bg-white', 'bg-transparent');
-                btn.classList.replace('text-indigo-700', 'text-gray-600');
-                btn.classList.remove('shadow-sm');
+                btn.classList.replace('text-indigo-700', 'text-gray-500');
+                btn.classList.remove('shadow');
             });
             let activeBtn = document.getElementById(`tab-btn-${tabId}`);
             activeBtn.classList.replace('bg-transparent', 'bg-white');
-            activeBtn.classList.replace('text-gray-600', 'text-indigo-700');
-            activeBtn.classList.add('shadow-sm');
+            activeBtn.classList.replace('text-gray-500', 'text-indigo-700');
+            activeBtn.classList.add('shadow');
             if(tabId === 'analisis' && totalRecords > 0) {
                 setTimeout(() => { drawFrequencyChart(); drawTrendChart(); }, 50);
             }
         }
 
-        // Formatea el número garantizando ceros a la izquierda según los dígitos seleccionados
         function formatNumber(num) { 
             return num.toString().padStart(currentDigits, '0'); 
         }
 
-        // Obtener el límite máximo (ej: 99 para 2 cifras, 999 para 3 cifras...)
-        function getMaxValidNumber() {
-            return customMaxValue;
-        }
-
-        function updateMaxLimit() {
-            let val = parseInt(document.getElementById('maxRangeLimit').value, 10);
-            if(!isNaN(val) && val > 0) {
-                customMaxValue = val;
-                renderInputFields();
-            }
-        }
-
-        // ==========================================
-        // CAMBIO DE FORMATO (2, 3, 4, 5, 6 Cifras)
-        // ==========================================
-        async function changeDigitCount(newVal) {
-            currentDigits = parseInt(newVal, 10);
-            
-            // Auto-actualizar el límite máximo según las cifras
-            customMaxValue = Math.pow(10, currentDigits) - 1;
-            document.getElementById('maxRangeLimit').value = customMaxValue;
-
-            const maxVal = getMaxValidNumber();
-            
-            // Cerrar conexión actual y abrir la base de datos correspondiente al número de cifras
-            if (db) {
-                db.close();
-                dbIndicator.classList.replace('bg-green-500', 'bg-red-500');
-                dbStatusLabel.textContent = "Cambiando DB...";
-            }
-            
-            DB_NAME = `PredictorMultiseriesDB_${currentDigits}`;
-            currentView = activeInputMode === 'independent' ? 'serie_1' : 'global';
-            
-            // Purgar memoria RAM local
-            frequencies.clear();
-            transitions.clear();
-            sectorTransitions.clear(); // Limpiar sectores
-            sectorToSector.clear();    // Limpiar saltos de sector
-            firstToLastDigit = Array.from({ length: 10 }, () => new Array(10).fill(0));
-            recentHistory = [];
-            totalRecords = 0;
-            lastValue = null;
-            resetUIStats();
-            
-            renderInputFields();
-            
-            try {
-                await initDB();
-                await loadDataFromDB();
-            } catch (e) {
-                console.error("Error al cambiar de base de datos", e);
-            }
-        }
-
-        // ==========================================
-        // INDEXEDDB LOGIC
-        // ==========================================
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = (e) => {
+                request.onerror = () => {
                     dbStatusLabel.textContent = "Error BD";
                     reject("Error IndexedDB");
                 };
                 request.onsuccess = (e) => {
                     db = e.target.result;
-                    dbStatusLabel.textContent = `Lista (${currentDigits} Cifras)`;
+                    dbStatusLabel.textContent = `Lista Local`;
                     dbIndicator.classList.replace('bg-red-500', 'bg-green-500');
                     resolve(db);
                 };
@@ -539,7 +690,6 @@
                     db = e.target.result;
                     if (!db.objectStoreNames.contains(STORE_NAME)) {
                         const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-                        // Índice para separar las series
                         store.createIndex('streamId', 'streamId', { unique: false });
                     }
                 };
@@ -547,23 +697,20 @@
         }
 
         async function loadDataFromDB() {
-            loadingOverlay.classList.remove('hidden');
+            showLoading("Calculando matrices estadísticas...");
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_NAME], "readonly");
                 const store = transaction.objectStore(STORE_NAME);
                 const request = store.getAll();
 
                 request.onsuccess = () => {
-                    // Filtrar por la vista de serie seleccionada
                     let allSamples = request.result.filter(item => (item.streamId || 'global') === currentView);
-                    
-                    // Asegurar orden temporal
                     allSamples.sort((a, b) => a.id - b.id);
                     
                     frequencies.clear();
                     transitions.clear();
-                    sectorTransitions.clear(); // Limpiar sectores
-                    sectorToSector.clear();    // Limpiar saltos de sector
+                    sectorTransitions.clear();
+                    sectorToSector.clear();
                     for(let i=0; i<10; i++) firstToLastDigit[i].fill(0);
                     recentHistory = [];
                     totalRecords = allSamples.length;
@@ -576,32 +723,25 @@
                             let paddedStr = formatNumber(val);
                             let currentSector = parseInt(paddedStr[0], 10);
                             
-                            // 1. Stats Generales usando MAP
                             frequencies.set(val, (frequencies.get(val) || 0) + 1);
                             
-                            // 2. Markov Exacto y Por Sectores
                             if (previousVal !== null) {
-                                // Markov Exacto
                                 if (!transitions.has(previousVal)) transitions.set(previousVal, new Map());
                                 let nextMap = transitions.get(previousVal);
                                 nextMap.set(val, (nextMap.get(val) || 0) + 1);
 
-                                // Markov Sectores
                                 let prevSector = parseInt(formatNumber(previousVal)[0], 10);
                                 
-                                // De sector anterior -> Número exacto
                                 if (!sectorTransitions.has(prevSector)) sectorTransitions.set(prevSector, new Map());
                                 let stMap = sectorTransitions.get(prevSector);
                                 stMap.set(val, (stMap.get(val) || 0) + 1);
 
-                                // De sector anterior -> Sector siguiente
                                 if (!sectorToSector.has(prevSector)) sectorToSector.set(prevSector, new Map());
                                 let ssMap = sectorToSector.get(prevSector);
                                 ssMap.set(currentSector, (ssMap.get(currentSector) || 0) + 1);
                             }
                             previousVal = val;
 
-                            // 3. Afinidad Primera-Última cifra
                             let firstD = currentSector;
                             let lastD = val % 10;
                             firstToLastDigit[firstD][lastD]++;
@@ -615,14 +755,10 @@
                     }
 
                     updateUI();
-                    loadingOverlay.classList.add('hidden');
+                    hideLoading();
                     resolve();
                 };
-
-                request.onerror = () => {
-                    loadingOverlay.classList.add('hidden');
-                    reject(request.error);
-                };
+                request.onerror = () => { hideLoading(); reject(request.error); };
             });
         }
 
@@ -635,20 +771,16 @@
                 transaction.oncomplete = () => {
                     if (streamId === currentView) {
                         requestAnimationFrame(() => {
-                            // Update MAPS in memory
                             frequencies.set(value, (frequencies.get(value) || 0) + 1);
                             let paddedStr = formatNumber(value);
                             let currentSector = parseInt(paddedStr[0], 10);
                             
                             if (lastValue !== null) {
-                                // Markov Exacto
                                 if (!transitions.has(lastValue)) transitions.set(lastValue, new Map());
                                 let nextMap = transitions.get(lastValue);
                                 nextMap.set(value, (nextMap.get(value) || 0) + 1);
 
-                                // Markov Sectores
                                 let prevSector = parseInt(formatNumber(lastValue)[0], 10);
-                                
                                 if (!sectorTransitions.has(prevSector)) sectorTransitions.set(prevSector, new Map());
                                 let stMap = sectorTransitions.get(prevSector);
                                 stMap.set(value, (stMap.get(value) || 0) + 1);
@@ -666,7 +798,6 @@
                             totalRecords++;
                             recentHistory.push(value);
                             if (recentHistory.length > 100) recentHistory.shift();
-
                             updateUI();
                         });
                     }
@@ -676,7 +807,7 @@
         }
 
         async function addBatchToDB(valuesArray, streamId = 'global', isSilent = false) {
-            if(!isSilent) loadingOverlay.classList.remove('hidden');
+            if(!isSilent) showLoading(`Inyectando ${valuesArray.length} registros...`);
             return new Promise((resolve) => {
                 const transaction = db.transaction([STORE_NAME], "readwrite");
                 const store = transaction.objectStore(STORE_NAME);
@@ -690,7 +821,7 @@
                     if (streamId === currentView || streamId === 'global') {
                         loadDataFromDB().then(resolve); 
                     } else {
-                        if(!isSilent) loadingOverlay.classList.add('hidden');
+                        if(!isSilent) hideLoading();
                         resolve();
                     }
                 };
@@ -698,7 +829,7 @@
         }
 
         async function clearDB() {
-            loadingOverlay.classList.remove('hidden');
+            showLoading("Purgando registros de esta máquina...");
             return new Promise((resolve) => {
                 const transaction = db.transaction([STORE_NAME], "readwrite");
                 const store = transaction.objectStore(STORE_NAME);
@@ -709,24 +840,18 @@
         }
 
         function confirmClearDB() {
-            if(confirm(`¿Eliminar todos los datos de la base de datos actual (${currentDigits} Cifras)?`)) clearDB();
+            if(confirm(`¿Eliminar todos los datos históricos de esta máquina?`)) clearDB();
         }
-
-        // ==========================================
-        // LÓGICA DE ANÁLISIS Y UI
-        // ==========================================
 
         document.getElementById('dynamicInputForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const maxValid = getMaxValidNumber();
             let valuesToProcess = [];
             
-            // Recolectar valores de los inputs dinámicos
             for(let i = 1; i <= numSimulInputs; i++) {
                 const inputEl = document.getElementById(`sampleInput_${i}`);
                 if(inputEl && inputEl.value !== '') {
                     const val = parseInt(inputEl.value, 10);
-                    if (!isNaN(val) && val >= 0 && val <= maxValid) {
+                    if (!isNaN(val) && val >= 0 && val <= customMaxValue) {
                         valuesToProcess.push({ val: val, id: i, el: inputEl });
                     }
                 }
@@ -735,60 +860,54 @@
             if(valuesToProcess.length === 0) return;
 
             if (activeInputMode === 'global') {
-                // Opción 1: Global. Todos los números van al mismo historial en secuencia.
                 let valsArray = valuesToProcess.map(v => v.val);
                 await addBatchToDB(valsArray, 'global', true);
                 valuesToProcess.forEach(v => v.el.value = ''); 
             } else {
-                // Opción 2: Independiente. Cada caja va a su propia serie (serie_1, serie_2...)
                 for(let item of valuesToProcess) {
                     await addSampleToDB(item.val, `serie_${item.id}`);
                     item.el.value = '';
                 }
             }
-            
-            // Re-enfocar la caja 1 para poder seguir tecleando
             const firstInput = document.getElementById('sampleInput_1');
             if(firstInput) firstInput.focus();
         });
 
         async function processBatchData() {
-            const rawText = document.getElementById('historyInput').value;
-            
+            const rawText = document.getElementById('historyInput').value.trim();
+            if(rawText.length === 0) return;
+
             let rawNumbers = [];
-            const cleanText = rawText.trim();
-            
-            if (/^\d+$/.test(cleanText) && cleanText.length > currentDigits) {
-                for (let i = 0; i < cleanText.length; i += currentDigits) {
-                    rawNumbers.push(cleanText.substring(i, i + currentDigits));
+            // Si es una cadena continua que parece no tener espacios (Ej: 0112152433...)
+            if (/^\d+$/.test(rawText) && rawText.length > currentDigits) {
+                for (let i = 0; i < rawText.length; i += currentDigits) {
+                    rawNumbers.push(rawText.substring(i, i + currentDigits));
                 }
             } else {
-                rawNumbers = cleanText.match(/\d+/g) || [];
+                // Si tiene comas o espacios
+                rawNumbers = rawText.match(/\d+/g) || [];
             }
             
-            if (rawNumbers.length === 0) return alert("No hay números válidos para procesar.");
+            if (rawNumbers.length === 0) return alert("No hay números válidos.");
             
-            const maxValid = getMaxValidNumber();
-            const parsedNumbers = rawNumbers.map(n => parseInt(n, 10)).filter(n => n >= 0 && n <= maxValid);
+            const parsedNumbers = rawNumbers.map(n => parseInt(n, 10)).filter(n => n >= 0 && n <= customMaxValue);
             
             if(parsedNumbers.length > 0) {
                 document.getElementById('historyInput').value = '';
                 
-                // Distribución inteligente si está en modo independiente
                 if (activeInputMode === 'independent' && numSimulInputs > 1) {
-                    loadingOverlay.classList.remove('hidden');
+                    showLoading("Distribuyendo en series múltiples...");
                     const transaction = db.transaction([STORE_NAME], "readwrite");
                     const store = transaction.objectStore(STORE_NAME);
                     let time = Date.now();
                     
                     for (let i = 0; i < parsedNumbers.length; i++) {
-                        // El residuo distribuye: 0->Serie1, 1->Serie2 ... 7->Serie8
                         let seriesIndex = (i % numSimulInputs) + 1;
                         store.add({ value: parsedNumbers[i], timestamp: time + i, streamId: `serie_${seriesIndex}` });
                     }
                     
                     transaction.oncomplete = () => {
-                        loadDataFromDB().then(() => loadingOverlay.classList.add('hidden'));
+                        loadDataFromDB().then(hideLoading);
                     };
                 } else {
                     await addBatchToDB(parsedNumbers, currentView);
@@ -803,7 +922,7 @@
 
             if (lastValue !== null) {
                 calculateMarkov(lastValue);
-                calculateSectorMarkov(lastValue); // Llama al nuevo cálculo
+                calculateSectorMarkov(lastValue); 
                 calculateInternalStructure(lastValue);
             } else {
                 resetUIStats();
@@ -824,6 +943,7 @@
             document.getElementById('confidenceNextSector').textContent = '0%';
             document.getElementById('currentFirstDigit').textContent = '--';
             document.getElementById('currentSectorAnchor').textContent = '--';
+            document.getElementById('internalStructurePanel').classList.add('hidden');
         }
 
         function renderRecentNumbers() {
@@ -859,11 +979,11 @@
                 let percent = total > 0 ? ((maxCount / total) * 100).toFixed(1) + '%' : '0%';
                 
                 const card = document.createElement('div');
-                card.className = "bg-slate-50 border border-slate-200 rounded-lg p-3 text-center flex flex-col justify-center items-center transition-all hover:shadow-md";
+                card.className = "bg-slate-50 border border-slate-200 rounded-lg p-2 flex flex-col justify-center items-center text-center";
                 card.innerHTML = `
-                    <div class="text-[9px] text-slate-400 font-bold mb-1 uppercase">Inicia con ${initD}</div>
+                    <div class="text-[9px] text-slate-400 font-bold mb-1 uppercase">Inicia ${initD}</div>
                     <div class="text-2xl font-black text-slate-700 leading-none">${displayUnit}</div>
-                    <div class="text-[9px] text-orange-500 font-bold mt-2 bg-orange-100 px-2 py-0.5 rounded-full">${percent}</div>
+                    <div class="text-[9px] text-orange-500 font-bold mt-1">${percent}</div>
                 `;
                 container.appendChild(card);
             }
@@ -874,12 +994,9 @@
 
             if (transitions.has(currentVal)) {
                 let possibleNexts = transitions.get(currentVal);
-                // Iterar sobre el mapa de siguientes posibilidades
                 for (let [nextVal, count] of possibleNexts.entries()) {
                     total += count;
-                    if (count > maxCount) {
-                        maxCount = count; predictedVal = nextVal;
-                    }
+                    if (count > maxCount) { maxCount = count; predictedVal = nextVal; }
                 }
             }
 
@@ -892,16 +1009,13 @@
             }
         }
 
-        // NUEVO: Análisis de probabilidades usando Sectores (Primera cifra como rango)
         function calculateSectorMarkov(currentVal) {
             let paddedStr = formatNumber(currentVal);
             let currentSector = parseInt(paddedStr[0], 10);
             
-            // Crear una máscara visual para el rango (ej: si son 5 cifras y el sector es 4, será "4XXXX")
-            let sectorMask = currentSector.toString() + "X".repeat(currentDigits - 1);
+            let sectorMask = currentSector.toString() + "X".repeat(Math.max(1, currentDigits - 1));
             document.getElementById('currentSectorAnchor').textContent = sectorMask;
 
-            // 1. Calcular qué NÚMERO EXACTO sigue más frecuentemente a este SECTOR
             let maxCountExact = 0; let predictedExact = -1; let totalExact = 0;
             if (sectorTransitions.has(currentSector)) {
                 let possibleNexts = sectorTransitions.get(currentSector);
@@ -919,7 +1033,6 @@
                 document.getElementById('confidenceBySector').textContent = "N/A";
             }
 
-            // 2. Calcular a qué SECTOR salta más frecuentemente desde este SECTOR
             let maxCountSec = 0; let predictedSec = -1; let totalSec = 0;
             if (sectorToSector.has(currentSector)) {
                 let possibleSecs = sectorToSector.get(currentSector);
@@ -930,7 +1043,7 @@
             }
 
             if (totalSec > 0 && predictedSec !== -1) {
-                let pMask = predictedSec.toString() + "X".repeat(currentDigits - 1);
+                let pMask = predictedSec.toString() + "X".repeat(Math.max(1, currentDigits - 1));
                 document.getElementById('predictedNextSector').textContent = pMask;
                 document.getElementById('confidenceNextSector').textContent = ((maxCountSec / totalSec) * 100).toFixed(1) + '%';
             } else {
@@ -940,6 +1053,7 @@
         }
 
         function calculateInternalStructure(currentVal) {
+            document.getElementById('internalStructurePanel').classList.remove('hidden');
             const paddedStr = formatNumber(currentVal);
             const firstDigit = parseInt(paddedStr[0], 10);
             document.getElementById('currentFirstDigit').textContent = firstDigit;
@@ -959,7 +1073,7 @@
                 document.getElementById('favoriteUnit').textContent = favUnit;
                 const percentage = ((maxCount / totalAp) * 100).toFixed(1);
                 document.getElementById('unitAffinityBar').style.width = `${percentage}%`;
-                document.getElementById('unitAffinityText').textContent = `${percentage}% de las veces termina en ${favUnit}`;
+                document.getElementById('unitAffinityText').textContent = `${percentage}% termina en ${favUnit}`;
             } else {
                 document.getElementById('favoriteUnit').textContent = "?";
                 document.getElementById('unitAffinityBar').style.width = '0%';
@@ -967,9 +1081,6 @@
             }
         }
 
-        // ==========================================
-        // GRÁFICAS CANVAS
-        // ==========================================
         function drawFrequencyChart() {
             const canvas = document.getElementById('frequencyChart');
             if(!canvas.offsetParent) return;
@@ -980,7 +1091,6 @@
 
             if (frequencies.size === 0) return;
 
-            // Convertir mapa a array para ordenar
             let freqsArray = [...frequencies.entries()].map(e => ({ num: e[0], count: e[1] }));
             freqsArray.sort((a, b) => b.count - a.count);
             const top10 = freqsArray.slice(0, 10);
@@ -996,8 +1106,6 @@
                 ctxFreq.fillStyle = '#4f46e5'; 
                 ctxFreq.fillRect(x, y, barW, barH);
                 ctxFreq.fillStyle = '#64748b';
-                
-                // Ajustar tamaño fuente si son muchas cifras
                 ctxFreq.font = currentDigits > 4 ? '14px monospace' : '20px monospace';
                 ctxFreq.textAlign = 'center';
                 ctxFreq.fillText(formatNumber(item.num), x + (barW/2), h - 5);
@@ -1016,8 +1124,7 @@
             if (data.length < 2) return;
 
             const stepX = w / (data.length - 1);
-            const maxValOverall = getMaxValidNumber();
-            const scaleY = (val) => h - ((val / maxValOverall) * (h * 0.8) + (h * 0.1));
+            const scaleY = (val) => h - ((val / customMaxValue) * (h * 0.8) + (h * 0.1));
 
             ctxTrend.beginPath();
             let windowSize = 3;
@@ -1044,9 +1151,6 @@
 
         window.addEventListener('resize', () => { drawFrequencyChart(); drawTrendChart(); });
 
-        // ==========================================
-        // MOTOR CRIPTOGRÁFICO (ANTI-PREDICCIÓN)
-        // ==========================================
         const cryptoLog = document.getElementById('cryptoLog');
         const secureNumberDisplay = document.getElementById('secureNumberDisplay');
         const secureStatus = document.getElementById('secureStatus');
@@ -1061,10 +1165,9 @@
 
         function generateTrueRandomInt(min, max) {
             const range = max - min + 1;
-            // Calcular cuántos bytes necesitamos según el tamaño del rango
             let bytesNeeded = 1;
             if(range > 256) bytesNeeded = 2;
-            if(range > 65536) bytesNeeded = 3; // Hasta 16.7 millones, cubre 6 cifras
+            if(range > 65536) bytesNeeded = 3; 
             if(range > 16777216) bytesNeeded = 4;
 
             const maxValidValue = Math.pow(256, bytesNeeded) - (Math.pow(256, bytesNeeded) % range);
@@ -1085,10 +1188,8 @@
         function getSecureNumberAntiMarkov() {
             let nextNum;
             let attempts = 0;
-            const maxLimit = getMaxValidNumber();
-            
             do {
-                nextNum = generateTrueRandomInt(0, maxLimit);
+                nextNum = generateTrueRandomInt(0, customMaxValue);
                 attempts++;
             } while (nextNum === lastSecureNumber);
 
@@ -1099,198 +1200,136 @@
         async function generateSingleSecureNumber() {
             secureStatus.classList.replace('bg-slate-500', 'bg-emerald-500');
             secureStatus.classList.add('animate-pulse');
-            secureStatusText.textContent = `Extrayendo entropía (Rango: 0-${getMaxValidNumber()})...`;
+            secureStatusText.textContent = `Extrayendo entropía (Max: ${customMaxValue})...`;
             secureNumberDisplay.style.opacity = 0.5;
 
             setTimeout(async () => {
                 const result = getSecureNumberAntiMarkov();
                 const finalStr = formatNumber(result.num);
                 
-                // Ajustar tamaño del texto si son 6 cifras para que quepa bien
                 secureNumberDisplay.style.fontSize = currentDigits > 4 ? '3.5rem' : '4rem';
-                
                 secureNumberDisplay.textContent = finalStr;
                 secureNumberDisplay.style.opacity = 1;
                 
                 secureStatus.classList.remove('animate-pulse');
                 secureStatusText.textContent = `Generado en ${result.attempts} ciclos.`;
                 
-                let viewTarget = currentView === 'global' ? 'Global' : currentView;
-                appendToLog(`> Gen=<b>${finalStr}</b> Inyectado a: [${viewTarget}]`);
+                appendToLog(`> Gen=<b>${finalStr}</b> en [${currentView}]`);
                 await addSampleToDB(result.num, currentView);
             }, 300);
         }
 
         async function generateBatchSecureData() {
             const amount = parseInt(document.getElementById('secureBatchAmount').value, 10);
-            if(isNaN(amount) || amount < 1 || amount > 10000) return alert("Cantidad inválida (1-10000).");
+            if(isNaN(amount) || amount < 1 || amount > 10000) return alert("Cantidad inválida.");
 
-            appendToLog(`> INYECTANDO LOTE: ${amount} valores de ${currentDigits} cifras a [${currentView}]...`);
+            showLoading(`Inyectando ruido criptográfico...`);
             let secureValues = [];
-            
-            for(let i=0; i<amount; i++) {
-                secureValues.push(getSecureNumberAntiMarkov().num);
-            }
+            for(let i=0; i<amount; i++) secureValues.push(getSecureNumberAntiMarkov().num);
             
             await addBatchToDB(secureValues, currentView, true); 
-            appendToLog(`> Lote Inyectado. Modelo predictivo corrompido con éxito.`);
-            alert(`Inyectados ${amount} valores a la base de datos (${currentView}).`);
+            appendToLog(`> Lote Inyectado. Patrones corrompidos.`);
+            hideLoading();
         }
 
-        // ==========================================
-        // GESTIÓN DE ARCHIVOS .PAR (GUARDAR/CARGAR)
-        // ==========================================
-        
         function exportSession() {
-            loadingOverlay.classList.remove('hidden');
-            document.getElementById('loadingText').textContent = "Generando archivo .par...";
+            showLoading("Generando archivo .par...");
             
             const transaction = db.transaction([STORE_NAME], "readonly");
             const store = transaction.objectStore(STORE_NAME);
             const request = store.getAll();
 
             request.onsuccess = () => {
-                const data = request.result;
-                // Empaquetar configuración + base de datos
+                const machineObj = machines.find(m => m.id === activeMachineId);
                 const sessionData = {
-                    metadata: {
-                        app: "PredictorMulticifra",
-                        exportDate: new Date().toISOString()
-                    },
-                    config: {
-                        currentDigits: currentDigits,
-                        customMaxValue: customMaxValue,
-                        activeInputMode: activeInputMode,
-                        numSimulInputs: numSimulInputs,
-                        currentView: currentView
-                    },
-                    records: data
+                    metadata: { app: "PredictorMulticifra_Workspace", exportDate: new Date().toISOString() },
+                    machine: machineObj,
+                    records: request.result
                 };
 
-                // Crear archivo JSON pero con extensión .par
                 const jsonString = JSON.stringify(sessionData);
                 const blob = new Blob([jsonString], { type: "application/json" });
                 const url = URL.createObjectURL(blob);
                 
                 const a = document.createElement('a');
                 a.href = url;
-                const dateStr = new Date().toISOString().split('T')[0];
-                a.download = `Sesion_${currentDigits}Cifras_${dateStr}.par`;
+                const safeName = machineObj.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                a.download = `${safeName}_${currentDigits}C.par`;
                 document.body.appendChild(a);
                 a.click();
                 
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                loadingOverlay.classList.add('hidden');
-                document.getElementById('loadingText').textContent = "Procesando...";
-            };
-
-            request.onerror = () => {
-                loadingOverlay.classList.add('hidden');
-                alert("Error al intentar exportar los datos de la Base de Datos.");
+                hideLoading();
             };
         }
 
-        function triggerImport() {
-            document.getElementById('importFileInput').click();
-        }
+        function triggerImport() { document.getElementById('importFileInput').click(); }
 
         function importSession(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            loadingOverlay.classList.remove('hidden');
-            document.getElementById('loadingText').textContent = "Restaurando sesión...";
-            
+            showLoading("Restaurando máquina...");
             const reader = new FileReader();
+            
             reader.onload = async (e) => {
                 try {
                     const sessionData = JSON.parse(e.target.result);
-                    
-                    if (!sessionData.config || !sessionData.records) {
-                        throw new Error("Archivo .par inválido o corrupto.");
-                    }
+                    if (!sessionData.machine || !sessionData.records) throw new Error("Archivo .par inválido.");
 
-                    // 1. Restaurar valores de la Interfaz de Usuario
-                    document.getElementById('digitSelector').value = sessionData.config.currentDigits;
-                    document.getElementById('maxRangeLimit').value = sessionData.config.customMaxValue;
-                    document.getElementById('simulCount').value = sessionData.config.numSimulInputs;
-                    document.getElementById('streamMode').value = sessionData.config.activeInputMode;
+                    // Crear una NUEVA MÁQUINA a partir de la importada
+                    const importedMachine = sessionData.machine;
+                    const newId = 'm_' + Date.now();
+                    importedMachine.id = newId;
+                    importedMachine.name = importedMachine.name + " (Cargada)";
                     
-                    // 2. Restaurar variables globales
-                    currentDigits = sessionData.config.currentDigits;
-                    customMaxValue = sessionData.config.customMaxValue;
-                    activeInputMode = sessionData.config.activeInputMode;
-                    numSimulInputs = sessionData.config.numSimulInputs;
+                    machines.push(importedMachine);
+                    localStorage.setItem('predictor_machines', JSON.stringify(machines));
                     
-                    // 3. Apuntar a la base de datos correcta y regenerar cajas de texto
-                    DB_NAME = `PredictorMultiseriesDB_${currentDigits}`;
-                    renderInputFields(); 
+                    // Seleccionar la nueva máquina
+                    activeMachineId = newId;
+                    localStorage.setItem('predictor_active_machine', activeMachineId);
+                    renderMachineSelector();
                     
-                    // 4. Cerrar DB actual y abrir la del archivo
-                    if (db) db.close();
-                    await initDB();
+                    // Aplicar configuración y crear DB nueva
+                    await applyMachineConfig(newId);
                     
-                    // 5. Borrar datos viejos y cargar el historial del archivo
-                    const clearTx = db.transaction([STORE_NAME], "readwrite");
-                    const clearStore = clearTx.objectStore(STORE_NAME);
-                    clearStore.clear().onsuccess = () => {
-                        
-                        if (sessionData.records.length === 0) {
-                            currentView = sessionData.config.currentView || 'global';
-                            updateSeriesViewSelector();
-                            loadDataFromDB().then(() => loadingOverlay.classList.add('hidden'));
-                            return;
-                        }
-
+                    // Llenar la base de datos
+                    if(sessionData.records.length > 0) {
+                        showLoading("Inyectando historial importado...");
                         const addTx = db.transaction([STORE_NAME], "readwrite");
                         const addStore = addTx.objectStore(STORE_NAME);
                         
-                        // Insertar uno por uno restaurando su estructura original
                         sessionData.records.forEach(record => {
-                            delete record.id; // Quitar ID para que auto-incremente limpiamente
+                            delete record.id; 
                             addStore.add(record);
                         });
 
                         addTx.oncomplete = () => {
-                            // 6. Restaurar la vista (ej. regresar a la Serie 3 si ahí estábamos)
-                            currentView = sessionData.config.currentView || 'global';
-                            updateSeriesViewSelector(); 
-                            
-                            const selector = document.getElementById('seriesViewSelector');
-                            if(selector) selector.value = currentView;
-                            
-                            // 7. Cargar matemáticas y gráficas
                             loadDataFromDB().then(() => {
-                                loadingOverlay.classList.add('hidden');
-                                document.getElementById('loadingText').textContent = "Procesando...";
-                                // Limpiar el input file por si quieren volver a cargar el mismo
                                 document.getElementById('importFileInput').value = ''; 
+                                hideLoading();
                             });
                         };
-                    };
+                    } else {
+                        hideLoading();
+                    }
 
                 } catch (error) {
-                    console.error("Fallo al leer archivo .par", error);
-                    loadingOverlay.classList.add('hidden');
+                    console.error(error);
+                    hideLoading();
                     alert("El archivo no es compatible o está dañado.");
                 }
             };
-            
             reader.readAsText(file);
         }
 
         // ==========================================
-        // INIT APP
+        // INIT
         // ==========================================
-        window.onload = async () => {
-            try {
-                renderInputFields(); // Inicializa las cajas de input dinámicas
-                await initDB();
-                await loadDataFromDB();
-            } catch (e) {
-                console.error("Fallo Init", e);
-            }
+        window.onload = () => {
+            initMachineSystem();
         };
 
     </script>
