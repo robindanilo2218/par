@@ -92,6 +92,15 @@
             text-align: center;
             border-radius: 8px;
         }
+        
+        .sortable { 
+            cursor: pointer; 
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .sortable:hover { 
+            background-color: #e0e0e0 !important; 
+        }
     </style>
 </head>
 <body>
@@ -255,17 +264,28 @@
         }
 
         function saveData(data) {
-            const uniqueData = [];
-            const seen = new Set();
-            // Filtrar duplicados exactos (misma fecha y mismo número)
+            // Nuevo sistema de filtrado estricto: Una sola fecha, el número menor gana.
+            const uniqueByDate = new Map();
+            
             data.forEach(item => {
-                const key = `${item.timestamp}-${item.number}`;
-                if(!seen.has(key)) {
-                    seen.add(key);
-                    uniqueData.push(item);
+                const ts = item.timestamp;
+                const currentNum = parseInt(item.number, 10);
+                
+                if (!uniqueByDate.has(ts)) {
+                    uniqueByDate.set(ts, item);
+                } else {
+                    // Si ya hay un registro en esta fecha, verificamos cuál es menor
+                    const existingItem = uniqueByDate.get(ts);
+                    const existingNum = parseInt(existingItem.number, 10);
+                    
+                    // Conservar estrictamente el número más pequeño, descartando el mayor
+                    if (currentNum < existingNum) {
+                        uniqueByDate.set(ts, item); 
+                    }
                 }
             });
             
+            const uniqueData = Array.from(uniqueByDate.values());
             localStorage.setItem(STORAGE_KEY, JSON.stringify(uniqueData));
             updateUI();
         }
@@ -384,55 +404,181 @@
             data.sort((a, b) => a.timestamp - b.timestamp);
             
             let html = "";
-            html += analyzeFrequencies(data);
+            html += generateDeepFrequencies(data);
             html += analyzeInternalStructure(data);
             html += analyzeQuartiles(data);
+            html += analyzeMarkovChains(data);
             
             container.innerHTML = html;
         }
 
-        function analyzeFrequencies(data) {
-            let byDayOfWeek = [0,0,0,0,0,0,0]; // Dom a Sab
-            let byDateExact = {};
-            const startDate = data[0].timestamp;
-            let by100Days = {};
+        function analyzeMarkovChains(data) {
+            if (data.length < 2) return "";
+            
+            let transitions = {};
+            let totals = {};
 
+            // 1. Analizar saltos cronológicos (de data[i] a data[i+1])
+            for(let i = 0; i < data.length - 1; i++) {
+                let current = data[i].number.padStart(2, '0');
+                let next = data[i+1].number.padStart(2, '0');
+
+                if (!transitions[current]) {
+                    transitions[current] = {};
+                    totals[current] = 0;
+                }
+                transitions[current][next] = (transitions[current][next] || 0) + 1;
+                totals[current]++;
+            }
+
+            // 2. Generar el HTML
+            let html = "<h2 style='border-bottom: 2px solid #ccc; padding-bottom:5px; margin-top:30px;'>4. Cadenas de Markov (Secuencia Temporal)</h2>";
+            html += "<p style='font-size: 13px; color: #666; background:#e8f4f8; padding:10px; border-radius:5px;'><strong>Modelo Predictivo:</strong> Analiza la secuencia. Si hoy sale el número X, te muestra qué número Y tiene la mayor probabilidad histórica de salir en el <strong>siguiente sorteo</strong>.</p>";
+
+            html += `<details open style="margin-bottom:8px; border:1px solid #dcdde1; border-radius:6px; background:#fff;">
+                        <summary style="padding:12px; font-weight:bold; outline:none; background:#f8f9fa; cursor:pointer; font-size:15px;">
+                            Ver matriz de transiciones probables
+                        </summary>
+                        <div style="padding:15px; background:#fff; border-top:1px solid #eee; display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">`;
+
+            let sortedCurrents = Object.keys(transitions).sort((a,b) => a.localeCompare(b));
+
+            sortedCurrents.forEach(curr => {
+                let nextFreqs = transitions[curr];
+                // Ordenar los "siguientes" por la cantidad de veces que salieron (de mayor a menor)
+                let sortedNexts = Object.keys(nextFreqs).sort((a,b) => nextFreqs[b] - nextFreqs[a]);
+
+                let maxFreq = nextFreqs[sortedNexts[0]];
+                let topNexts = sortedNexts.filter(n => nextFreqs[n] === maxFreq); // Agrupa empates
+
+                let pct = ((maxFreq / totals[curr]) * 100).toFixed(1);
+
+                html += `<div style="border-left: 4px solid #8e44ad; padding: 10px; background: #fdfbfd; border-radius: 4px; border: 1px solid #eee; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                            <div style="font-size: 13px; color: #555;">Si ayer salió: <strong style="font-size: 18px; color:#2c3e50;">${curr}</strong></div>
+                            <div style="margin-top: 5px; font-size: 12px; color:#777;">Siguiente más probable:</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #8e44ad;">
+                                ${topNexts.join(' <span style="color:#333; font-weight:normal; font-size:12px;">ó</span> ')} 
+                            </div>
+                            <div style="color: #e74c3c; font-size: 12px; font-weight:bold; margin-top:2px;">(${maxFreq} veces)</div>
+                            <div style="color: #7f8c8d; font-size: 11px; margin-top:5px; border-top: 1px solid #eee; padding-top:4px;">
+                                Probabilidad: <strong>${pct}%</strong> <br>(de ${totals[curr]} transiciones)
+                            </div>
+                        </div>`;
+            });
+
+            html += `</div></details>`;
+            return html;
+        }
+
+        function getWeekNumber(dateObj) {
+            const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            return Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+        }
+
+        function generateDeepFrequencies(data) {
+            const startDate = data[0].timestamp;
+            
+            // Diccionarios para agrupar todo
+            let byDayOfWeek = {};
+            let byMonth = {};
+            let byDayOfMonth = {};
+            let byWeekNumber = {};
+            let by100Days = {};
+            let byDayAndMonth = {}; // NUEVO: Día y Mes sin importar el año
+
+            // 1. Agrupar y contar
             data.forEach(d => {
-                const date = new Date(d.timestamp);
-                byDayOfWeek[date.getDay()]++;
-                
-                byDateExact[d.displayDate] = (byDateExact[d.displayDate] || 0) + 1;
-                
+                const dObj = new Date(d.timestamp);
+
+                const dayW = dObj.getDay();
+                const month = dObj.getMonth();
+                const dayM = dObj.getDate();
+                const week = getWeekNumber(dObj);
                 const daysDiff = Math.floor((d.timestamp - startDate) / (1000 * 60 * 60 * 24));
                 const bin100 = Math.floor(daysDiff / 100);
-                by100Days[bin100] = (by100Days[bin100] || 0) + 1;
+                
+                // Formato MM-DD para ordenar cronológicamente en el acordeón
+                const monthStr = (month + 1).toString().padStart(2, '0');
+                const dayStr = dayM.toString().padStart(2, '0');
+                const dmKey = `${monthStr}-${dayStr}`;
+
+                if (!byDayOfWeek[dayW]) byDayOfWeek[dayW] = {};
+                byDayOfWeek[dayW][d.number] = (byDayOfWeek[dayW][d.number] || 0) + 1;
+
+                if (!byMonth[month]) byMonth[month] = {};
+                byMonth[month][d.number] = (byMonth[month][d.number] || 0) + 1;
+
+                if (!byDayOfMonth[dayM]) byDayOfMonth[dayM] = {};
+                byDayOfMonth[dayM][d.number] = (byDayOfMonth[dayM][d.number] || 0) + 1;
+
+                if (!byWeekNumber[week]) byWeekNumber[week] = {};
+                byWeekNumber[week][d.number] = (byWeekNumber[week][d.number] || 0) + 1;
+
+                if (!by100Days[bin100]) by100Days[bin100] = {};
+                by100Days[bin100][d.number] = (by100Days[bin100][d.number] || 0) + 1;
+
+                if (!byDayAndMonth[dmKey]) byDayAndMonth[dmKey] = {};
+                byDayAndMonth[dmKey][d.number] = (byDayAndMonth[dmKey][d.number] || 0) + 1;
             });
 
-            let repeatedDatesHtml = "";
-            for(let date in byDateExact) {
-                if(byDateExact[date] > 1) {
-                    repeatedDatesHtml += `<li>El <strong>${date}</strong> hubo <strong>${byDateExact[date]}</strong> registros.</li>`;
-                }
-            }
+            // 2. Función auxiliar para dibujar un Acordeón Desplegable
+            const renderAccordion = (title, dataMap, keyFormatter) => {
+                let accHtml = `<h3 style="margin-top:20px; font-size:18px; color:#2c3e50; border-bottom:1px solid #eee; padding-bottom:5px;">${title}</h3>`;
+                // Ordenar las llaves (meses, días, semanas, etc.) de menor a mayor
+                const keys = Object.keys(dataMap).sort((a,b) => a.localeCompare(b, undefined, {numeric: true}));
+                
+                keys.forEach(k => {
+                    const numFreqs = dataMap[k];
+                    // Ordenar números de mayor a menor frecuencia
+                    const sortedNums = Object.keys(numFreqs).sort((a,b) => numFreqs[b] - numFreqs[a] || a.localeCompare(b));
+                    const totalRecords = sortedNums.reduce((sum, n) => sum + numFreqs[n], 0);
+                    
+                    // Generar "burbujas" visuales para cada número
+                    const displayStr = sortedNums.map(n => 
+                        `<span style="display:inline-block; margin:4px; padding:5px 10px; background:#e8f4f8; border-radius:20px; border:1px solid #3498db; font-size:14px; box-shadow:0 1px 2px rgba(0,0,0,0.1);">
+                            <strong>${n}</strong> <span style="color:#e74c3c; font-size:12px;">(${numFreqs[n]}x)</span>
+                        </span>`
+                    ).join('');
+                    
+                    accHtml += `
+                    <details style="margin-bottom:8px; border:1px solid #dcdde1; border-radius:6px; background:#fff;">
+                        <summary style="padding:12px; font-weight:bold; outline:none; background:#f8f9fa; cursor:pointer; font-size:15px;">
+                            ${keyFormatter(k)} <span style="color:#7f8c8d; font-weight:normal; font-size:13px; margin-left:10px;">(Total de sorteos: ${totalRecords})</span>
+                        </summary>
+                        <div style="padding:15px; line-height:2.2; background:#fff; border-top:1px solid #eee;">
+                            ${displayStr}
+                        </div>
+                    </details>`;
+                });
+                return accHtml;
+            };
 
-            let html = "<h2 style='border-bottom: 2px solid #ccc; padding-bottom:5px; margin-top:20px;'>1. Frecuencias Generales</h2>";
+            // 3. Unir todo el HTML
+            let html = "<h2 style='border-bottom: 2px solid #ccc; padding-bottom:5px; margin-top:20px;'>1. Análisis Profundo de Frecuencias</h2>";
+            html += "<p style='font-size:14px; color:#555; background:#fff3cd; padding:10px; border-radius:5px;'><strong>Toca cada barra gris</strong> para desplegarla. Adentro verás qué números salieron más, ordenados de mayor a menor frecuencia (x).</p>";
+
+            const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+            html += renderAccordion("Por Día de la Semana", byDayOfWeek, k => dayNames[k]);
+
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            html += renderAccordion("Por Mes", byMonth, k => monthNames[k]);
             
-            html += "<table width='100%' style='border-collapse: collapse; text-align: left; margin-bottom: 15px;'>";
-            html += "<tr style='background:#f4f4f4;'><th style='padding:8px; border:1px solid #ccc;'>Día de la Semana</th><th style='padding:8px; border:1px solid #ccc;'>Veces Registrado</th></tr>";
-            const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-            days.forEach((d, i) => { html += `<tr><td style='padding:8px; border:1px solid #ccc;'>${d}</td><td style='padding:8px; border:1px solid #ccc;'>${byDayOfWeek[i]}</td></tr>`; });
-            html += "</table>";
+            html += renderAccordion("Por Número de Semana del Año", byWeekNumber, k => `Semana N° ${k}`);
 
-            html += "<h3>Por ciclos de 100 días</h3><ul>";
-            Object.keys(by100Days).sort((a,b)=>a-b).forEach(bin => {
-                let endDay = (parseInt(bin)*100)+99;
-                html += `<li>Ciclo ${bin} (Días ${bin*100} a ${endDay}): Registros: <strong>${by100Days[bin]}</strong></li>`;
+            html += renderAccordion("Por Día del Mes", byDayOfMonth, k => `Día ${k} del mes`);
+
+            // NUEVO: Acordeón por Día y Mes sin importar el año
+            html += renderAccordion("Por Fecha Exacta (Día y Mes ignorando el Año)", byDayAndMonth, k => {
+                const parts = k.split('-');
+                return `${parts[1]} de ${monthNames[parseInt(parts[0]) - 1]}`;
             });
-            html += "</ul>";
 
-            if(repeatedDatesHtml) {
-                html += "<h3>Múltiples coincidencias en misma fecha</h3><ul>" + repeatedDatesHtml + "</ul>";
-            }
+            html += renderAccordion("Por Ciclos de 100 Días", by100Days, k => {
+                const startDay = k * 100;
+                return `Ciclo ${k} <span style='font-weight:normal;'>(Día ${startDay} al ${startDay + 99})</span>`;
+            });
 
             return html;
         }
@@ -485,9 +631,18 @@
             });
 
             let html = "<h2 style='border-bottom: 2px solid #ccc; padding-bottom:5px; margin-top:30px;'>3. Brecha de Tiempo (Cuartiles)</h2>";
-            html += "<p style='font-size: 13px; color: #666;'>Días exactos que pasan antes de que un mismo número vuelva a salir.</p>";
-            html += "<div style='overflow-x: auto;'><table width='100%' style='border-collapse: collapse; text-align: center;'>";
-            html += "<tr style='background:#f4f4f4;'><th style='padding:8px; border:1px solid #ccc;'>Nº</th><th style='padding:8px; border:1px solid #ccc;'>Apariciones</th><th style='padding:8px; border:1px solid #ccc;'>Q0 (Min)</th><th style='padding:8px; border:1px solid #ccc;'>Q1 (25%)</th><th style='padding:8px; border:1px solid #ccc; background:#d1e7dd;'>Q2 (Mediana)</th><th style='padding:8px; border:1px solid #ccc;'>Q3 (75%)</th><th style='padding:8px; border:1px solid #ccc;'>Q4 (Max)</th></tr>";
+            html += "<p style='font-size: 13px; color: #666;'>Días exactos que pasan antes de que un mismo número vuelva a salir. <em>(Haz clic en los encabezados para ordenar)</em></p>";
+            html += "<div style='overflow-x: auto;'><table id='table-quartiles' width='100%' style='border-collapse: collapse; text-align: center;'>";
+            
+            html += "<thead><tr style='background:#f4f4f4;'>";
+            html += "<th class='sortable' onclick=\"sortTable('table-quartiles', 0, 'numeric')\" style='padding:8px; border:1px solid #ccc;'>Nº</th>";
+            html += "<th class='sortable' onclick=\"sortTable('table-quartiles', 1, 'numeric')\" style='padding:8px; border:1px solid #ccc;'>Apariciones</th>";
+            html += "<th class='sortable' onclick=\"sortTable('table-quartiles', 2, 'numeric')\" style='padding:8px; border:1px solid #ccc;'>Q0 (Min)</th>";
+            html += "<th class='sortable' onclick=\"sortTable('table-quartiles', 3, 'numeric')\" style='padding:8px; border:1px solid #ccc;'>Q1 (25%)</th>";
+            html += "<th class='sortable' onclick=\"sortTable('table-quartiles', 4, 'numeric')\" style='padding:8px; border:1px solid #ccc; background:#d1e7dd;'>Q2 (Mediana)</th>";
+            html += "<th class='sortable' onclick=\"sortTable('table-quartiles', 5, 'numeric')\" style='padding:8px; border:1px solid #ccc;'>Q3 (75%)</th>";
+            html += "<th class='sortable' onclick=\"sortTable('table-quartiles', 6, 'numeric')\" style='padding:8px; border:1px solid #ccc;'>Q4 (Max)</th>";
+            html += "</tr></thead><tbody>";
 
             const quantile = (arr, q) => {
                 if (arr.length === 0) return 0;
@@ -521,11 +676,49 @@
                     <td style='padding:6px; border:1px solid #ccc;'>${quantile(diffs, 1).toFixed(0)}d</td>
                 </tr>`;
             }
-            html += "</table></div>";
+            html += "</tbody></table></div>";
             return html;
         }
 
-        updateUI();
+        let sortDirections = {}; // Guarda el estado (asc/desc) de cada columna
+        
+        function sortTable(tableId, colIndex, type) {
+            const table = document.getElementById(tableId);
+            const tbody = table.tBodies[0];
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Alternar dirección
+            const key = tableId + '-' + colIndex;
+            const isAsc = !sortDirections[key];
+            sortDirections[key] = isAsc;
+            
+            // Actualizar flechas visuales en los encabezados
+            const headers = table.querySelectorAll('th.sortable');
+            headers.forEach(th => th.innerHTML = th.innerHTML.replace(/ [▲▼]/g, '')); // Limpiar flechas anteriores
+            headers[colIndex].innerHTML += isAsc ? ' ▲' : ' ▼'; // Agregar nueva flecha
+
+            // Ordenar filas
+            rows.sort((a, b) => {
+                let valA = a.cells[colIndex].innerText.trim();
+                let valB = b.cells[colIndex].innerText.trim();
+                
+                if (type === 'numeric') {
+                    // Limpia el texto de letras ("d") y espacios para comparar solo el número matemático
+                    valA = parseFloat(valA.replace(/[^\d.-]/g, '')) || 0;
+                    valB = parseFloat(valB.replace(/[^\d.-]/g, '')) || 0;
+                    return isAsc ? valA - valB : valB - valA;
+                } else {
+                    // Ordenar como texto normal (útil para "Lunes", "Martes", etc.)
+                    return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+            });
+
+            // Volver a dibujar las filas en el nuevo orden
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Limpiar datos corruptos automáticamente apenas se abre la app
+        saveData(loadData());
 
         // Service Worker Dinámico para hacerla instalable y Offline
         const swCode = `
