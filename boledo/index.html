@@ -1,7 +1,263 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recolector y Analizador de Números</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { text-align: center; color: #2c3e50; font-size: 24px; }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: #666;
+            outline: none;
+        }
+        .tab-btn.active {
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+            margin-bottom: -2px;
+        }
+        
+        textarea, input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .detected-number-box {
+            background-color: #e8f4f8;
+            border: 2px solid #3498db;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            margin-right: 5px;
+            margin-bottom: 10px;
+        }
+        .btn-primary { background-color: #3498db; }
+        .btn-success { background-color: #2ecc71; }
+        .btn-danger { background-color: #e74c3c; }
+        .btn-danger.confirm { background-color: #c0392b; animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .msg-box { margin-top: 10px; padding: 10px; border-radius: 4px; display: none; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .file-input-wrapper {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 2px dashed #ccc;
+            text-align: center;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Datos de Números</h1>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('recolector', this)">1. Recolector</button>
+            <button class="tab-btn" onclick="showTab('analisis', this)">2. Análisis y Estadísticas</button>
+        </div>
+
+        <!-- PESTAÑA 1: RECOLECTOR -->
+        <div id="tab-recolector" class="tab-content active">
+            <label><strong>Número a registrar:</strong></label>
+            <input type="text" id="manualNumber" class="detected-number-box" placeholder="Ej. 00 (Se detecta al pegar)" maxlength="4">
+            
+            <label><strong>Pega el texto aquí:</strong></label>
+            <textarea id="inputArea" rows="6" placeholder="Pega aquí el texto con las fechas..." oninput="autoDetectNumber()"></textarea>
+            
+            <button class="btn-primary" onclick="processText()">Procesar y Guardar Entrada</button>
+            <div id="systemMessage" class="msg-box"></div>
+            
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            <h3>Historial Guardado (<span id="history-count">0</span> registros)</h3>
+            <p style="font-size: 12px; color: #666;">Copia este cuadro y pégalo en Excel. Las columnas se separarán solas.</p>
+            <textarea id="outputArea" rows="10" readonly></textarea>
+            
+            <div>
+                <button class="btn-success" onclick="exportData('csv')">Descargar CSV</button>
+                <button class="btn-success" onclick="exportData('json')">Descargar JSON</button>
+                <button id="btnDelete" class="btn-danger" onclick="clearHistory()">Borrar Historial</button>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: ANÁLISIS -->
+        <div id="tab-analisis" class="tab-content">
+            <div class="file-input-wrapper">
+                <strong>¿Tienes un respaldo?</strong><br>
+                <p style="font-size: 13px; color:#555;">Importa un archivo .CSV o .JSON generado por esta app para combinarlo con tus datos actuales.</p>
+                <input type="file" id="importFile" accept=".csv, .json">
+                <div id="importMessage" class="msg-box"></div>
+            </div>
+            
+            <div id="analysis-results">
+                <!-- Aquí se generarán las tablas e informes -->
+                <p style="text-align: center; color: #888;">Cargando análisis...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'lucky_numbers_data';
+        let isWaitingForConfirm = false;
+
+        function showTab(tabName, btnElement) {
+            // Ocultar todos los contenidos
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Mostrar el seleccionado
+            document.getElementById('tab-' + tabName).classList.add('active');
+            btnElement.classList.add('active');
+            
+            // Si entra a análisis, genera el reporte
+            if (tabName === 'analisis') runAnalysis();
+        }
+
+        function showMessage(elementId, msg, color, bgColor) {
+            const msgBox = document.getElementById(elementId);
+            msgBox.style.display = 'block';
+            msgBox.style.color = color;
+            msgBox.style.backgroundColor = bgColor;
+            msgBox.innerText = msg;
+            setTimeout(() => { msgBox.style.display = 'none'; }, 5000);
+        }
+
+        function autoDetectNumber() {
+            const text = document.getElementById('inputArea').value;
+            if(!text) return;
+
+            const lines = text.split('\n');
+            let detected = null;
+
+            for(let i=0; i<Math.min(lines.length, 5); i++) {
+                const line = lines[i].toLowerCase();
+                const match = line.match(/(number|número|numero)[\s:]*(\d+)/i);
+                if (match) {
+                    detected = match[2];
+                    break;
+                }
+            }
+
+            if (detected) {
+                document.getElementById('manualNumber').value = detected.padStart(2, '0');
+                showMessage('systemMessage', 'Número ' + detected + ' detectado automáticamente.', '#0f5132', '#d1e7dd');
+            } else {
+                showMessage('systemMessage', 'No se detectó el número en el texto. Escríbelo arriba manualmente.', '#842029', '#f8d7da');
+            }
+        }
+
+        function processText() {
+            const input = document.getElementById('inputArea').value;
+            let currentNumber = document.getElementById('manualNumber').value.trim();
+
+            if (!currentNumber) {
+                showMessage('systemMessage', '¡Error! Necesitas especificar el número en la casilla superior.', '#842029', '#f8d7da');
+                return;
+            }
+
+            currentNumber = currentNumber.padStart(2, '0');
+            const lines = input.split('\n');
+            const data = loadData();
+            let addedCount = 0;
+
+            lines.forEach(line => {
+                const parsedDate = parseDate(line);
+                if (parsedDate) {
+                    data.push({
+                        timestamp: parsedDate.timestamp,
+                        displayDate: parsedDate.displayDate,
+                        number: currentNumber
+                    });
+                    addedCount++;
+                }
+            });
+
+            if(addedCount > 0) {
+                saveData(data);
+                document.getElementById('inputArea').value = '';
+                showMessage('systemMessage', `¡Éxito! Se procesaron ${addedCount} fechas para el número ${currentNumber}.`, '#0f5132', '#d1e7dd');
+            } else {
+                showMessage('systemMessage', 'No se encontraron fechas válidas en el texto.', '#842029', '#f8d7da');
+            }
+        }
+
+        function parseDate(dateString) {
+            const monthMap = {
+                'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+                'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+            };
+            const parts = dateString.trim().split(' ');
+            if(parts.length >= 4) {
+                const day = parseInt(parts[1].replace(/\D/g, '')); // Quita st, nd, rd, th
+                const month = monthMap[parts[2]];
+                const year = parseInt(parts[3]);
+                
+                if(!isNaN(day) && month !== undefined && !isNaN(year)) {
+                    const dateObj = new Date(year, month, day);
+                    return {
+                        timestamp: dateObj.getTime(),
+                        displayDate: `${day.toString().padStart(2, '0')}/${(month+1).toString().padStart(2, '0')}/${year}`
+                    };
+                }
+            }
+            return null;
+        }
+
+        function loadData() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
         function saveData(data) {
             const uniqueData = [];
             const seen = new Set();
+            // Filtrar duplicados exactos (misma fecha y mismo número)
             data.forEach(item => {
                 const key = `${item.timestamp}-${item.number}`;
                 if(!seen.has(key)) {
@@ -18,13 +274,11 @@
             const data = loadData();
             document.getElementById('history-count').innerText = data.length;
             
-            // Ordenar por fecha (timestamp) de más antiguo a más reciente
+            // Ordenar por fecha cronológicamente
             data.sort((a, b) => a.timestamp - b.timestamp);
             
-            // Colocamos los encabezados separados por una tabulación (\t)
+            // Formato con tabulaciones para pegar en Excel
             let outputText = "Fecha\tNúmero\n"; 
-            
-            // Agregamos los datos limpios, también separados por tabulación
             data.forEach(item => {
                 outputText += `${item.displayDate}\t${item.number}\n`;
             });
@@ -32,34 +286,56 @@
             document.getElementById('outputArea').value = outputText;
         }
 
-        function parseDate(dateString) {
-            const monthMap = {
-                'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
-                'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
-            };
-            const parts = dateString.trim().split(' ');
-            if(parts.length >= 4) {
-                const day = parseInt(parts[1].replace(/\D/g, ''));
-                const month = monthMap[parts[2]];
-                const year = parseInt(parts[3]);
-                const dateObj = new Date(year, month, day);
-                return {
-                    timestamp: dateObj.getTime(),
-                    displayDate: `${day.toString().padStart(2, '0')}/${(month+1).toString().padStart(2, '0')}/${year}`
-                };
+        function exportData(format) {
+            const data = loadData();
+            if (data.length === 0) {
+                showMessage('systemMessage', 'No hay datos para exportar.', '#842029', '#f8d7da');
+                return;
             }
-            return null;
+            
+            let content, mimeType, filename;
+            if (format === 'csv') {
+                content = document.getElementById('outputArea').value;
+                mimeType = 'text/csv';
+                filename = 'numeros.csv';
+            } else {
+                content = JSON.stringify(data, null, 2);
+                mimeType = 'application/json';
+                filename = 'numeros.json';
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
-        // --- SISTEMA DE PESTAÑAS ---
-        function showTab(tabName) {
-            document.getElementById('tab-recolector').style.display = tabName === 'recolector' ? 'block' : 'none';
-            document.getElementById('tab-analisis').style.display = tabName === 'analisis' ? 'block' : 'none';
-            // Si entra a análisis, genera el reporte con los datos actuales automáticamente
-            if (tabName === 'analisis') runAnalysis(); 
+        function clearHistory() {
+            const btn = document.getElementById('btnDelete');
+            if (!isWaitingForConfirm) {
+                isWaitingForConfirm = true;
+                btn.innerText = "¡Haz clic de nuevo para confirmar!";
+                btn.classList.add('confirm');
+                setTimeout(() => {
+                    isWaitingForConfirm = false;
+                    btn.innerText = "Borrar Historial";
+                    btn.classList.remove('confirm');
+                }, 4000);
+            } else {
+                localStorage.removeItem(STORAGE_KEY);
+                updateUI();
+                isWaitingForConfirm = false;
+                btn.innerText = "Borrar Historial";
+                btn.classList.remove('confirm');
+                showMessage('systemMessage', 'Historial borrado correctamente.', '#0f5132', '#d1e7dd');
+            }
         }
 
-        // --- IMPORTACIÓN DE ARCHIVOS (CSV o JSON) ---
         document.getElementById('importFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -72,9 +348,9 @@
                         newData = JSON.parse(content);
                     } else if (file.name.endsWith('.csv')) {
                         const lines = content.split('\n');
-                        for (let i = 1; i < lines.length; i++) { // Evita la línea 0 (encabezados)
+                        for (let i = 1; i < lines.length; i++) { // Evita fila de encabezados
                             if (!lines[i].trim()) continue;
-                            const parts = lines[i].split('\t'); // Lee usando la tabulación como separación
+                            const parts = lines[i].split('\t'); // Lee tabulaciones
                             if (parts.length >= 2) {
                                 const dateParts = parts[0].split('/');
                                 const ts = new Date(dateParts[2], dateParts[1]-1, dateParts[0]).getTime();
@@ -85,26 +361,26 @@
                     
                     if (newData.length > 0) {
                         const currentData = loadData();
-                        saveData(currentData.concat(newData)); // saveData filtra repetidos automáticamente
-                        alert("¡Archivo importado y combinado con éxito! Puedes ver los datos en la pestaña de Análisis.");
-                        runAnalysis();
+                        saveData(currentData.concat(newData));
+                        showMessage('importMessage', '¡Archivo importado y combinado con éxito!', '#0f5132', '#d1e7dd');
+                        runAnalysis(); // Actualizar panel si está abierto
                     }
                 } catch(err) {
-                    alert("Error al leer el archivo. Asegúrate de que sea el CSV o JSON original descargado de esta app.");
+                    showMessage('importMessage', 'Error al leer. Asegúrate de que sea el CSV/JSON descargado de esta app.', '#842029', '#f8d7da');
                 }
             };
             reader.readAsText(file);
         });
 
-        // --- LÓGICAS MATEMÁTICAS Y DE ANÁLISIS ---
         function runAnalysis() {
             const data = loadData();
+            const container = document.getElementById('analysis-results');
+            
             if (data.length === 0) {
-                document.getElementById('analysis-results').innerHTML = "<p style='color:red;'>No hay datos guardados para analizar. Recolecta o importa datos primero.</p>";
+                container.innerHTML = "<div style='padding:20px; background:#f8d7da; color:#842029; border-radius:5px;'>No hay datos para analizar. Recolecta o importa datos primero.</div>";
                 return;
             }
             
-            // Ordenar por fecha cronológicamente
             data.sort((a, b) => a.timestamp - b.timestamp);
             
             let html = "";
@@ -112,11 +388,11 @@
             html += analyzeInternalStructure(data);
             html += analyzeQuartiles(data);
             
-            document.getElementById('analysis-results').innerHTML = html;
+            container.innerHTML = html;
         }
 
         function analyzeFrequencies(data) {
-            let byDayOfWeek = [0,0,0,0,0,0,0]; // Domingo a Sábado
+            let byDayOfWeek = [0,0,0,0,0,0,0]; // Dom a Sab
             let byDateExact = {};
             const startDate = data[0].timestamp;
             let by100Days = {};
@@ -125,43 +401,37 @@
                 const date = new Date(d.timestamp);
                 byDayOfWeek[date.getDay()]++;
                 
-                // Agrupar por fecha exacta
                 byDateExact[d.displayDate] = (byDateExact[d.displayDate] || 0) + 1;
                 
-                // Agrupar en ciclos de 100 días desde la primera fecha registrada
                 const daysDiff = Math.floor((d.timestamp - startDate) / (1000 * 60 * 60 * 24));
                 const bin100 = Math.floor(daysDiff / 100);
                 by100Days[bin100] = (by100Days[bin100] || 0) + 1;
             });
 
-            // Buscar fechas repetidas
             let repeatedDatesHtml = "";
             for(let date in byDateExact) {
                 if(byDateExact[date] > 1) {
-                    repeatedDatesHtml += `<li>El <strong>${date}</strong> hubo coincidencia de registros <strong>${byDateExact[date]}</strong> veces.</li>`;
+                    repeatedDatesHtml += `<li>El <strong>${date}</strong> hubo <strong>${byDateExact[date]}</strong> registros.</li>`;
                 }
             }
 
-            let html = "<h2 style='border-bottom: 2px solid #ccc; padding-bottom:5px;'>1. Frecuencias Generales</h2>";
+            let html = "<h2 style='border-bottom: 2px solid #ccc; padding-bottom:5px; margin-top:20px;'>1. Frecuencias Generales</h2>";
             
-            // Tabla Días de la semana
-            html += "<table border='1' style='border-collapse: collapse; width: 100%; margin-bottom: 20px; text-align: left;'>";
-            html += "<tr><th style='padding: 8px; background: #e9ecef;'>Día de la Semana</th><th style='padding: 8px; background: #e9ecef;'>Veces Registrado</th></tr>";
+            html += "<table width='100%' style='border-collapse: collapse; text-align: left; margin-bottom: 15px;'>";
+            html += "<tr style='background:#f4f4f4;'><th style='padding:8px; border:1px solid #ccc;'>Día de la Semana</th><th style='padding:8px; border:1px solid #ccc;'>Veces Registrado</th></tr>";
             const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-            days.forEach((d, i) => { html += `<tr><td style='padding: 8px;'>${d}</td><td style='padding: 8px;'>${byDayOfWeek[i]}</td></tr>`; });
+            days.forEach((d, i) => { html += `<tr><td style='padding:8px; border:1px solid #ccc;'>${d}</td><td style='padding:8px; border:1px solid #ccc;'>${byDayOfWeek[i]}</td></tr>`; });
             html += "</table>";
 
-            // Ciclos de 100 días
-            html += "<h3>Por ciclos de 100 días</h3><ul style='line-height: 1.6;'>";
+            html += "<h3>Por ciclos de 100 días</h3><ul>";
             Object.keys(by100Days).sort((a,b)=>a-b).forEach(bin => {
                 let endDay = (parseInt(bin)*100)+99;
-                html += `<li>Ciclo ${bin} (Días ${bin*100} a ${endDay} del historial): Aparecieron <strong>${by100Days[bin]}</strong> números</li>`;
+                html += `<li>Ciclo ${bin} (Días ${bin*100} a ${endDay}): Registros: <strong>${by100Days[bin]}</strong></li>`;
             });
             html += "</ul>";
 
-            // Fechas idénticas
             if(repeatedDatesHtml) {
-                html += "<h3>Fechas con múltiples coincidencias</h3><ul>" + repeatedDatesHtml + "</ul>";
+                html += "<h3>Múltiples coincidencias en misma fecha</h3><ul>" + repeatedDatesHtml + "</ul>";
             }
 
             return html;
@@ -172,7 +442,7 @@
             let totalStartsWith = {};
 
             data.forEach(d => {
-                let num = d.number.padStart(2, '0'); // Asegura formato 00
+                let num = d.number.padStart(2, '0');
                 let first = num.charAt(0);
                 let second = num.charAt(1);
                 
@@ -198,13 +468,12 @@
                 
                 let pct = ((maxCount / totalStartsWith[first]) * 100).toFixed(1);
                 
-                html += `<div style="border-left: 5px solid #17a2b8; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; background: #f8f9fa;">
-                    <div style="font-size: 16px; margin-bottom: 8px; color: #333;">Dado que la <strong>primera cifra es ${first}</strong>, ¿con qué número final prefiere terminar?</div>
-                    <div style="font-size: 22px; font-weight: bold; color: #d63384; margin-bottom: 8px;">Última Cifra Favorita: ${maxSecond}</div>
-                    <div style="color: #555; font-size: 13px;">Frecuencia de este patrón: <strong>${pct}%</strong> de las veces (terminó en ${maxSecond} un total de ${maxCount} veces, de ${totalStartsWith[first]} números analizados que inician con ${first}).</div>
+                html += `<div style="border-left: 5px solid #3498db; padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-radius: 4px;">
+                    <div style="font-size: 15px; color: #333;">Dado que la <strong>primera cifra es ${first}</strong>, ¿con qué número final prefiere terminar?</div>
+                    <div style="font-size: 18px; margin: 5px 0;">Última Cifra Fav: <strong style="color: #e74c3c; font-size:24px;">${maxSecond}</strong></div>
+                    <div style="color: #555; font-size: 13px;">Frecuencia del patrón: <strong>${pct}%</strong> de las veces termina en ${maxSecond} (Total analizados que inician en ${first}: ${totalStartsWith[first]}).</div>
                 </div>`;
             }
-
             return html;
         }
 
@@ -216,47 +485,62 @@
             });
 
             let html = "<h2 style='border-bottom: 2px solid #ccc; padding-bottom:5px; margin-top:30px;'>3. Brecha de Tiempo (Cuartiles)</h2>";
-            html += "<p style='font-size: 13px; color: #666;'>Mide cuántos días exactos pasan antes de que el mismo número vuelva a salir.</p>";
-            html += "<div style='overflow-x: auto;'><table border='1' style='border-collapse: collapse; width: 100%; text-align: center; margin-bottom: 30px;'>";
-            html += "<tr><th style='padding: 8px; background: #e9ecef;'>Nº</th><th style='padding: 8px; background: #e9ecef;'>Apariciones</th><th style='padding: 8px; background: #e9ecef;'>Q0 (Min)</th><th style='padding: 8px; background: #e9ecef;'>Q1 (25%)</th><th style='padding: 8px; background: #cce5ff; color:#004085;'>Q2 (Mediana)</th><th style='padding: 8px; background: #e9ecef;'>Q3 (75%)</th><th style='padding: 8px; background: #e9ecef;'>Q4 (Max)</th></tr>";
+            html += "<p style='font-size: 13px; color: #666;'>Días exactos que pasan antes de que un mismo número vuelva a salir.</p>";
+            html += "<div style='overflow-x: auto;'><table width='100%' style='border-collapse: collapse; text-align: center;'>";
+            html += "<tr style='background:#f4f4f4;'><th style='padding:8px; border:1px solid #ccc;'>Nº</th><th style='padding:8px; border:1px solid #ccc;'>Apariciones</th><th style='padding:8px; border:1px solid #ccc;'>Q0 (Min)</th><th style='padding:8px; border:1px solid #ccc;'>Q1 (25%)</th><th style='padding:8px; border:1px solid #ccc; background:#d1e7dd;'>Q2 (Mediana)</th><th style='padding:8px; border:1px solid #ccc;'>Q3 (75%)</th><th style='padding:8px; border:1px solid #ccc;'>Q4 (Max)</th></tr>";
 
-            // Función matemática para calcular percentiles/cuartiles
             const quantile = (arr, q) => {
+                if (arr.length === 0) return 0;
+                if (arr.length === 1) return arr[0];
                 const pos = (arr.length - 1) * q;
                 const base = Math.floor(pos);
                 const rest = pos - base;
                 if (arr[base + 1] !== undefined) {
                     return arr[base] + rest * (arr[base + 1] - arr[base]);
-                } else {
-                    return arr[base];
                 }
+                return arr[base];
             };
 
             for (let num in numDates) {
                 const dates = numDates[num].sort((a,b)=>a-b);
-                if (dates.length < 2) {
-                    // Ignoramos o mostramos que no hay datos para calcular la brecha si solo salió una vez
-                    continue; 
-                }
+                if (dates.length < 2) continue; // Requiere al menos 2 apariciones para calcular brecha
+                
                 let diffs = [];
-                // Calcular diferencia de días entre fechas consecutivas del MISMO número
                 for(let i=1; i<dates.length; i++) {
                     diffs.push((dates[i] - dates[i-1]) / (1000*60*60*24));
                 }
                 diffs.sort((a,b)=>a-b);
+                
                 html += `<tr>
-                    <td style='padding: 6px; font-weight:bold; font-size: 16px;'>${num}</td>
-                    <td style='padding: 6px;'>${dates.length}</td>
-                    <td style='padding: 6px;'>${quantile(diffs, 0).toFixed(0)}d</td>
-                    <td style='padding: 6px;'>${quantile(diffs, 0.25).toFixed(0)}d</td>
-                    <td style='padding: 6px; font-weight:bold; background: #e8f4f8; color: #0056b3;'>${quantile(diffs, 0.5).toFixed(0)}d</td>
-                    <td style='padding: 6px;'>${quantile(diffs, 0.75).toFixed(0)}d</td>
-                    <td style='padding: 6px;'>${quantile(diffs, 1).toFixed(0)}d</td>
+                    <td style='padding:6px; border:1px solid #ccc; font-weight:bold;'>${num}</td>
+                    <td style='padding:6px; border:1px solid #ccc;'>${dates.length}</td>
+                    <td style='padding:6px; border:1px solid #ccc;'>${quantile(diffs, 0).toFixed(0)}d</td>
+                    <td style='padding:6px; border:1px solid #ccc;'>${quantile(diffs, 0.25).toFixed(0)}d</td>
+                    <td style='padding:6px; border:1px solid #ccc; font-weight:bold; background:#e8f4f8;'>${quantile(diffs, 0.5).toFixed(0)}d</td>
+                    <td style='padding:6px; border:1px solid #ccc;'>${quantile(diffs, 0.75).toFixed(0)}d</td>
+                    <td style='padding:6px; border:1px solid #ccc;'>${quantile(diffs, 1).toFixed(0)}d</td>
                 </tr>`;
             }
             html += "</table></div>";
             return html;
         }
 
-        // Service Worker y variables
-        let isWaitingForConfirm = false;
+        updateUI();
+
+        // Service Worker Dinámico para hacerla instalable y Offline
+        const swCode = `
+            const CACHE_NAME = 'numeros-pwa-v2';
+            self.addEventListener('install', e => { e.waitUntil(self.skipWaiting()); });
+            self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
+            self.addEventListener('fetch', e => {
+                e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+            });
+        `;
+        const blob = new Blob([swCode], {type: 'application/javascript'});
+        const swUrl = URL.createObjectURL(blob);
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(swUrl).catch(console.error);
+        }
+    </script>
+</body>
+</html>
