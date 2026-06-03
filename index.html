@@ -30,6 +30,16 @@
         <h2 class="text-2xl font-bold text-gray-800" id="loadingText">Procesando...</h2>
     </div>
 
+    <!-- Banner de Auto-carga CSV -->
+    <div id="autoLoadBanner" class="hidden fixed bottom-4 right-4 z-40 max-w-sm bg-indigo-900 text-white text-xs rounded-xl shadow-2xl p-4 border border-indigo-700 flex items-start space-x-3 transition-all">
+        <span id="autoLoadIcon" class="text-lg mt-0.5">⏳</span>
+        <div>
+            <div id="autoLoadTitle" class="font-bold text-indigo-200 mb-0.5">Buscando datos...</div>
+            <div id="autoLoadMsg" class="text-indigo-300 leading-tight"></div>
+        </div>
+        <button onclick="document.getElementById('autoLoadBanner').classList.add('hidden')" class="ml-auto text-indigo-400 hover:text-white pl-2 flex-shrink-0">✕</button>
+    </div>
+
     <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         
         <!-- NUEVO: BARRA DE GESTIÓN DE MÁQUINAS (WORKSPACE) -->
@@ -106,7 +116,7 @@
 
                 <!-- Botones de Guardar, Cargar y Limpiar -->
                 <div class="flex items-center space-x-2">
-                    <input type="file" id="importFileInput" accept=".par,.json" class="hidden" onchange="importSession(event)">
+                    <input type="file" id="importFileInput" accept=".par,.json,.csv,.txt" class="hidden" onchange="handleImportFile(event)">
                     
                     <button onclick="triggerImport()" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center border border-blue-100" title="Cargar archivo de máquina (.par)">
                         <i data-lucide="upload" class="w-4 h-4 mr-1"></i> Cargar
@@ -1266,8 +1276,170 @@
 
         function triggerImport() { document.getElementById('importFileInput').click(); }
 
-        function importSession(event) {
+        // ==========================================
+        // IMPORTAR ARCHIVOS: .par / .json / .csv / .txt
+        // ==========================================
+        function handleImportFile(event) {
             const file = event.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext === 'csv') {
+                importCSV(file);
+            } else if (ext === 'txt') {
+                importTXT(file);
+            } else {
+                importSession(file);
+            }
+        }
+
+        // Parsear CSV del formato lotería Honduras
+        // Columnas: ID,Fecha,Loteria,Sorteo,Numero_Ganador,Info_Simbolo,Fuentes_Scraping
+        function importCSV(file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const text = e.target.result;
+                    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+                    if (lines.length < 2) { alert('El CSV está vacío o sin datos.'); return; }
+
+                    // Detectar encabezado
+                    const headerLine = lines[0];
+                    const headers = parseCSVLine(headerLine).map(h => h.trim().toLowerCase());
+
+                    // Detectar índices clave
+                    const idxFecha  = headers.findIndex(h => h === 'fecha' || h === 'date');
+                    const idxSorteo = headers.findIndex(h => h === 'sorteo' || h === 'draw');
+                    const idxNumero = headers.findIndex(h => h === 'numero_ganador' || h === 'numero' || h === 'number');
+
+                    if (idxNumero === -1) {
+                        alert(`No se encontró la columna "Numero_Ganador" en el CSV.\nEncabezados detectados: ${headers.join(', ')}`);
+                        document.getElementById('importFileInput').value = '';
+                        return;
+                    }
+
+                    // Parsear filas
+                    let rows = [];
+                    for (let i = 1; i < lines.length; i++) {
+                        const cols = parseCSVLine(lines[i]);
+                        if (cols.length <= idxNumero) continue;
+                        const numStr = cols[idxNumero].trim();
+                        const num = parseInt(numStr, 10);
+                        if (isNaN(num) || num < 0) continue;
+
+                        const fecha  = idxFecha  >= 0 ? cols[idxFecha].trim()  : '';
+                        const sorteo = idxSorteo >= 0 ? cols[idxSorteo].trim() : '';
+
+                        rows.push({ fecha, sorteo, num, raw: lines[i] });
+                    }
+
+                    if (rows.length === 0) {
+                        alert('No se encontraron números válidos en el CSV.');
+                        document.getElementById('importFileInput').value = '';
+                        return;
+                    }
+
+                    // Ordenar por fecha (ASC) y luego por sorteo cronológico
+                    const SORTEO_ORDER = { '11:00 am': 0, '3:00 pm': 1, '9:00 pm': 2 };
+                    rows.sort((a, b) => {
+                        const da = new Date(a.fecha + 'T00:00:00');
+                        const db_ = new Date(b.fecha + 'T00:00:00');
+                        if (!isNaN(da) && !isNaN(db_) && da.getTime() !== db_.getTime()) {
+                            return da - db_;
+                        }
+                        // Mismo día: ordenar por turno
+                        const sa = SORTEO_ORDER[a.sorteo.toLowerCase()] ?? 99;
+                        const sb = SORTEO_ORDER[b.sorteo.toLowerCase()] ?? 99;
+                        return sa - sb;
+                    });
+
+                    // Calcular rango de fechas
+                    const fechas = rows.filter(r => r.fecha).map(r => r.fecha).sort();
+                    const fechaMin = fechas[0] || '?';
+                    const fechaMax = fechas[fechas.length - 1] || '?';
+
+                    // Confirmar importación
+                    const confirm_ = confirm(
+                        `📂 Importar CSV: "${file.name}"\n\n` +
+                        `✅ Registros válidos encontrados: ${rows.length}\n` +
+                        `📅 Rango de fechas: ${fechaMin} → ${fechaMax}\n\n` +
+                        `Los números se ordenarán del más antiguo al más reciente.\n` +
+                        `¿Agregar a la máquina activa actual?`
+                    );
+
+                    if (!confirm_) {
+                        document.getElementById('importFileInput').value = '';
+                        return;
+                    }
+
+                    // Inyectar en la máquina activa
+                    const values = rows.map(r => r.num);
+                    await addBatchToDB(values, currentView);
+                    document.getElementById('importFileInput').value = '';
+                    alert(`✅ ${values.length} registros importados correctamente desde "${file.name}".`);
+
+                } catch (err) {
+                    console.error(err);
+                    hideLoading();
+                    alert('Error al procesar el CSV: ' + err.message);
+                    document.getElementById('importFileInput').value = '';
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // Parser simple de una línea CSV respetando comillas
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const ch = line[i];
+                if (ch === '"') {
+                    if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+                    else inQuotes = !inQuotes;
+                } else if (ch === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += ch;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
+        // Importar TXT: extrae todos los números del texto
+        function importTXT(file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const text = e.target.result.trim();
+                    let rawNumbers = [];
+                    if (/^\d+$/.test(text) && text.length > currentDigits) {
+                        for (let i = 0; i < text.length; i += currentDigits) {
+                            rawNumbers.push(text.substring(i, i + currentDigits));
+                        }
+                    } else {
+                        rawNumbers = text.match(/\d+/g) || [];
+                    }
+                    const nums = rawNumbers.map(n => parseInt(n, 10)).filter(n => !isNaN(n) && n >= 0 && n <= customMaxValue);
+                    if (nums.length === 0) { alert('No se encontraron números válidos en el archivo .txt.'); document.getElementById('importFileInput').value = ''; return; }
+                    if (!confirm(`📂 Importar TXT: "${file.name}"\n\n✅ ${nums.length} números encontrados.\n¿Agregar a la máquina activa?`)) {
+                        document.getElementById('importFileInput').value = ''; return;
+                    }
+                    await addBatchToDB(nums, currentView);
+                    document.getElementById('importFileInput').value = '';
+                    alert(`✅ ${nums.length} números importados desde "${file.name}".`);
+                } catch (err) {
+                    hideLoading();
+                    alert('Error al procesar el TXT: ' + err.message);
+                    document.getElementById('importFileInput').value = '';
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function importSession(file) {
             if (!file) return;
 
             showLoading("Restaurando máquina...");
@@ -1326,10 +1498,128 @@
         }
 
         // ==========================================
+        // AUTO-CARGA CSV DIARIA (carpeta diaria/)
+        // ==========================================
+        function showAutoLoadBanner(icon, title, msg, autohide = false) {
+            const banner = document.getElementById('autoLoadBanner');
+            document.getElementById('autoLoadIcon').textContent = icon;
+            document.getElementById('autoLoadTitle').textContent = title;
+            document.getElementById('autoLoadMsg').textContent = msg;
+            banner.classList.remove('hidden');
+            if (autohide) setTimeout(() => banner.classList.add('hidden'), 5000);
+        }
+
+        // Genera la URL del CSV para una fecha dada (retrocediendo diasAtras días)
+        function getDiariaCSVUrl(diasAtras = 0) {
+            const d = new Date();
+            d.setDate(d.getDate() - diasAtras);
+            const yyyy = d.getFullYear();
+            const mm   = String(d.getMonth() + 1).padStart(2, '0');
+            const dd   = String(d.getDate()).padStart(2, '0');
+            return `diaria/loteria_archivo_diaria_honduras_${yyyy}-${mm}-${dd}.csv`;
+        }
+
+        async function autoLoadDiariaCSV() {
+            // Solo auto-cargar si la máquina activa está vacía
+            if (totalRecords > 0) return;
+
+            showAutoLoadBanner('🔍', 'Buscando archivo CSV...', 'Buscando datos de La Diaria de Honduras en carpeta diaria/');
+
+            // Intentar hasta 60 días atrás para encontrar el archivo más reciente
+            const MAX_DIAS = 60;
+            let csvText = null;
+            let foundUrl = null;
+
+            for (let dias = 0; dias <= MAX_DIAS; dias++) {
+                const url = getDiariaCSVUrl(dias);
+                try {
+                    const resp = await fetch(url, { method: 'GET', cache: 'no-cache' });
+                    if (resp.ok) {
+                        csvText = await resp.text();
+                        foundUrl = url;
+                        break;
+                    }
+                } catch (e) {
+                    // fetch puede fallar si no hay servidor HTTP; ignorar
+                    break;
+                }
+            }
+
+            if (!csvText || !foundUrl) {
+                showAutoLoadBanner('ℹ️', 'Sin datos automáticos', 'No se encontró un CSV en diaria/. Usa "Cargar" para importar manualmente.', false);
+                return;
+            }
+
+            // Parsear el CSV encontrado
+            try {
+                const lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0);
+                if (lines.length < 2) {
+                    showAutoLoadBanner('⚠️', 'CSV vacío', `El archivo ${foundUrl} no tiene datos.`, true);
+                    return;
+                }
+
+                const headers = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+                const idxFecha  = headers.findIndex(h => h === 'fecha' || h === 'date');
+                const idxSorteo = headers.findIndex(h => h === 'sorteo' || h === 'draw');
+                const idxNumero = headers.findIndex(h => h === 'numero_ganador' || h === 'numero' || h === 'number');
+
+                if (idxNumero === -1) {
+                    showAutoLoadBanner('⚠️', 'Formato inesperado', `No se encontró columna Numero_Ganador en ${foundUrl}.`, false);
+                    return;
+                }
+
+                let rows = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = parseCSVLine(lines[i]);
+                    if (cols.length <= idxNumero) continue;
+                    const num = parseInt(cols[idxNumero].trim(), 10);
+                    if (isNaN(num) || num < 0) continue;
+                    const fecha  = idxFecha  >= 0 ? cols[idxFecha].trim()  : '';
+                    const sorteo = idxSorteo >= 0 ? cols[idxSorteo].trim() : '';
+                    rows.push({ fecha, sorteo, num });
+                }
+
+                if (rows.length === 0) {
+                    showAutoLoadBanner('⚠️', 'Sin números válidos', `El archivo ${foundUrl} no contiene números procesables.`, true);
+                    return;
+                }
+
+                // Ordenar cronológicamente (ASC)
+                const SORTEO_ORDER = { '11:00 am': 0, '3:00 pm': 1, '9:00 pm': 2 };
+                rows.sort((a, b) => {
+                    const da = new Date(a.fecha + 'T00:00:00');
+                    const db_ = new Date(b.fecha + 'T00:00:00');
+                    if (!isNaN(da) && !isNaN(db_) && da.getTime() !== db_.getTime()) return da - db_;
+                    const sa = SORTEO_ORDER[a.sorteo.toLowerCase()] ?? 99;
+                    const sb = SORTEO_ORDER[b.sorteo.toLowerCase()] ?? 99;
+                    return sa - sb;
+                });
+
+                const fechas  = rows.filter(r => r.fecha).map(r => r.fecha).sort();
+                const fechaMin = fechas[0] || '?';
+                const fechaMax = fechas[fechas.length - 1] || '?';
+                const fileName = foundUrl.split('/').pop();
+
+                showAutoLoadBanner('📥', `Cargando ${rows.length} registros...`, `${fileName}  •  ${fechaMin} → ${fechaMax}`);
+
+                const values = rows.map(r => r.num);
+                await addBatchToDB(values, currentView);
+
+                showAutoLoadBanner('✅', `${rows.length} registros cargados`, `${fileName}  •  ${fechaMin} → ${fechaMax}`, true);
+
+            } catch (err) {
+                console.error('autoLoadDiariaCSV error:', err);
+                showAutoLoadBanner('❌', 'Error al procesar CSV', err.message, false);
+            }
+        }
+
+        // ==========================================
         // INIT
         // ==========================================
-        window.onload = () => {
+        window.onload = async () => {
             initMachineSystem();
+            // Esperar a que la máquina termine de cargar su DB antes de auto-importar
+            setTimeout(autoLoadDiariaCSV, 1200);
         };
 
     </script>
