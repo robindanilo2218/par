@@ -1795,7 +1795,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   DEF.nivelesCarrera = 6;
   /** Secciones internas de cada pestaña nueva (se guardan en ui.plantaTab, ui.carreraTab y ui.progTab). */
   DEF.subtabs = {
-    planta: [{ id: 'resumen', t: 'Resumen' }, { id: 'areas', t: 'Áreas y puestos' }, { id: 'planilla', t: 'Planilla' }],
+    planta: [{ id: 'resumen', t: 'Resumen' }, { id: 'areas', t: 'Áreas y puestos' }, { id: 'planilla', t: 'Planilla' }, { id: 'transicion', t: 'Transición' }],
     carrera: [{ id: 'escalafon', t: 'Escalafón' }, { id: 'salarios', t: 'Salarios' }, { id: 'metas', t: 'Metas y ruta' }, { id: 'proyeccion', t: 'Proyección' }],
     prog: [{ id: 'mant', t: 'Mantenimiento' }, { id: 'mov', t: 'Movilidad' }, { id: 'gptw', t: 'Great Place to Work' }, { id: 'sector', t: 'Sector' }]
   };
@@ -5285,7 +5285,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
    catorcena, acumulado del año contra la deducción más el IGSS y (versión 13)
    todas las boletas del año de una persona en una tabla; (versión 14) el ahorro
    (porcentaje del neto que se aparta de cada boleta) y el cambio de las horas
-   extra de cada boleta del año.
+   extra de cada boleta del año; (versión 15) la transición por olas: la
+   primera ola reúne al personal rotativo que gana más del salario mínimo.
    Se ejecutan en Node (tests/engine.test.js) y dentro del simulador
    (Validación → «Ejecutar autopruebas»).
    ============================================================ */
@@ -5633,6 +5634,111 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     eq(SM.exportAll().version, 12); eq(DEF.state().v, 12);
     const meta = DEF.paramMeta.find((m) => m.k === 'numAnual'); ok(meta && meta.t === 'bool' && meta.h.length > 20, 'el parámetro nuevo tiene su ayuda');
   });
+  /* ---------- transición por olas (versión 15): primero pasa al modelo propuesto quien gana más del salario mínimo ---------- */
+  const ctxDe = (s) => { const R = E.ctx(s, 'sel'), Ra = E.ctx(s, 'act'); return { S: s, R, Ra, dec: E.decision(s), val: E.validar(R.m, s.variante, s.codigos, R.start), valAct: E.validar(Ra.m, s.varianteActual, s.codigos, Ra.start) }; };
+  const rel = (a, b, msg) => near(a, b, Math.max(0.01, Math.abs(b) * 1e-9), msg);
+  T('Transición (v15)', 'Las olas se reparten por sueldo: mayor que el salario mínimo = primera; igual o menor (con la tolerancia de medio centavo) = segunda; sin sueldo, aparte; el personal fijo, sin cuadrilla o fuera del modelo vigente no entra', () => {
+    const s = mk(), PL = E.planta, min = s.carrera.salarioMinimo;
+    const L = [emp({ sueldo: 5000 }), emp({ cuadrilla: 'B', sueldo: min + 0.01 }), emp({ cuadrilla: 'C', sueldo: min + 0.004 }), emp({ sueldo: min }), emp({ cuadrilla: 'B', sueldo: 3000 }), emp({ cuadrilla: 'C', sueldo: 0 }),
+      emp({ cuadrilla: 'LV', sueldo: 4000 }), emp({ cuadrilla: 'MQ', sueldo: 4000 }), emp({ cuadrilla: '', sueldo: 4000 }), emp({ cuadrilla: 'D', sueldo: 4000 })];
+    const r = PL.olas(s, L);
+    eq(r.fuente, 'planilla'); eq(r.o1.personas, 2, 'primera ola'); eq(r.o2.personas, 3, 'segunda ola'); eq(r.sinSueldo.personas, 1); eq(r.fijos, 2); eq(r.sinCuadrilla, 1); eq(r.fuera, 1, 'la cuadrilla D no existe en el modelo vigente');
+    eq(r.total, 6); eq(r.clasificadas, 5); ok(r.hayDatos); near(r.pct1, 0.4, 1e-9); near(r.pct2, 0.6, 1e-9); eq(r.eqAct, 3); eq(r.eqSel, 4); eq(r.min, min); eq(r.sinMinimo, false);
+    near(r.o1.sueldoProm, (5000 + min + 0.01) / 2, 1e-9); near(r.o2.sueldoProm, (min + 0.004 + min + 3000) / 3, 1e-9);
+    eq(PL.olas(s, []).fuente, 'estructura', 'sin planilla se usa la estructura de Planta');
+    eq(PL.olas(s, [emp({ cuadrilla: 'LV' }), emp({ cuadrilla: '' })]).fuente, 'estructura', 'sin personal rotativo en la planilla también');
+    const v = PL.olas(s, [emp({ sueldo: 0 })]); eq(v.hayDatos, false); eq(v.total, 1); eq(v.clasificadas, 0); eq(v.pct1, 0);
+  });
+  T('Transición (v15)', 'Las dos olas suman exactamente el personal rotativo, las horas extra y el costo de Planta: con la planilla generada desde la estructura y sin planilla coinciden con E.planta.decision', () => {
+    const s = mk(), PL = E.planta, d = PL.decision(s), rot = (esc) => esc.filas.filter((f) => f.regimen === 'rot' && !f.nuevo);
+    const gen = PL.generar(s, { escenario: 'act', hoy: dia('2026-10-26') }).map((x) => SM.normalizeEmp(x));
+    const rotGen = gen.filter((e) => !E.esFijo(e)).length;
+    ok(gen.length > 900 && rotGen < gen.length, 'la planilla generada es la de toda la planta, con personal fijo de lunes a viernes: ' + gen.length);
+    [['planilla', gen], ['estructura', []]].forEach((c) => {
+      const r = PL.olas(s, c[1]), t = r.todo;
+      eq(r.fuente, c[0]); eq(r.o2.personas, 0, c[0] + ': todos los puestos ganan más que el mínimo'); eq(r.o1.personas, r.clasificadas);
+      rel(t.personas, d.act.ex.personasRot, c[0] + ': personas hoy'); rel(t.personasSel, d.sel.ex.personasRot, c[0] + ': personas con la propuesta');
+      rel(t.costoAct, d.act.ex.costoRot, c[0] + ': costo hoy'); rel(t.costoSel, d.sel.ex.costoRot, c[0] + ': costo con la propuesta');
+      rel(t.hExtAct, U.sum(rot(d.act), (f) => f.hExtMes), c[0] + ': horas extra hoy'); rel(t.hExtSel, U.sum(rot(d.sel), (f) => f.hExtMes), c[0] + ': horas extra con la propuesta');
+      rel(t.nuevos, d.sel.ex.personasRot - d.act.ex.personasRot, c[0] + ': personal nuevo'); rel(r.o1.costoSel, r.o1.costoAct + r.o1.difCosto, 'la diferencia es costo propuesto menos costo vigente');
+      rel(r.o1.personas + r.o2.personas, t.personas); rel(r.o1.costoSel + r.o2.costoSel, t.costoSel);
+    });
+    // si la planilla cambia el sueldo de la mitad de las personas, las olas siguen sumando lo mismo que las plazas con esos sueldos
+    const alt = gen.map((e, i) => (i % 2 ? Object.assign({}, e, { sueldo: 3000 }) : e)), r2 = PL.olas(s, alt);
+    ok(r2.o2.personas > 400 && r2.o1.personas > 400, 'la planilla se parte en dos olas'); eq(r2.o1.personas + r2.o2.personas, rotGen); eq(r2.fijos, gen.length - rotGen, 'el personal de lunes a viernes no entra en las olas');
+    ok(r2.todo.costoAct < PL.olas(s, gen).todo.costoAct, 'con sueldos menores cuesta menos');
+  });
+  T('Transición (v15)', 'El salario mínimo de referencia mueve a las personas entre olas; sin referencia, todas las que tienen sueldo quedan en la primera', () => {
+    const s = mk(), PL = E.planta, L = [emp({ sueldo: 4000 }), emp({ cuadrilla: 'B', sueldo: 5000 }), emp({ cuadrilla: 'C', sueldo: 6000 })];
+    eq(PL.olas(s, L).o1.personas, 3);
+    s.carrera.salarioMinimo = 4000; let r = PL.olas(s, L); eq(r.o1.personas, 2); eq(r.o2.personas, 1, 'quien gana exactamente el mínimo va en la segunda ola');
+    s.carrera.salarioMinimo = 5500; r = PL.olas(s, L); eq(r.o1.personas, 1); eq(r.o2.personas, 2);
+    s.carrera.salarioMinimo = 9000; r = PL.olas(s, L); eq(r.o1.personas, 0); eq(r.o2.personas, 3); eq(r.o1.nuevos, 0); eq(r.o1.costoAct, 0);
+    s.carrera.salarioMinimo = 0; r = PL.olas(s, L); eq(r.sinMinimo, true); eq(r.o1.personas, 3); eq(r.o2.personas, 0);
+  });
+  T('Transición (v15)', 'Con cuatro cuadrillas la primera ola necesita personal nuevo, baja las horas extra y el pago de extras por persona, y su costo es el de sus plazas completas', () => {
+    const s = mk((x) => { x.params.costoReclutamiento = 1000; x.params.costoEPP = 500; x.params.costoCapacitacion = 300; }), PL = E.planta;
+    const L = [emp({ sueldo: 5000 }), emp({ cuadrilla: 'B', sueldo: 5000 }), emp({ cuadrilla: 'C', sueldo: 5000 })], r = PL.olas(s, L), o = r.o1;
+    near(o.personasSel, 4, 1e-9); near(o.nuevos, 1, 1e-9); eq(o.sobran, 0); near(o.unico, 1800, 1e-9); eq(r.unitario, 1800);
+    ok(o.hExtAct > 0 && o.hExtSel < o.hExtAct && o.extrasEvitadas > 0, 'las horas extra bajan');
+    ok(o.extrasPersAct > o.extrasPersSel && o.bajaExtrasPers > 0, 'cada persona cobra menos por horas extra');
+    near(o.extrasPersAct * 3, o.extrasAct, 1e-6); near(o.extrasPersSel * 4, o.extrasSel, 1e-6);
+    // una plaza completa = el macro con una persona por turno y ese sueldo, llevado a un mes promedio
+    const base = Object.assign({}, s, { personalPorTurno: 1, sueldoGlobal: 5000 }), a = E.macro(base, 'act'), p = E.macro(base, 'sel');
+    rel(o.costoAct, a.total * (365 / 12) / a.dias); rel(o.costoSel, p.total * (365 / 12) / p.dias); rel(o.hExtAct, a.hExt * (365 / 12) / a.dias); rel(o.hExtSel, p.hExt * (365 / 12) / p.dias);
+    rel(o.extrasAct, (a.extras + a.septExtras) * (365 / 12) / a.dias, 'el pago de extras incluye el séptimo');
+    rel(o.difCosto, o.costoSel - o.costoAct); ok(o.difCosto > 0, 'con una cuadrilla más, cuesta más aunque haya menos horas extra');
+    // con 10 personas en la ola no son plazas enteras: se prorratea (10 personas = 3.33 plazas)
+    const L10 = []; for (let i = 0; i < 10; i++) L10.push(emp({ cuadrilla: 'ABC'[i % 3], sueldo: 5000 })); const r10 = PL.olas(s, L10).o1;
+    near(r10.personasSel, 10 * 4 / 3, 1e-9); near(r10.nuevos, 10 / 3, 1e-9); rel(r10.costoSel, o.costoSel * 10 / 3);
+  });
+  T('Transición (v15)', 'Sin cambio de modelo no hay nada que repartir; con una propuesta de menos cuadrillas que la vigente no hay personal nuevo y sobra personal', () => {
+    const PL = E.planta, L = ['A', 'B', 'C'].map((c) => emp({ cuadrilla: c, sueldo: 5000 }));
+    const igual = mk((x) => { x.modeloId = x.modeloActualId; x.variante = x.varianteActual; }), r = PL.olas(igual, L);
+    eq(r.eqAct, r.eqSel); near(r.o1.nuevos, 0, 1e-9); near(r.o1.difCosto, 0, 0.01); near(r.o1.extrasEvitadas, 0, 1e-9); near(r.o1.bajaExtrasPers, 0, 1e-9);
+    const menos = mk((x) => { x.modeloActualId = 'r1111'; x.varianteActual = 'adelante'; x.modeloId = 'inf'; x.variante = 'atras'; }), L4 = ['A', 'B', 'C', 'D'].map((c) => emp({ cuadrilla: c, sueldo: 5000 })), m = PL.olas(menos, L4).o1;
+    eq(PL.olas(menos, L4).eqAct, 4); eq(PL.olas(menos, L4).eqSel, 3); eq(m.personas, 4); near(m.personasSel, 3, 1e-9); eq(m.nuevos, 0); near(m.sobran, 1, 1e-9);
+    eq(PL.olas(menos, L).fuera, 0); eq(PL.olas(menos, L).o1.personas, 3, 'con cuatro cuadrillas vigentes, A, B y C también cuentan');
+  });
+  T('Transición (v15)', 'Cada área queda completa en la primera ola, mixta, solo de segunda ola o sin sueldo; el personal sin área reconocida se cuenta aparte y los totales cuadran', () => {
+    const s = mk(), PL = E.planta;
+    const L = [emp({ sueldo: 5000, area: 'imp' }), emp({ cuadrilla: 'B', sueldo: 3000, area: 'imp' }), emp({ sueldo: 5000, area: 'cor' }), emp({ cuadrilla: 'B', sueldo: 6000, area: 'cor' }), emp({ cuadrilla: 'C', sueldo: 3000, area: 'cor' }),
+      emp({ sueldo: 3000, area: 'part' }), emp({ cuadrilla: 'B', sueldo: 3816.9, area: 'part' }), emp({ sueldo: 0, area: 'peg' }), emp({ sueldo: 7000, area: 'zzz área inexistente' }), emp({ sueldo: 0, area: '' })];
+    const r = PL.olas(s, L), por = {}; r.areas.forEach((a) => { por[a.id] = a; });
+    eq(por.imp.estado, 'mixta'); eq(por.imp.n1, 1); eq(por.imp.n2, 1); eq(por.cor.estado, 'mixta'); eq(por.cor.n1, 2); eq(por.cor.n2, 1); eq(por.part.estado, 'ola2'); eq(por.part.n2, 2); eq(por.peg.estado, 'sinsueldo'); eq(por.peg.n0, 1);
+    eq(r.areas.length, 4, 'solo aparecen las áreas con personal'); eq(r.completas, 0); eq(r.mixtas, 2); eq(r.soloSegunda, 1); eq(r.areasSinSueldo, 1);
+    eq(r.sinArea.n1, 1); eq(r.sinArea.n2, 0); eq(r.sinArea.n0, 1); eq(r.sinArea.total, 2);
+    eq(r.areas.reduce((t, a) => t + a.personas, 0) + r.sinArea.total, r.total, 'las áreas más el personal sin área suman todo el personal rotativo');
+    eq(r.areas.reduce((t, a) => t + a.n1, 0) + r.sinArea.n1, r.o1.personas); eq(r.areas.reduce((t, a) => t + a.n2, 0) + r.sinArea.n2, r.o2.personas);
+    near(r.areas.reduce((t, a) => t + a.nuevos1, 0), r.o1.nuevos - PL.olas(s, [emp({ sueldo: 7000 })]).o1.nuevos, 1e-9, 'el personal nuevo por área (sin el del personal sin área)');
+    const c = PL.olas(s, [emp({ sueldo: 5000, area: 'imp' }), emp({ cuadrilla: 'B', sueldo: 5200, area: 'imp' })]); eq(c.areas[0].estado, 'ola1'); eq(c.completas, 1); eq(c.mixtas, 0);
+  });
+  T('Transición (v15)', 'La Propuesta empieza el piloto por quienes ganan más del salario mínimo: los valores salen de la planilla (o de la estructura de Planta) y el plan de piloto tiene primera y segunda ola', () => {
+    const B = SM.BMC, s = mk(), min = s.carrera.salarioMinimo, guardada = SM.EMP;
+    try {
+      SM.EMP = [emp({ sueldo: 5000 }), emp({ cuadrilla: 'B', sueldo: 5000 }), emp({ cuadrilla: 'C', sueldo: 5000 }), emp({ sueldo: min })];
+      let T = B.tokens(ctxDe(s)), h = U.md(U.tpl(B.docMap.piloto.md, T));
+      eq(T.ola1Personas, '3'); eq(T.olaTotal, '4'); eq(T.ola2Personas, '1'); eq(T.ola1Pct, '75%'); eq(T.olaMin, 'Q3,816.90'); eq(T.olaCuadrillas, 'cuatro'); eq(T.ola1NuevosTxt, '1 persona'); eq(T.olaSegundaTxt, '1 persona');
+      ok(/planilla registrada/.test(T.olaFrase) && /las que ganan más del salario mínimo \(Q3,816\.90\)/.test(T.olaFrase) && /la persona restante/.test(T.olaFrase), 'frase de las olas: ' + T.olaFrase);
+      eq(T.olaDotacion, 'Reclutar y capacitar a 1 persona para la primera ola'); ok(/^\| Ola \|/.test(T.tablaOlas) && T.tablaOlas.split('\n').length === 5, 'tabla de las olas con encabezado, separador y tres filas');
+      ok(/Piloto \(primera ola\)/.test(h) && /Segunda ola/.test(h) && /Extensión de la primera ola/.test(h) && /Q3,816\.90/.test(h) && !/⟨/.test(h), 'plan de piloto por olas');
+      ok(/Pago de horas extra por persona/.test(U.md(U.tpl(B.docMap.kpi.md, T))), 'indicador del pago de horas extra por persona');
+      ok(/empieza por el personal que gana más del salario mínimo \(Q3,816\.90\)/.test(U.tpl(B.docMap.recomendacion.md, T)), 'la condición del piloto en la recomendación');
+      ok(/por olas: primero quienes ganan más del salario mínimo/.test(B.canvas.find((x) => x.id === 'actividades').md), 'el lienzo lo menciona en las actividades clave');
+      ok(/El cambio se propone por olas/.test(U.md(U.tpl(B.docMap.resumen.md, T))), 'el resumen ejecutivo la menciona');
+      SM.EMP = []; T = B.tokens(ctxDe(s)); ok(/estructura de Planta/.test(T.olaFuente) && /estructura de Planta/.test(T.olaFrase), 'sin planilla usa la estructura de Planta'); eq(T.ola2Personas, '0'); ok(/no hay segunda ola/.test(T.olaFrase));
+      SM.EMP = [emp({ sueldo: 0 })]; T = B.tokens(ctxDe(s)); eq(T.ola1Personas, '—'); ok(/Al registrar la planilla/.test(T.olaFrase) && /Planta → Transición/.test(T.tablaOlas), 'sin sueldos lo dice');
+      SM.EMP = [emp({ sueldo: min }), emp({ cuadrilla: 'B', sueldo: min })]; T = B.tokens(ctxDe(s)); ok(/la primera ola queda vacía/.test(T.olaFrase)); eq(T.ola1Personas, '0'); ok(/Reclutar y capacitar a \d+ persona/.test(T.olaDotacion));
+      const s2 = mk((x) => { x.carrera.salarioMinimo = 6000; }); SM.EMP = [emp({ sueldo: 5000 })]; T = B.tokens(ctxDe(s2)); eq(T.olaMin, 'Q6,000.00'); eq(T.ola1Personas, '0'); eq(T.ola2Personas, '1'); ok(/la primera ola queda vacía/.test(T.olaFrase));
+      Object.keys(T).forEach((k) => ok(!/NaN|undefined|Infinity|\[object/.test(String(T[k])), 'valor inválido en ' + k));
+    } finally { SM.EMP = guardada; }
+  });
+  T('Transición (v15)', 'La sección Transición es una subpestaña de Planta que se conserva al guardar; un valor inválido vuelve a Resumen; el número de cuadrillas se dice en palabras', () => {
+    eq(DEF.subtabs.planta.map((t) => t.id).join(','), 'resumen,areas,planilla,transicion');
+    eq(SM.normalizeState({ ui: { plantaTab: 'transicion' } }).ui.plantaTab, 'transicion'); eq(SM.normalizeState({ ui: { plantaTab: 'olas' } }).ui.plantaTab, 'resumen');
+    eq(E.planta.palabra(4), 'cuatro'); eq(E.planta.palabra(1), 'una'); eq(E.planta.palabra(6), 'seis'); eq(E.planta.palabra(9), '9');
+    eq(SM.normalizeState({ ui: { plantaTab: 'transicion' } }).v, 12, 'sin cambio de esquema');
+  });
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 ;
@@ -5726,7 +5832,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const k = esc.id + '|' + sueldo, h = memo.get(k); if (h) return h;
     const s2 = Object.assign({}, esc.st, { personalPorTurno: 1, sueldoGlobal: sueldo });
     const m = E.macro(s2, esc.which), f = DIAS_MES_PROM / m.dias;
-    const r = { equipos: m.N, costoMes: m.total * f, hExtMes: m.hExt * f };
+    const r = { equipos: m.N, costoMes: m.total * f, hExtMes: m.hExt * f, extrasMes: (m.extras + m.septExtras) * f }; // extrasMes = lo que se paga por horas extra, con su séptimo
     memo.set(k, r); return r;
   };
   /** Costo mensual de UNA persona diurna: costo fijo con cargas más las horas extra fijas del horario (la hora del viernes de 16 a 17 con 7:00–17:00 y 1 h de almuerzo)
@@ -5874,6 +5980,89 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       brechaAct: reg[i].n - act.porArea[i].personas, brechaSel: reg[i].n - sel.porArea[i].personas
     }));
     return { filas, sinArea, totalReg: emps.length, reqAct: act.ex.personas, reqSel: sel.ex.personas, nuevos: sel.nu.personas, conArea: emps.length - sinArea };
+  };
+
+  /** Número de cuadrillas en palabras («cuatro»); fuera de 0–6 se deja en cifras. */
+  PL.palabra = (n) => ['cero', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis'][n] || String(n);
+
+  /* ---------- transición por olas: quién pasa primero al modelo propuesto ----------
+     El personal rotativo se reparte según su sueldo frente al salario mínimo de referencia (Carrera → «Salario mínimo mensual»):
+       · primera ola  = sueldo MAYOR que el mínimo (con la tolerancia de medio centavo que usa el resto del simulador);
+       · segunda ola  = sueldo igual o menor que el mínimo;
+       · sin sueldo   = sueldo en cero: no se puede ubicar y no entra en ninguna ola.
+     Fuente: la planilla (personas de cuadrillas del modelo vigente); si no tiene ninguna persona rotativa, la estructura de Planta
+     (plazas × cuadrillas del modelo vigente, con el sueldo de cada puesto). El personal de lunes a viernes no rota y no cambia de turno.
+     Cada persona de hoy representa 1/cuadrillas de una plaza; con el modelo propuesto la plaza pasa a «cuadrillas propuestas» personas con el
+     mismo sueldo (el mismo supuesto de todo Planta), así que lo que se agrega es el costo de la plaza completa de cada persona. */
+  PL.olas = (st, emps, o) => {
+    o = o || {};
+    const memo = o.memo || new Map(), A = st.planta.areas, res = PL.resolutor(st.planta);
+    const act = PL.esc.act(st), sel = PL.esc.sel(st);
+    const eqA = Math.max(1, E.ctx(act.st, act.which).m.equipos), eqS = Math.max(1, E.ctx(sel.st, sel.which).m.equipos);
+    const min = Math.max(0, num(st.carrera && st.carrera.salarioMinimo)), P = st.params;
+    const unitario = num(P.costoReclutamiento) + num(P.costoEPP) + num(P.costoCapacitacion);
+    const acc = () => ({ personas: 0, nomina: 0, personasSel: 0, hExtAct: 0, hExtSel: 0, costoAct: 0, costoSel: 0, extrasAct: 0, extrasSel: 0 });
+    // 1) el universo: elementos { ai, sueldo, w } (w = personas que representa)
+    const items = []; let fuente = 'planilla', fijos = 0, sinCuadrilla = 0, fuera = 0;
+    (emps || []).forEach((e) => {
+      if (E.esFijo(e)) { fijos++; return; }
+      const ci = E.CREW.indexOf(e.cuadrilla);
+      if (ci < 0) { sinCuadrilla++; return; }
+      if (ci >= eqA) { fuera++; return; }
+      items.push({ ai: res(e.area), sueldo: num(e.sueldo), w: 1 });
+    });
+    if (!items.length) {
+      fuente = 'estructura';
+      A.forEach((a, ai) => {
+        if (a.regimen !== 'rot') return;
+        a.puestos.forEach((p) => { if (p.nuevo) return; const pz = PL.plazas(a, p); if (pz > 0) items.push({ ai, sueldo: PL.sueldoPuesto(st, p), w: pz * eqA }); });
+      });
+    }
+    // 2) acumulado por ola (1, 2 o 0 = sin sueldo) y por área
+    const G = { 1: acc(), 2: acc(), 0: acc() };
+    const AR = A.map(() => ({ 1: acc(), 2: acc(), 0: acc() })), SA = { 1: acc(), 2: acc(), 0: acc() };
+    items.forEach((it) => {
+      const s = it.sueldo, ola = s > 0 ? (s > min + 0.005 ? 1 : 2) : 0, sh = it.w / eqA;
+      const dest = [G[ola], it.ai >= 0 ? AR[it.ai][ola] : SA[ola]];
+      let ra = null, rs = null;
+      if (ola) { ra = porAsiento(act, s, memo); rs = porAsiento(sel, s, memo); }
+      dest.forEach((g) => {
+        g.personas += it.w; g.nomina += it.w * s;
+        if (!ola) return;
+        g.personasSel += sh * eqS; g.hExtAct += sh * ra.hExtMes; g.hExtSel += sh * rs.hExtMes;
+        g.costoAct += sh * ra.costoMes; g.costoSel += sh * rs.costoMes; g.extrasAct += sh * ra.extrasMes; g.extrasSel += sh * rs.extrasMes;
+      });
+    });
+    // 3) cifras derivadas de cada acumulado
+    const cierra = (g) => {
+      const nuevos = Math.max(0, g.personasSel - g.personas);
+      return Object.assign({}, g, {
+        sueldoProm: g.personas ? g.nomina / g.personas : 0, nuevos, sobran: Math.max(0, g.personas - g.personasSel), difCosto: g.costoSel - g.costoAct,
+        extrasEvitadas: g.hExtAct - g.hExtSel, extrasPersAct: g.personas ? g.extrasAct / g.personas : 0, extrasPersSel: g.personasSel ? g.extrasSel / g.personasSel : 0,
+        bajaExtrasPers: (g.personas ? g.extrasAct / g.personas : 0) - (g.personasSel ? g.extrasSel / g.personasSel : 0), unico: nuevos * unitario
+      });
+    };
+    const o1 = cierra(G[1]), o2 = cierra(G[2]), sinSueldo = cierra(G[0]);
+    const suma = (k) => o1[k] + o2[k];
+    const todo = cierra({ personas: suma('personas'), nomina: suma('nomina'), personasSel: suma('personasSel'), hExtAct: suma('hExtAct'), hExtSel: suma('hExtSel'),
+      costoAct: suma('costoAct'), costoSel: suma('costoSel'), extrasAct: suma('extrasAct'), extrasSel: suma('extrasSel') });
+    const clasificadas = o1.personas + o2.personas, total = clasificadas + sinSueldo.personas; // clasificadas = con sueldo registrado
+    // 4) estado de cada área: los equipos de un mismo puesto cambian juntos, así que se ve dónde conviven las dos olas
+    const estadoDe = (a1, a2, a0) => (a1 + a2 + a0 === 0 ? 'vacia' : a1 > 0 && a2 > 0 ? 'mixta' : a1 > 0 ? 'ola1' : a2 > 0 ? 'ola2' : 'sinsueldo');
+    const areas = A.map((a, ai) => {
+      const x1 = cierra(AR[ai][1]), x2 = cierra(AR[ai][2]), x0 = AR[ai][0];
+      return { ai, id: a.id, nombre: a.nombre, grupo: a.grupo, regimen: a.regimen, conf: a.conf, personas: x1.personas + x2.personas + x0.personas, n1: x1.personas, n2: x2.personas, n0: x0.personas,
+        nuevos1: x1.nuevos, extrasEvitadas1: x1.extrasEvitadas, estado: estadoDe(x1.personas, x2.personas, x0.personas) };
+    });
+    const sa1 = cierra(SA[1]), sa2 = cierra(SA[2]);
+    return {
+      fuente, min, sinMinimo: !(min > 0), eqAct: eqA, eqSel: eqS, unitario, total, clasificadas, hayDatos: clasificadas > 0,
+      o1, o2, sinSueldo, todo, pct1: clasificadas ? o1.personas / clasificadas : 0, pct2: clasificadas ? o2.personas / clasificadas : 0,
+      areas: areas.filter((x) => x.estado !== 'vacia'), completas: areas.filter((x) => x.estado === 'ola1').length, mixtas: areas.filter((x) => x.estado === 'mixta').length,
+      soloSegunda: areas.filter((x) => x.estado === 'ola2').length, areasSinSueldo: areas.filter((x) => x.estado === 'sinsueldo').length,
+      sinArea: { n1: sa1.personas, n2: sa2.personas, n0: SA[0].personas, total: sa1.personas + sa2.personas + SA[0].personas },
+      fijos, sinCuadrilla, fuera
+    };
   };
 
   /** Siguiente número libre para los códigos GEN-0001… (continúa después del mayor ya existente). */
@@ -7587,6 +7776,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   /** Planta actual y propuesta (E.planta.decision), calculada una sola vez por dibujado. */
   UI.plc = () => { const c = UI.ctx(); return c.pl || (c.pl = E.planta.decision(c.S)); };
+  /** Reparto del personal rotativo en olas de cambio (E.planta.olas, según la planilla registrada), calculado una sola vez por dibujado. */
+  UI.olas = () => { const c = UI.ctx(); return c.ol || (c.ol = E.planta.olas(c.S, SM.EMP)); };
 
   /** Casilla sin texto visible para celdas de tabla. o: {path | emp+f, label} */
   K.ck = (o) => '<input type="checkbox" class="ck"' + (K.val(o) ? ' checked' : '') + K.bind(o) + ' aria-label="' + esc(o.label || '') + '">';
@@ -8475,6 +8666,27 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       ['Sueldo base y personas por turno', q0(S.sueldoGlobal) + ' y ' + S.personalPorTurno, 'Operativo → Controles']
     ]);
 
+    /* Transición por olas: primero pasa al modelo propuesto el personal rotativo que gana más del salario mínimo; el resto, en una segunda ola (Planta → Transición). */
+    const ol = c.ol || E.planta.olas(S, SM.EMP || []), o1 = ol.o1, o2 = ol.o2, hd = ol.hayDatos, minTxt = U.fmtQ(ol.min, 2), nv1 = Math.round(o1.nuevos), nv2 = Math.round(o2.nuevos);
+    const vz = (n, uno, otros) => n0(n) + ' ' + (Math.round(n) === 1 ? uno : otros); // cantidad con separador de miles y su sustantivo
+    const vOla = (f) => (hd ? f() : '—'); // sin personal rotativo con sueldo no hay cifras que repartir
+    const difOla = (g) => (Math.abs(g.difCosto) < 1 ? 'se mantiene' : g.difCosto > 0 ? 'aumenta ' + q0(g.difCosto) + ' al mes' : 'disminuye ' + q0(-g.difCosto) + ' al mes');
+    const olaFuente = ol.fuente === 'planilla' ? 'la planilla registrada' : 'la estructura de Planta (plazas rotativas y sueldo de cada puesto)';
+    let olaFrase;
+    if (!hd) olaFrase = 'El cambio se propone por olas: primero el personal rotativo que gana más del salario mínimo (' + minTxt + ') y después el resto. Al registrar la planilla en el simulador (Planta → Transición) se calcula cuántas personas, cuánto personal nuevo y cuántas horas extra incluye cada ola.';
+    else if (!o1.personas) olaFrase = 'Nadie del personal rotativo gana más del salario mínimo (' + minTxt + '): la primera ola queda vacía y todo el personal forma la segunda ola.';
+    else olaFrase = 'El cambio se propone por olas. Según ' + olaFuente + ', la primera ola reúne a ' + n0(o1.personas) + ' de ' + n0(ol.clasificadas) + ' personas rotativas (' + pc0(ol.pct1) + '), las que ganan más del salario mínimo (' + minTxt + '); ' +
+      (o2.personas ? 'la segunda ola, ' + (o2.personas === 1 ? 'la persona restante' : 'las ' + n0(o2.personas) + ' restantes') + ', se incorpora después de evaluar el piloto.' : 'no hay segunda ola porque nadie gana el mínimo o menos.');
+    const olaDotacion = hd && o1.personas && nv1 > 0 ? 'Reclutar y capacitar a ' + vz(nv1, 'persona', 'personas') + ' para la primera ola'
+      : hd && o1.personas ? 'La primera ola no requiere personal nuevo; capacitar a quienes cambian de modelo' : 'Reclutar y capacitar a ' + vz(d.nuevos, 'persona', 'personas');
+    const olaSegundaTxt = hd && o2.personas ? vz(o2.personas, 'persona', 'personas') : 'según la planilla';
+    const olaMixtasTxt = !hd ? 'se identifican con la planilla' : ol.mixtas === 0 ? 'hoy ninguna' : 'hoy ' + vz(ol.mixtas, 'área', 'áreas');
+    const tablaOlas = hd ? table(['Ola', 'Quiénes', 'Personas', 'Personal nuevo', 'Horas extra al mes (hoy → propuesta)', 'Costo mensual (hoy → propuesta)'], [
+      ['Primera', 'Sueldo mayor que ' + minTxt, n0(o1.personas), n0(nv1), n0(o1.hExtAct) + ' → ' + n0(o1.hExtSel), q0(o1.costoAct) + ' → ' + q0(o1.costoSel)],
+      ['Segunda', 'Sueldo igual o menor', n0(o2.personas), n0(nv2), n0(o2.hExtAct) + ' → ' + n0(o2.hExtSel), q0(o2.costoAct) + ' → ' + q0(o2.costoSel)],
+      ['**Total**', 'Personal rotativo', n0(ol.todo.personas), n0(Math.round(ol.todo.nuevos)), n0(ol.todo.hExtAct) + ' → ' + n0(ol.todo.hExtSel), q0(ol.todo.costoAct) + ' → ' + q0(ol.todo.costoSel)]
+    ]) : 'Las cifras de cada ola se calculan al registrar la planilla en el simulador (Planta → Transición).';
+
     const T = {
       empresa: (S.empresa && S.empresa.nombre) || 'la empresa', hoy: U.fmtDMY(U.todayNum()),
       modeloActual: String(mA.nombre), modeloActualCorto: corto(mA), modeloProp: String(mS.nombre), modeloPropCorto: corto(mS),
@@ -8491,6 +8703,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       difMes: sg(dif), difAnio: sg(d.difAnio), difTexto, equilibrioMes: q0(d.equilibrioMes), equilibrioEmp: q0(d.equilibrioPorEmp), equilibrioTexto,
       unico: q0(d.unico), unicoTxt: d.unico > 0 ? q0(d.unico) : 'por registrar en Parámetros → Transición', nuevosTxt: veces(d.nuevos, 'persona', 'personas'), paybackTxt, benTexto, benRot: mon(ben.rot), benAcc: mon(ben.acc), benAus: mon(ben.aus),
       costoRecl: monTxt(P.costoReclutamiento), costoEPP: monTxt(P.costoEPP), costoCap: monTxt(P.costoCapacitacion),
+      olaMin: minTxt, olaCuadrillas: E.planta.palabra(ol.eqSel), olaFuente, olaFrase, olaDotacion, olaSegundaTxt, olaMixtasTxt, tablaOlas,
+      ola1Personas: vOla(() => n0(o1.personas)), olaTotal: vOla(() => n0(ol.clasificadas)), ola1Pct: vOla(() => pc0(ol.pct1)), ola2Personas: vOla(() => n0(o2.personas)),
+      ola1NuevosTxt: vOla(() => vz(nv1, 'persona', 'personas')), ola2NuevosTxt: vOla(() => vz(nv2, 'persona', 'personas')),
+      ola1ExtAct: vOla(() => n0(o1.hExtAct)), ola1ExtProp: vOla(() => n0(o1.hExtSel)), ola1CostoAct: vOla(() => q0(o1.costoAct)), ola1CostoProp: vOla(() => q0(o1.costoSel)), ola1Dif: vOla(() => difOla(o1)),
+      ola1ExtPersAct: vOla(() => q0(o1.extrasPersAct)), ola1ExtPersProp: vOla(() => q0(o1.extrasPersSel)), ola2Dif: vOla(() => difOla(o2)),
       scoreAct: c.valAct.score, scoreProp: c.val.score,
       rachaAct: vA.maxRunTrab, rachaProp: vS.maxRunTrab, nochesAct: vA.maxRunNoches, nochesProp: vS.maxRunNoches,
       nochesActTxt: vA.maxRunNoches === undefined ? '—' : veces(vA.maxRunNoches, 'noche seguida', 'noches seguidas'), nochesPropTxt: vS.maxRunNoches === undefined ? '—' : veces(vS.maxRunNoches, 'noche seguida', 'noches seguidas'),
@@ -8526,7 +8743,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 3. Definir con Producción las horas de relevo y los traslapes.
 4. Reclutar y capacitar al personal adicional con capacitación cruzada.
 5. Ajustar la nómina: boletas, extras y provisiones.
-6. Piloto acotado con indicadores acordados antes de empezar.
+6. Piloto acotado por olas: primero quienes ganan más del salario mínimo; indicadores acordados antes de empezar.
 7. Medir cada mes, corregir y decidir si se extiende.
 8. Programar el mantenimiento mayor en paros y asuetos largos, si la planta lo permite.` },
     { id: 'recursos', t: 'Recursos clave', md:
@@ -8612,6 +8829,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
 {{recomendacion}}
 
+{{olaFrase}}
+
 | Indicador | Actual | Propuesta |
 |---|---|---|
 | Personas | {{plantillaAct}} | {{plantillaProp}} |
@@ -8666,7 +8885,7 @@ Las provisiones (aguinaldo, bono 14, indemnización y relevo de vacaciones) se c
 {{recomendacion}}
 
 ## Condiciones para que funcione
-1. Piloto acotado, con indicadores y criterio de éxito acordados antes de empezar.
+1. Piloto acotado, que empieza por el personal que gana más del salario mínimo ({{olaMin}}), con indicadores y criterio de éxito acordados antes de empezar.
 2. Línea base de los últimos 12 meses: horas extra, ausentismo, accidentes y rotación.
 3. Personal adicional contratado y capacitado antes del cambio ({{nuevosTxt}}).
 4. Criterios de zona gris confirmados por escrito con el asesor laboral.
@@ -8693,17 +8912,22 @@ Las provisiones (aguinaldo, bono 14, indemnización y relevo de vacaciones) se c
 
 Este documento no constituye asesoría legal: cada criterio debe confirmarse con un asesor laboral y con el texto vigente del Código de Trabajo.` },
 
-    { id: 'piloto', g: 'plan', t: 'Plan de piloto', d: 'Fases, entregables, responsables y duración', md:
+    { id: 'piloto', g: 'plan', t: 'Plan de piloto', d: 'Olas, fases, entregables, responsables y duración', md:
 `Las duraciones son una sugerencia y deben ajustarse a la realidad de la planta.
+
+{{olaFrase}}
+
+{{tablaOlas}}
 
 | Fase | Qué se hace | Entregable | Responsable | Duración sugerida |
 |---|---|---|---|---|
-| 0. Preparación | Línea base de indicadores, acuerdo con el asesor laboral y comunicación inicial | Línea base y criterio de éxito firmados | RR.HH. y Producción | 2 semanas |
-| 1. Diseño | Horas de relevo, calendario de {{modeloPropCorto}}, reglas de permutas y cobertura | Calendario completo del piloto y reglas escritas | Producción | 2 semanas |
-| 2. Dotación | Reclutar y capacitar a {{nuevosTxt}}; capacitación cruzada | Personal adicional listo | RR.HH. y Mantenimiento | 4 a 6 semanas |
-| 3. Piloto | Operar con el nuevo modelo en el área elegida; boletas con el cálculo nuevo | Reporte semanal de indicadores | Producción y Planillas | 8 a 12 semanas |
-| 4. Evaluación | Comparar indicadores contra la línea base y decidir | Informe de decisión | Gerencia | 2 semanas |
-| 5. Extensión o ajuste | Extender al resto de la planta o corregir el diseño | Plan de despliegue | Gerencia y RR.HH. | Según resultado |
+| 0. Preparación | Línea base de indicadores, acuerdo con el asesor laboral y comunicación inicial; lista nominal de cada ola según el sueldo | Línea base, criterio de éxito y listas de cada ola firmados | RR.HH. y Producción | 2 semanas |
+| 1. Diseño | Horas de relevo, calendario de {{modeloPropCorto}}, reglas de permutas y cobertura; cada puesto cambia con todo su equipo | Calendario completo del piloto y reglas escritas | Producción | 2 semanas |
+| 2. Dotación | {{olaDotacion}}; capacitación cruzada | Personal adicional listo | RR.HH. y Mantenimiento | 4 a 6 semanas |
+| 3. Piloto (primera ola) | Operar con {{olaCuadrillas}} cuadrillas, en el área elegida, con el personal que gana más de {{olaMin}}; boletas con el cálculo nuevo | Reporte semanal de indicadores | Producción y Planillas | 8 a 12 semanas |
+| 4. Evaluación | Comparar indicadores contra la línea base, revisar lo que cada persona cobra por horas extra y decidir | Informe de decisión | Gerencia | 2 semanas |
+| 5. Extensión de la primera ola | Pasar al resto del personal que gana más de {{olaMin}}, área por área, o corregir el diseño | Plan de despliegue | Gerencia y RR.HH. | Según resultado |
+| 6. Segunda ola | Pasar al personal que gana {{olaMin}} o menos ({{olaSegundaTxt}}), con las condiciones de ingreso acordadas | Plan de la segunda ola | Gerencia y RR.HH. | Según resultado |
 
 **Criterio de salida:** si las horas extra, el ausentismo o los accidentes empeoran frente a la línea base durante dos revisiones seguidas, se detiene el piloto y se revisa el diseño.` },
 
@@ -8712,6 +8936,7 @@ Este documento no constituye asesoría legal: cada criterio debe confirmarse con
 |---|---|---|---|---|---|
 | Horas extra al mes (planta) | Planilla | {{extActMes}} h (simulador) | {{extPropMes}} h | Mensual | Planillas |
 | Costo total al mes | Planilla y provisiones | {{costoActMes}} | {{costoPropMes}} | Mensual | Finanzas |
+| Pago de horas extra por persona al mes (primera ola) | Planilla | {{ola1ExtPersAct}} (simulador) | {{ola1ExtPersProp}} | Mensual | Planillas |
 | Días libres por cada 28 | Calendario real | {{libres28Act}} | {{libres28Prop}} | Mensual | Producción |
 | Ausentismo (días por persona al año) | RR.HH. | (medir) | (definir) | Mensual | RR.HH. |
 | Accidentes e incapacidades | Seguridad industrial | (medir) | (definir) | Mensual | Seguridad |
@@ -8733,6 +8958,7 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
 | Criterio legal en zona gris (asuetos, séptimo, base de prestaciones) | Media | Medio | Confirmar por escrito con el asesor; usar el mismo criterio en boletas y provisiones | RR.HH. |
 | Calidad o eficiencia desiguales entre cuadrillas | Media | Medio | Capacitación cruzada, matriz de habilidades y supervisión en los relevos | Producción y Calidad |
 | Fatiga durante la adaptación | Media | Medio | Rotación hacia adelante cuando sea posible; no más de 3 noches seguidas; seguimiento de incidentes | Seguridad |
+| Equipos partidos entre las dos olas | Media | Medio | Cada puesto cambia con todo su equipo; en las áreas con personal de las dos olas ({{olaMixtasTxt}}) se decide si pasan completas | Producción |
 | Datos de planilla incompletos | Media | Medio | Depurar sueldos, fechas de ingreso y cuadrillas antes del piloto | Planillas |
 | Mantenimiento mayor sin ventana | Baja | Medio | Paros programados en asuetos largos, si la planta lo permite | Mantenimiento |
 | Resistencia del personal acostumbrado a las extras | Media | Medio | Co-creación, voceros por cuadrilla, reglas claras y salida acordada | RR.HH. |` },
@@ -8908,7 +9134,8 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
     'El retiro a los 25 o 30 años de servicio ocurre, para quien ingresa a los 18 años, antes de la edad que exige el IGSS para la pensión por vejez (60 años y 240 cuotas mensuales en la referencia consultada; ambas cifras son editables). En ese caso se requiere un plan de retiro de la empresa, cuyo costo el simulador no estima y que debe valorar un actuario con el asesor laboral.',
     'Las personas menores de 18 años solo pueden trabajar en jornada ordinaria diurna, entre las 6 y las 18 horas, y tienen prohibidas la jornada nocturna, la mixta y la extraordinaria (Acuerdo Gubernativo 112-2006, arts. 14 y 32). Por eso los perfiles de ingreso a los turnos rotativos parten de los 18 años; un programa para menores de edad requiere un diseño aparte con el asesor laboral.',
     'La canasta ampliada del INE incluye un rubro de vivienda, pero no cuotas de créditos ni ahorro. Comparar el ingreso líquido de la boleta tipo (sin horas extra) con la canasta es una referencia: no mide el nivel de vida de un hogar ni la capacidad de crédito real, que fija la institución financiera con una cotización. Los costos de los apoyos de la empresa valen 0 mientras no se ingresen.',
-    'La pirámide de Maslow se usa como marco de lectura y no como medición: las necesidades no se satisfacen necesariamente en un orden fijo (Tay y Diener, 2011) y el índice interno promedia prácticas que califica la propia empresa. No sustituye una encuesta de clima ni el Trust Index de Great Place to Work, y ninguna certificación, lista o mención de prensa puede garantizarse.'
+    'La pirámide de Maslow se usa como marco de lectura y no como medición: las necesidades no se satisfacen necesariamente en un orden fijo (Tay y Diener, 2011) y el índice interno promedia prácticas que califica la propia empresa. No sustituye una encuesta de clima ni el Trust Index de Great Place to Work, y ninguna certificación, lista o mención de prensa puede garantizarse.',
+    'La transición por olas (Planta → Transición y el plan piloto de la Propuesta) reparte al personal rotativo según el sueldo de cada persona en Planilla frente al salario mínimo de referencia: quien gana más del mínimo entra en la primera ola y quien gana el mínimo o menos, en la segunda; si la planilla no tiene personal rotativo, se usa la estructura de Planta. Ese orden es un criterio de la propuesta, no un requisito legal, y debe confirmarse con el asesor laboral y comunicarse al personal antes de aplicarse. Un equipo o un puesto cambia de cuadrillas con todos sus integrantes, de modo que las áreas con personas de ambas olas (mixtas) obligan a decidir si pasan completas o se parten; el cálculo muestra la mezcla, pero no resuelve esa decisión. El personal nuevo se costea con el sueldo de la plaza que ocupa y sin prorratear beneficios no salariales; la inversión inicial por persona nueva vale 0 mientras no se ingrese en Parámetros (Transición, únicos por empleado nuevo). El salario mínimo de referencia es un parámetro editable que debe verificarse contra el acuerdo gubernativo vigente, y el personal de lunes a viernes no entra en las olas porque no rota.'
   ];
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
@@ -10862,7 +11089,9 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
    fábrica (áreas, puestos, personas y costo por modelo de rotación)
    y su cotejo con la planilla registrada. Todo es editable y se
    guarda en IndexedDB. Se imprime en carta horizontal.
-   Secciones: Resumen · Áreas y puestos · Planilla.
+   Secciones: Resumen · Áreas y puestos · Planilla · Transición (el
+   personal que gana más del salario mínimo pasa primero al modelo
+   propuesto; el resto, en una segunda ola).
    ============================================================ */
 (function (g) {
   'use strict';
@@ -10880,6 +11109,8 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   const ixPuesto = (a, id) => a.puestos.findIndex((p) => p.id === id);
   const abiertas = () => (UI.q.areaOpen = UI.q.areaOpen || {});
   const pers = (n) => n0(n) + ' persona' + (Math.round(n) === 1 ? '' : 's');
+  /** «3 personas nuevas» / «1 persona nueva» (la dotación se cuenta en personas enteras). */
+  const nuevasTxt = (n) => (Math.round(n) === 1 ? '1 persona nueva' : n0(n) + ' personas nuevas');
   /** Plural sencillo del nombre de una unidad («imprenta» → «imprentas», «unidad» → «unidades», «bottom pad» → «bottom pads»). */
   const plu = (et, n) => {
     const w = String(et || 'unidad').trim() || 'unidad';
@@ -10904,6 +11135,23 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       return {
         h: br.totalReg ? n0(br.conArea) + ' de ' + n0(br.totalReg) + ' empleados registrados tienen un área reconocida' : 'Aún no hay empleados registrados en la planilla',
         p: 'La estructura requiere ' + pers(s.ex.personas) + ' con el modelo propuesto (' + nom(s.modelo) + '). La planilla puede importarse con una columna «Área» o generarse a partir de esta estructura; el cotejo muestra qué áreas están completas.'
+      };
+    }
+    if (tab === 'transicion') {
+      const ol = UI.olas(), o1 = ol.o1, o2 = ol.o2, dif = o1.difCosto;
+      if (!ol.hayDatos) {
+        return {
+          h: ol.total ? 'El personal rotativo no tiene sueldo registrado: no se puede repartir en olas' : 'Aún no hay personal rotativo para repartir en olas',
+          p: 'La primera ola reúne a quienes ganan más que el salario mínimo de referencia y pasan primero al modelo propuesto. Registrar el sueldo del personal en cuadrillas (Planilla), o definir puestos rotativos en Áreas y puestos, para calcularla.'
+        };
+      }
+      if (mismo) return { h: 'La propuesta coincide con la rotación vigente: no hay cambio que repartir en olas', p: 'Seleccionar en Operativo un modelo con más cuadrillas que el vigente para ver quiénes pasan primero.' };
+      if (!o1.personas) return { h: 'Nadie gana más que el salario mínimo de referencia (' + K.q(ol.min) + '): la primera ola queda vacía', p: 'Quienes tienen un sueldo igual o menor al mínimo (' + pers(o2.personas) + ') forman la segunda ola. Revisar el salario mínimo de referencia o los sueldos registrados.' };
+      return {
+        h: 'La primera ola reúne a ' + n0(o1.personas) + ' de ' + n0(ol.clasificadas) + ' personas rotativas (' + K.pct(ol.pct1, 0) + '): las que ganan más de ' + K.q(ol.min),
+        p: 'Pasan a ' + PL.palabra(ol.eqSel) + ' cuadrillas (' + nom(s.modelo) + '): ' + (Math.round(o1.nuevos) > 0 ? 'se necesitan ' + nuevasTxt(o1.nuevos) : 'no se necesita personal nuevo') + ', las horas extra bajan de ' + n0(o1.hExtAct) + ' h a ' + n0(o1.hExtSel) +
+          ' h al mes y el costo mensual de esa ola ' + (Math.abs(dif) < 1 ? 'se mantiene' : dif > 0 ? 'aumenta ' + K.q0(dif) : 'disminuye ' + K.q0(-dif)) + '. ' +
+          (o2.personas ? 'La segunda ola (' + pers(o2.personas) + ', sueldo igual o menor al mínimo) se incorpora después de evaluar el piloto.' : 'Nadie gana el mínimo o menos: no hay segunda ola.')
       };
     }
     const h = mismo
@@ -11157,8 +11405,89 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
         '<p class="note">Las personas generadas reciben el código <b>GEN-</b>, nombre con el área y el puesto, el sueldo de la escala de carrera según su nivel y antigüedad, y una fecha de ingreso coherente con esa antigüedad. Pueden editarse o reemplazarse con los datos reales importados.</p>', { cls: 'noprint' }) + '</div>';
   }
 
+  /* ---------- Transición por olas ---------- */
+  const ESTADO_AREA = { ola1: ['Primera ola completa', 'ok'], mixta: ['Mixta', 'warn'], ola2: ['Solo segunda ola', 'info'], sinsueldo: ['Sin sueldo registrado', 'warn'] };
+
+  function seccionTransicion(c, pl) {
+    const S = c.S, ol = UI.olas(), o1 = ol.o1, o2 = ol.o2, td = ol.todo, a = pl.act, s = pl.sel;
+    const mismo = s.modelo.id === a.modelo.id && S.variante === S.varianteActual;
+    const criterio = K.panel('Criterio de las olas', '<div class="fgrid">' +
+      K.num('Salario mínimo mensual de referencia', 'carrera.salarioMinimo', { min: 0, dec: 2, pre: 'Q', hint: 'Primera ola: sueldo mayor que este valor. Segunda ola: sueldo igual o menor. Es el mismo valor de Carrera y de ISR; verificarlo contra el acuerdo gubernativo vigente.' }) + '</div>', { cls: 'noprint' });
+    const avisos = [];
+    if (ol.fuente === 'estructura') avisos.push(K.banner('info', 'La planilla no tiene personal en las cuadrillas del modelo vigente: el reparto usa la <b>estructura de Planta</b> (plazas rotativas y sueldo de cada puesto). Al registrar o importar la planilla, el reparto pasa a usar el sueldo real de cada persona.'));
+    if (ol.sinMinimo) avisos.push(K.banner('warn', '<b>Falta el salario mínimo de referencia.</b> Sin él, todas las personas con sueldo quedan en la primera ola. Se indica en el campo «Salario mínimo mensual de referencia».'));
+    if (ol.sinSueldo.personas) avisos.push(K.banner('warn', '<b>' + pers(ol.sinSueldo.personas) + '</b> del personal rotativo ' + (ol.sinSueldo.personas === 1 ? 'no tiene sueldo registrado y no entra' : 'no tienen sueldo registrado y no entran') + ' en ninguna ola. El sueldo se completa en la pestaña Planilla.'));
+    if (mismo && ol.hayDatos) avisos.push(K.banner('info', 'La propuesta coincide con la rotación vigente: no hay cambio de modelo que repartir. Seleccionar en Operativo un modelo con más cuadrillas.'));
+    if (!ol.hayDatos) {
+      return '<div class="stack">' + avisos.join('') + K.empty('No hay personal rotativo con sueldo para repartir', 'Registrar el sueldo del personal en cuadrillas, importar la planilla o definir puestos rotativos en Áreas y puestos.',
+        '<div class="btns" style="justify-content:center;margin-top:.75rem">' + K.btn('goTab', 'Abrir la planilla', { ico: 'people', data: 'data-tab="planilla"' }) + K.btn('goTab', 'Áreas y puestos', { data: 'data-tab="planta" data-sub="areas"' }) + '</div>') + criterio + '</div>';
+    }
+    const pctMenos = o1.hExtAct ? 1 - o1.hExtSel / o1.hExtAct : 0;
+    const gauges = '<div class="gauges">' +
+      K.gauge('Primera ola', n0(o1.personas) + '<small>de ' + n0(ol.clasificadas) + '</small>', K.pct(ol.pct1, 0) + ' de las personas rotativas · sueldo promedio <b>' + (o1.personas ? K.q0(o1.sueldoProm) : '—') + '</b>') +
+      K.gauge('Personal por contratar', n0(o1.nuevos), ol.unitario > 0 ? 'Inversión inicial: <b>' + K.q0(o1.unico) + '</b>' : 'Costos de ingreso por definir en Parámetros → Transición') +
+      K.gauge('Horas extra al mes', n0(o1.hExtSel) + '<small>h</small>', 'Hoy: <b>' + n0(o1.hExtAct) + ' h</b>' + (o1.hExtAct ? ' · ' + (pctMenos >= 0 ? '−' : '+') + K.pct(Math.abs(pctMenos), 0) : '')) +
+      K.gauge('Costo mensual de la primera ola', K.q0(o1.costoSel), 'Hoy: <b>' + K.q0(o1.costoAct) + '</b> · ' + dlt(o1.difCosto), o1.difCosto > 1 ? 'warn' : o1.difCosto < -1 ? 'good' : '') +
+      K.gauge('Pago de horas extra por persona', K.q0(o1.extrasPersSel) + '<small>al mes</small>', 'Hoy: <b>' + K.q0(o1.extrasPersAct) + '</b> · ' + dlt(-o1.bajaExtrasPers)) +
+      K.gauge('Segunda ola', n0(o2.personas), 'Sueldo igual o menor a <b>' + K.q(ol.min) + '</b>; se decide al evaluar el piloto') + '</div>';
+    // cuadro de las dos olas: una fila por concepto
+    const flecha = (x, y, f) => f(x) + ' → ' + f(y);
+    const fila = (lab, f, o) => {
+      o = o || {};
+      return '<tr' + (o.cls ? ' class="' + o.cls + '"' : '') + '>' + K.td('Concepto', '<b>' + esc(lab) + '</b>', { cls: 'ttl' }) +
+        [['Primera ola', o1], ['Segunda ola', o2], ['Personal rotativo en total', td]].map((x) => K.td(x[0], x[1].personas ? f(x[1]) : '—', { cls: 'n ' + (o.num ? o.num(x[1]) : '') })).join('') + '</tr>';
+    };
+    const filas = [
+      fila('Personas hoy', (g) => n0(g.personas)),
+      fila('Sueldo promedio', (g) => K.q0(g.sueldoProm)),
+      fila('Personas con la propuesta', (g) => n0(g.personasSel)),
+      fila('Personal nuevo', (g) => n0(g.nuevos)),
+      ol.unitario > 0 ? fila('Inversión inicial por el personal nuevo', (g) => K.q0(g.unico)) : '',
+      fila('Horas extra al mes (hoy → propuesta)', (g) => flecha(g.hExtAct, g.hExtSel, n0) + ' h'),
+      fila('Pago de horas extra por persona al mes (hoy → propuesta)', (g) => flecha(g.extrasPersAct, g.extrasPersSel, K.q0)),
+      fila('Costo mensual (hoy → propuesta)', (g) => flecha(g.costoAct, g.costoSel, K.q0)),
+      fila('Diferencia del costo mensual', (g) => (Math.abs(g.difCosto) < 0.5 ? '—' : K.sgn(g.difCosto)), { cls: 'tot', num: (g) => clsDif(g.difCosto) })
+    ].join('');
+    const tablaOlas = K.panel('Las dos olas', '<div class="tblwrap"><table class="tbl rsp"><thead><tr><th>Concepto</th><th class="n">Primera ola<br><span class="note">sueldo mayor que ' + K.q(ol.min) + '</span></th><th class="n">Segunda ola<br><span class="note">sueldo igual o menor</span></th><th class="n">Personal rotativo en total</th></tr></thead><tbody>' + filas + '</tbody></table></div>', {
+      flush: true, foot: 'Compara la rotación vigente con el modelo propuesto (' + esc(nom(s.modelo)) + ') para cada grupo, con los mismos supuestos de Operativo, Comparar y Planta. El personal nuevo se costea con el sueldo de la plaza que cubre.'
+    });
+    // cuadro por área
+    const filaA = (nombre, sub, x) => '<tr>' + K.td('Área', '<b>' + esc(nombre) + '</b>' + (sub ? '<br><span class="note">' + esc(sub) + '</span>' : ''), { cls: 'ttl' }) +
+      K.td('Personas rotativas', n0(x.personas), { cls: 'n' }) + K.td('Primera ola', n0(x.n1), { cls: 'n' }) + K.td('Segunda ola', n0(x.n2), { cls: 'n' }) +
+      K.td('Personal nuevo (primera ola)', n0(x.nuevos1), { cls: 'n' }) + K.td('Horas extra que se evitan (primera ola)', n0(x.extrasEvitadas1) + ' h', { cls: 'n' }) +
+      K.td('Estado', x.estado && ESTADO_AREA[x.estado] ? K.chip(ESTADO_AREA[x.estado][0], ESTADO_AREA[x.estado][1]) : '—') + '</tr>';
+    const sa = ol.sinArea;
+    const filasA = ol.areas.map((x) => filaA(x.nombre, grupoNombre(x.grupo) + (x.conf ? '' : ' · dotación por confirmar'), x)).join('') +
+      (sa.total ? filaA('Sin área reconocida', 'El área del empleado no coincide con una sola de la estructura', { personas: sa.total, n1: sa.n1, n2: sa.n2, nuevos1: 0, extrasEvitadas1: 0, estado: '' }) : '');
+    const pieA = '<tfoot><tr>' + K.td('Área', 'Total', { cls: 'ttl' }) + K.td('Personas rotativas', n0(ol.total), { cls: 'n' }) + K.td('Primera ola', n0(o1.personas), { cls: 'n' }) + K.td('Segunda ola', n0(o2.personas), { cls: 'n' }) +
+      K.td('Personal nuevo (primera ola)', n0(o1.nuevos), { cls: 'n' }) + K.td('Horas extra que se evitan (primera ola)', n0(o1.extrasEvitadas) + ' h', { cls: 'n' }) + K.td('Estado', '') + '</tr></tfoot>';
+    const cnt = (n, uno, otros) => '<span><b>' + n0(n) + '</b>' + (n === 1 ? uno : otros) + '</span>';
+    const resumenA = '<div class="sumstrip">' + cnt(ol.completas, 'área completa en la primera ola', 'áreas completas en la primera ola') + cnt(ol.mixtas, 'área mixta', 'áreas mixtas') + cnt(ol.soloSegunda, 'área solo de segunda ola', 'áreas solo de segunda ola') +
+      (ol.areasSinSueldo ? cnt(ol.areasSinSueldo, 'área sin sueldo registrado', 'áreas sin sueldo registrado') : '') + '</div>';
+    const tablaAreas = K.panel('Qué áreas cambian primero', ol.areas.length || sa.total
+      ? '<div class="tblwrap"><table class="tbl rsp"><thead><tr><th>Área</th><th class="n">Personas rotativas</th><th class="n">Primera ola</th><th class="n">Segunda ola</th><th class="n">Personal nuevo</th><th class="n">Horas extra que se evitan</th><th>Estado</th></tr></thead><tbody>' + filasA + '</tbody>' + pieA + '</table></div>'
+      : K.empty('Sin áreas con personal rotativo', 'El personal rotativo no tiene un área reconocida.'),
+    { flush: true, foot: resumenA + '<p class="note" style="margin-top:.5rem">Un puesto cambia de modelo con todo su equipo. «Mixta» indica un área donde conviven las dos olas: conviene decidir si el área entera pasa en la primera ola o si solo cambian los puestos de sueldo mayor.' +
+      (ol.sinSueldo.personas ? ' El total de personas rotativas incluye ' + pers(ol.sinSueldo.personas) + ' sin sueldo registrado, que no entra' + (ol.sinSueldo.personas === 1 ? '' : 'n') + ' en ninguna ola.' : '') + '</p>' });
+    // límites del cálculo
+    const fuera = [];
+    if (ol.fijos) fuera.push(pers(ol.fijos) + ' de lunes a viernes, que no rotan');
+    if (ol.sinCuadrilla) fuera.push(pers(ol.sinCuadrilla) + ' sin cuadrilla asignada');
+    if (ol.fuera) fuera.push(pers(ol.fuera) + ' en cuadrillas que el modelo vigente no tiene');
+    if (ol.sinSueldo.personas) fuera.push(pers(ol.sinSueldo.personas) + ' sin sueldo registrado');
+    const notas = '<ul class="bul">' +
+      '<li><b>Criterio.</b> Primera ola: sueldo mayor que ' + esc(K.q(ol.min)) + ', el salario mínimo de referencia de Carrera. Segunda ola: sueldo igual o menor. La referencia debe verificarse contra el acuerdo gubernativo vigente.</li>' +
+      '<li><b>Cálculo.</b> Cada persona de hoy ocupa una fracción de plaza; con la propuesta la plaza completa se cubre con ' + PL.palabra(ol.eqSel) + ' personas del mismo sueldo. Es el cálculo de Planta, Operativo y Comparar aplicado a cada grupo.</li>' +
+      (fuera.length ? '<li><b>No entran en las olas:</b> ' + esc(fuera.join('; ')) + '.</li>' : '') +
+      '<li><b>Ingreso del personal.</b> Con menos horas extra baja lo que cada persona cobra por ese concepto (fila «Pago de horas extra por persona»): evaluar con Recursos Humanos si habrá una compensación transitoria.</li>' +
+      '<li><b>Aspectos laborales.</b> Cambiar el sistema de turnos de una parte del personal puede requerir su acuerdo y la revisión del reglamento interior de trabajo o del pacto colectivo; confirmarlo con el asesor laboral.</li>' +
+      '<li><b>No incluye</b> los beneficios no salariales (rotación, accidentes, ausentismo), que se ven en Planta → Resumen y en Comparar.</li></ul>';
+    const acciones = '<div class="btns noprint">' + K.btn('goTab', 'Ver el plan de piloto', { cls: 'pri', data: 'data-tab="propuesta" data-sub="plan"' }) + K.btn('goTab', 'Abrir la planilla', { ico: 'people', data: 'data-tab="planilla"' }) + '</div>';
+    return '<div class="stack">' + avisos.join('') + gauges + criterio + tablaOlas + tablaAreas + K.panel('Cómo se calcula y qué falta confirmar', notas + acciones) + '</div>';
+  }
+
   /* ---------- registro de la pestaña ---------- */
-  const SECCION = { resumen: seccionResumen, areas: seccionAreas, planilla: seccionPlanilla };
+  const SECCION = { resumen: seccionResumen, areas: seccionAreas, planilla: seccionPlanilla, transicion: seccionTransicion };
   UI.register('planta', {
     label: 'Planta', icon: 'plant',
     render() {
@@ -11173,7 +11502,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   UI.A.plantaTab = (el) => { SM.S.ui.plantaTab = el.dataset.v; SM.touch(); };
   /** Vínculo entre pestañas (y secciones): data-tab y, opcionalmente, data-sub. */
   UI.A.goTab = (el) => {
-    const t = el.dataset.tab, sub = el.dataset.sub, k = { planta: 'plantaTab', carrera: 'carreraTab', programas: 'progTab' }[t];
+    const t = el.dataset.tab, sub = el.dataset.sub, k = { planta: 'plantaTab', carrera: 'carreraTab', programas: 'progTab', propuesta: 'propTab' }[t];
     if (sub && k) SM.S.ui[k] = sub;
     UI.go(t);
   };
