@@ -2003,6 +2003,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     M4: { nombre: 'Mañana, 6.º día (4 h ord. + 4 h extra)', ini: '06:00', fin: '14:00', ord: 4, ext: 4, fila: 'M', tipo: 'diurna', color: '#cfe6f5' },
     T11: { nombre: 'Puente de día 11 h (supuesto 07:00–18:00)', ini: '07:00', fin: '18:00', ord: 0, ext: 11, fila: 'T', tipo: 'diurna', color: '#78aedb' },
     M12: { nombre: 'Puente de noche 12 h (supuesto 18:00–06:00)', ini: '18:00', fin: '06:00', ord: 0, ext: 12, fila: 'N', tipo: 'nocturna', color: '#1f3a6e' },
+    // Turnos de 12 horas (versión 23), para los modelos de dos turnos al día: el de día con 1 h de almuerzo sin pago (8 h ordinarias + 3 extra) y el de noche sin almuerzo (6 + 6),
+    // igual que en la cobertura de vacaciones con dos turnos de 12 h. Los «de más» son los días que se trabajan después de los turnos ordinarios de la semana: se pagan completos como extra (igual que los «puentes» T11 y M12).
+    D12: { nombre: 'Día 12 h (06:00–18:00, con 1 h de almuerzo)', ini: '06:00', fin: '18:00', ord: 8, ext: 3, fila: 'M', tipo: 'diurna', color: '#8fc5e8' },
+    D12x: { nombre: 'Día 12 h de más (todo extra: después de los turnos ordinarios de la semana)', ini: '06:00', fin: '18:00', ord: 0, ext: 11, fila: 'M', tipo: 'diurna', color: '#8fc5e8' },
+    N12: { nombre: 'Noche 12 h (18:00–06:00)', ini: '18:00', fin: '06:00', ord: 6, ext: 6, fila: 'N', tipo: 'nocturna', color: '#2f4f8a' },
+    N12x: { nombre: 'Noche 12 h de más (todo extra: después de los turnos ordinarios de la semana)', ini: '18:00', fin: '06:00', ord: 0, ext: 12, fila: 'N', tipo: 'nocturna', color: '#2f4f8a' },
     D: { nombre: 'Descanso', ini: '', fin: '', ord: 0, ext: 0, fila: '', tipo: 'diurna', color: '#eef1f2' }
   };
   DEF.filas = [
@@ -2013,6 +2019,14 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   ];
 
   /* ---------- Modelos de rotación ---------- */
+  /** Filas del tablero «Por turno» de los modelos de turnos de 12 h (dos al día): día y noche, sin tarde. */
+  const FILAS12 = [
+    { id: 'M', nombre: 'Día 12 h', horas: '06:00 – 18:00' },
+    { id: 'N', nombre: 'Noche 12 h', horas: '18:00 – 06:00' },
+    { id: 'D', nombre: 'Descansa', horas: 'Libre' }
+  ];
+  /** Ciclo de 14 días 2-2-3 (dos turnos, dos libres, tres turnos, dos libres, dos turnos y tres libres) con el código de turno `c`. */
+  const pit = (c) => [c, c, 'D', 'D', c, c, c, 'D', 'D', c, c, 'D', 'D', 'D'];
   const infAtras = [...rep('N', 6), 'D', ...rep('T', 6), 'T11', ...rep('M', 5), 'M4', 'M12'];
   const infAdel = [...rep('M', 5), 'M4', 'M12', ...rep('T', 6), 'T11', ...rep('N', 6), 'D'];
   DEF.modelos = {
@@ -2080,6 +2094,50 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         atras: { label: 'N → T → T → M → D → D (hacia atrás)', patron: ['N', 'T', 'T', 'M', 'D', 'D'] }
       }
     },
+    rmtn5: {
+      id: 'rmtn5', nombre: 'M-T-N-D-D · Ciclo de 5 días, 5 cuadrillas', corto: 'la rotación M-T-N-D-D', equipos: 5, desfases: [0, 4, 3, 2, 1],
+      desc: '1 mañana, 1 tarde, 1 noche y 2 descansos (3 días de trabajo y 2 libres, 48 h libres tras la noche). Cubre las 24 h con 5 cuadrillas escalonadas de a un día: una sola cuadrilla en cada turno, sin traslape.',
+      variantes: {
+        adelante: { label: 'M → T → N → D → D (hacia adelante)', patron: ['M', 'T', 'N', 'D', 'D'] },
+        atras: { label: 'N → T → M → D → D (hacia atrás)', patron: ['N', 'T', 'M', 'D', 'D'] }
+      }
+    },
+    r2x12: {
+      id: 'r2x12', nombre: '2 cuadrillas de 12 h · día y noche fijas', corto: 'las 2 cuadrillas de 12 h', equipos: 2, desfases: [0, 0], turnoLargo: true, filas: FILAS12,
+      desc: 'Dos cuadrillas fijas: la A siempre de día (06:00–18:00) y la B siempre de noche (18:00–06:00). Es lo que hacen las plantas que todavía trabajan con solo dos cuadrillas. Cubre las 24 h con la menor cantidad de gente, pero con 7 días de 12 h a la semana nadie descansa: 84 h de presencia (77 h pagadas de día y 84 h de noche). Se puede probar también con 6 días, parando la planta un día.',
+      variantes: {
+        adelante: { label: 'Fijas · A de día y B de noche, 7 días a la semana', patron: [...rep('D12', 5), 'D12x', 'D12x'], patrones: [[...rep('D12', 5), 'D12x', 'D12x'], [...rep('N12', 6), 'N12x']] },
+        atras: { label: 'Fijas · 6 días a la semana (la planta para un día)', patron: [...rep('D12', 5), 'D12x', 'D'], patrones: [[...rep('D12', 5), 'D12x', 'D'], [...rep('N12', 6), 'D']] }
+      }
+    },
+    r3x12: {
+      id: 'r3x12', nombre: '3 cuadrillas de 12 h · 2 días, 2 noches y 2 libres', corto: 'las 3 cuadrillas de 12 h', equipos: 3, desfases: [0, 2, 4], turnoLargo: true, filas: FILAS12,
+      desc: '2 turnos de día de 12 h, 2 de noche y 2 días libres, con 3 cuadrillas escalonadas de a 2 días. Es el paso natural de dos a tres cuadrillas: cada persona libra 2 de cada 6 días, pero trabaja unas 54 h pagadas a la semana (56 h de presencia) y 2 noches seguidas.',
+      variantes: {
+        adelante: { label: 'Día × 2 → noche × 2 → descanso × 2', patron: ['D12', 'D12', 'N12', 'N12', 'D', 'D'] }
+      }
+    },
+    r4x4: {
+      id: 'r4x4', nombre: '4×4 de 12 h · 4 días, 4 libres, 4 noches y 4 libres', corto: 'la 4×4 de 12 h', equipos: 4, desfases: [0, 4, 8, 12], turnoLargo: true, filas: FILAS12,
+      desc: '4 turnos de día de 12 h, 4 días libres, 4 turnos de noche y 4 libres, con 4 cuadrillas escalonadas de a 4 días (16 días por ciclo). Cada persona está 42 h a la semana en promedio (40 h pagadas) y tiene 4 días libres seguidos, pero hace 4 noches seguidas de 12 h.',
+      variantes: {
+        adelante: { label: 'Día × 4 → libres × 4 → noche × 4 → libres × 4', patron: [...rep('D12', 4), ...rep('D', 4), ...rep('N12', 4), ...rep('D', 4)] }
+      }
+    },
+    rpit: {
+      id: 'rpit', nombre: '2-2-3 de 12 h · Pitman (Panamá), 4 cuadrillas', corto: 'la 2-2-3 de 12 h', equipos: 4, desfases: [0, 7, 14, 21], turnoLargo: true, filas: FILAS12,
+      desc: '2 turnos, 2 libres, 3 turnos, 2 libres, 2 turnos y 3 libres (14 días), y las cuadrillas alternan 14 días de día y 14 de noche. Cada persona está 42 h a la semana en promedio (40 h pagadas) y nunca hace más de 3 turnos seguidos.',
+      variantes: {
+        adelante: { label: '14 días de día y 14 de noche (2-2-3)', patron: [...pit('D12'), ...pit('N12')] }
+      }
+    },
+    rdupont: {
+      id: 'rdupont', nombre: 'DuPont de 12 h · 28 días, 4 cuadrillas', corto: 'la DuPont de 12 h', equipos: 4, desfases: [0, 7, 14, 21], turnoLargo: true, filas: FILAS12,
+      desc: '4 noches, 3 libres, 3 días, 1 libre, 3 noches, 3 libres, 4 días y 7 libres (28 días), con 4 cuadrillas escalonadas de a 7 días. Cada persona está 42 h a la semana en promedio (40 h pagadas) y tiene una semana libre cada cuatro, pero hace hasta 4 noches seguidas.',
+      variantes: {
+        adelante: { label: '4 noches · 3 días · 3 noches · 4 días (28 días)', patron: [...rep('N12', 4), ...rep('D', 3), ...rep('D12', 3), 'D', ...rep('N12', 3), ...rep('D', 3), ...rep('D12', 4), ...rep('D', 7)] }
+      }
+    },
     custom: {
       id: 'custom', nombre: 'Personalizado (editable)', corto: 'la rotación personalizada', equipos: 4, desfases: [0, 3, 2, 1], custom: true,
       desc: 'Ciclo definido por el usuario en Parámetros → Modelo personalizado (códigos separados por espacio y desfase de cada cuadrilla).',
@@ -2089,7 +2147,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       }
     }
   };
-  DEF.ordenModelos = ['inf', 'r1111', 'r2222', 'r3333', 'r4444', 'r6x2', 'r3131', 'rmttndd', 'custom'];
+  DEF.ordenModelos = ['inf', 'r1111', 'r2222', 'r3333', 'r4444', 'r6x2', 'r3131', 'rmttndd', 'rmtn5', 'r2x12', 'r3x12', 'r4x4', 'rpit', 'rdupont', 'custom'];
+  /** Modelos de turnos de 12 horas (dos al día): no pasan «a dos turnos de 12 h» para cubrir vacaciones porque ya los trabajan. */
+  DEF.modelos12h = ['r2x12', 'r3x12', 'r4x4', 'rpit', 'rdupont'];
   /** Familia «continental» (variantes de la 1-1-1-1): n mañanas, n tardes, n noches y n descansos; n = `bloque` (1 a 4 días). */
   DEF.familiaContinental = ['r1111', 'r2222', 'r3333', 'r4444'];
   /** Equivalencias con el archivo original (migración de IndexedDB). */
@@ -3099,9 +3159,23 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const v = m.variantes && (m.variantes[variante] || m.variantes.adelante);
     return v ? v.patron : [];
   };
+  /** Patrón de la cuadrilla `ci`. En casi todos los modelos las cuadrillas siguen el mismo patrón, cada una desfasada; en los de cuadrillas fijas (versión 23: «2 cuadrillas de 12 h»,
+      la A siempre de día y la B siempre de noche) cada cuadrilla trae el suyo en `patrones`, todos del mismo largo. */
+  E.patronDe = (m, variante, ci) => {
+    const v = m.variantes && (m.variantes[variante] || m.variantes.adelante);
+    return v ? ((v.patrones && v.patrones[ci]) || v.patron) : [];
+  };
+  /** Los patrones que se reparten las cuadrillas: uno por cuadrilla en los modelos de cuadrillas fijas y uno solo en todos los demás. */
+  E.patrones = (m, variante) => {
+    const v = m.variantes && (m.variantes[variante] || m.variantes.adelante);
+    if (!v) return [[]];
+    return v.patrones && v.patrones.length ? v.patrones.slice(0, Math.max(1, m.equipos)) : [v.patron];
+  };
+  /** Filas del tablero «Por turno» de un modelo: las de siempre (mañana, tarde, noche y descansa) o las propias de los turnos de 12 h (día, noche y descansa). */
+  E.filasDe = (m) => (m && m.filas) || DEF.filas;
   /** Código del turno de la cuadrilla ci, k días después del día 1 (con fase). */
   E.codeAt = (m, variante, ci, k, fase) => {
-    const p = E.patron(m, variante), L = p.length;
+    const p = E.patronDe(m, variante, ci), L = p.length;
     if (!L) return 'D';
     return p[mod(k + ((m.desfases && m.desfases[ci]) || 0) + (fase || 0), L)];
   };
@@ -3144,14 +3218,15 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   /** Promedios por día sobre el ciclo completo (insesgado). */
   E.ciclo = (m, variante, cod) => {
-    const p = E.patron(m, variante), L = p.length;
+    const ps = E.patrones(m, variante), L = E.patron(m, variante).length, n = ps.length;
     if (!L) return { L: 0, ordDia: 0, extDia: 0, trabFrac: 0, diasTrab: 0, ordCiclo: 0, extCiclo: 0, noches: 0 };
     let ord = 0, ext = 0, trab = 0, noches = 0;
-    p.forEach((c) => {
+    // promedio entre cuadrillas: es una sola en casi todos los modelos y una por cuadrilla en los de cuadrillas fijas (el costo se reparte igual entre las personas)
+    ps.forEach((p) => p.forEach((c) => {
       const h = E.hCode(cod, c); ord += h.ord; ext += h.ext;
       if (h.ord + h.ext > 0) { trab++; if (E.filaDe(cod, c) === 'N') noches++; }
-    });
-    return { L, ordDia: ord / L, extDia: ext / L, trabFrac: trab / L, diasTrab: trab, ordCiclo: ord, extCiclo: ext, noches };
+    }));
+    return { L, ordDia: ord / (L * n), extDia: ext / (L * n), trabFrac: trab / (L * n), diasTrab: trab / n, ordCiclo: ord / n, extCiclo: ext / n, noches: noches / n };
   };
 
   /** Resumen de un turno ('act' = situación actual, 'sel' = propuesta) para mostrarlo junto a sus cifras: nombre completo y corto, sentido de la rotación,
@@ -3230,6 +3305,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const fil = [];
     pat.forEach((c) => { const f = E.filaDe(cod, c); if (f && E.esTrab(cod, c) && fil[fil.length - 1] !== f) fil.push(f); });
     if (fil.length > 1 && fil[0] === fil[fil.length - 1]) fil.pop();
+    if (new Set(fil).size === 2) return 'dos'; // solo dos tipos de turno (p. ej., día y noche de 12 h): cada cambio es de ida y de vuelta, así que el sentido no se define
     const idx = { M: 0, T: 1, N: 2 };
     let fw = 0, bw = 0;
     for (let i = 0; i < fil.length; i++) {
@@ -3262,9 +3338,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   };
 
   /* ---------- validador legal / ergonómico ---------- */
-  E.validar = (m, variante, cod, startDay) => {
+  /** Reglas de un ciclo: `pat` es el patrón de la cuadrilla `ci` y `cv0`, si viene, la cobertura de 24 h ya calculada con todas las cuadrillas del modelo. */
+  const vistaValidar = (m, variante, cod, startDay, pat, ci, cv0) => {
     const G = DEF.ergo, T = DEF.topes;
-    const pat = E.patron(m, variante), L = pat.length, checks = [];
+    const L = pat.length, checks = [];
     const add = (id, titulo, nivel, valor, detalle, ref) => checks.push({ id, titulo, nivel, valor, detalle, ref: ref || '' });
     const met = { L };
     let score = 100;
@@ -3278,27 +3355,29 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     if (desc.length) { add('codigos', 'Códigos de turno conocidos', 'fail', desc.join(', '), 'Estos códigos no existen en el catálogo (Parámetros → Turnos); se tratan como descanso.'); pen(20); }
 
     // 1) Cobertura 24 h
-    const cv = E.cobertura(m, variante, cod); met.cobertura = cv;
+    const cv = cv0 || E.cobertura(m, variante, cod); met.cobertura = cv;
     if (cv.horasSinCobertura === 0) add('cobertura', 'Cobertura 24 h', 'ok', '24 h/día', 'Siempre hay al menos una cuadrilla en turno' + (cv.horasSolape ? ' (' + U.fmt(cv.horasSolape, 1) + ' h de traslape por ciclo).' : '.'), 'Operación continua');
     else {
-      const cuando = cv.huecos.map((h) => 'día ' + h.dia + ' ' + h.ini + '–' + h.fin).join('; ');
+      const cuando = cv.huecos.map((h) => (h.horas >= 24 ? 'día ' + h.dia + ' completo (24 h)' : 'día ' + h.dia + ' ' + h.ini + '–' + h.fin)).join('; ');
       const porDia = cv.horasSinCobertura / L;
       add('cobertura', 'Cobertura 24 h', porDia > 1 ? 'fail' : 'warn', U.fmt(cv.horasSinCobertura, 2) + ' h sin cubrir por ciclo', 'Sin turno en: ' + cuando + '. Revisar los horarios del catálogo de turnos.', 'Operación continua');
       pen(porDia > 1 ? 35 : 12);
     }
     // 2) Descanso semanal
     const trab = pat.map((c) => E.esTrab(cod, c));
-    const run = E.maxRun(trab); met.maxRunTrab = run;
+    const sinLibres = trab.every(Boolean); // se trabaja todos los días del ciclo (cuadrillas fijas de 12 h, 7 días): la racha no tiene fin
+    const run = E.maxRun(trab); met.maxRunTrab = run; met.sinDiaLibre = sinLibres;
     const cs = E.cargaSemanal(pat, cod); met.cargaMax = cs.max; met.sinDescansoPct = cs.sinDescansoPct; met.cargaVentana = { ini: cs.ini, dias: cs.dias };
     if (run <= G.maxDiasSeguidos) add('descanso', 'Descanso semanal', 'ok', 'máx. ' + run + ' días seguidos', 'Al menos 1 día libre por cada ' + run + ' trabajados.', 'Art. 126');
-    else { add('descanso', 'Descanso semanal', 'fail', 'máx. ' + run + ' días seguidos', U.fmt(cs.sinDescansoPct * 100, 0) + ' % de las ventanas de 7 días no tienen ningún día libre (Art. 126 exige un día remunerado tras la semana de trabajo; trabajar en descanso requiere autorización de la Inspección General de Trabajo, Art. 128).', 'Art. 126, 128'); pen(Math.min(30, 10 + (run - G.maxDiasSeguidos) * 1.5)); }
+    else { add('descanso', 'Descanso semanal', 'fail', sinLibres ? 'ningún día libre' : 'máx. ' + run + ' días seguidos', (sinLibres ? 'La cuadrilla trabaja todos los días, sin ninguno libre; ' : U.fmt(cs.sinDescansoPct * 100, 0) + ' % de las ventanas de 7 días no tienen ningún día libre; ') + 'el Art. 126 exige un día remunerado tras la semana de trabajo, y trabajar en descanso requiere autorización de la Inspección General de Trabajo (Art. 128).', 'Art. 126, 128'); pen(sinLibres ? 30 : Math.min(30, 10 + (run - G.maxDiasSeguidos) * 1.5)); }
     // 3) Noches seguidas
     const noche = pat.map((c) => E.esTrab(cod, c) && E.filaDe(cod, c) === 'N');
-    const runN = E.maxRun(noche); met.maxRunNoches = runN;
+    const todasNoches = noche.every(Boolean); // cuadrilla fija de noche: nunca sale de la noche
+    const runN = E.maxRun(noche); met.maxRunNoches = runN; met.nocheFija = todasNoches;
     if (runN <= G.maxNochesSeguidas) add('noches', 'Noches consecutivas', 'ok', 'máx. ' + runN, 'Dentro de la recomendación de ≤ ' + G.maxNochesSeguidas + ' noches seguidas.', 'Garde et al., 2020');
-    else { add('noches', 'Noches consecutivas', runN >= 6 ? 'fail' : 'warn', 'máx. ' + runN, 'La evidencia recomienda ≤ ' + G.maxNochesSeguidas + ' noches seguidas para reducir fatiga y riesgo de accidentes.', 'Garde et al., 2020'); pen(Math.min(20, (runN - G.maxNochesSeguidas) * 4)); }
+    else { add('noches', 'Noches consecutivas', runN >= 6 ? 'fail' : 'warn', todasNoches ? 'todas son noches' : 'máx. ' + runN, 'La evidencia recomienda ≤ ' + G.maxNochesSeguidas + ' noches seguidas para reducir fatiga y riesgo de accidentes' + (todasNoches ? ' (esta cuadrilla trabaja siempre de noche).' : '.'), 'Garde et al., 2020'); pen(todasNoches ? 20 : Math.min(20, (runN - G.maxNochesSeguidas) * 4)); }
     // 4) Descanso entre turnos
-    const gp = E.gaps(m, variante, cod, 0); met.gaps = gp;
+    const gp = E.gaps(m, variante, cod, ci); met.gaps = gp;
     if (gp.length) {
       const minG = Math.min(...gp.map((x) => x.horas)), maxG = Math.max(...gp.map((x) => x.horas));
       const rapidos = gp.filter((x) => x.horas < G.minDescansoEntreTurnos);
@@ -3315,6 +3394,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const dir = E.direccion(pat, cod); met.dir = dir;
     if (dir === 'adelante') add('dir', 'Sentido de rotación', 'ok', 'hacia adelante', 'M → T → N retrasa el reloj biológico; es la dirección mejor tolerada.', 'Di Muzio et al., 2021');
     else if (dir === 'n/a') add('dir', 'Sentido de rotación', 'info', 'sin rotación', 'No hay cambio de tipo de turno en el ciclo.', '');
+    else if (dir === 'dos') add('dir', 'Sentido de rotación', 'info', 'día y noche', 'El ciclo alterna turnos de día y de noche: la regla de M → T → N (tres turnos) no aplica. Lo que importa es el descanso que separa un bloque del otro (ver «Descanso entre turnos» y «Noches consecutivas»).', '');
     else { add('dir', 'Sentido de rotación', 'warn', dir === 'atras' ? 'hacia atrás' : 'mixta', 'N → T → M adelanta el reloj biológico: más somnolencia y peor atención (evidencia emergente).', 'Di Muzio et al., 2021'); pen(dir === 'atras' ? 10 : 5); }
     // 6) Carga semanal
     if (cs.max <= 1 + G.tolCargaSemanal) add('semanal', 'Tope semanal de horas ordinarias', 'ok', U.fmt(cs.max * 100, 1) + ' % del tope', 'Ninguna ventana de 7 días supera el tope legal (44/42/36 h según jornada).', 'Arts. 116–117');
@@ -3354,6 +3434,36 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     met.score = Math.max(0, Math.round(score));
     met.penTotal = Math.round((100 - score) * 100) / 100;
     met.scoreExacto = Math.round(score * 100) / 100;
+    return { checks, score: met.score, met };
+  };
+
+  const NIVEL = { ok: 0, info: 1, warn: 2, fail: 3 };
+  /** Validador del modelo. Con un solo ciclo (casi todos los modelos) valida ese ciclo. Con cuadrillas fijas (cada una con su propio patrón, como la de día y la de noche
+      de «2 cuadrillas de 12 h») valida cada ciclo distinto por separado —la cobertura de 24 h con todas las cuadrillas a la vez— y junta el peor resultado de cada regla:
+      si la noche fija falla las noches seguidas, el modelo las falla, y el detalle dice de qué cuadrilla se trata. */
+  E.validar = (m, variante, cod, startDay) => {
+    const ps = E.patrones(m, variante);
+    if (ps.length <= 1) return vistaValidar(m, variante, cod, startDay, E.patron(m, variante), 0, null);
+    const cv = E.cobertura(m, variante, cod), vistas = [], vistos = new Set();
+    ps.forEach((p, ci) => { const k = p.join(' '); if (vistos.has(k)) return; vistos.add(k); vistas.push({ ci, r: vistaValidar(m, variante, cod, startDay, p, ci, cv) }); });
+    if (vistas.length === 1) return vistas[0].r;
+    const peor = vistas.reduce((a, b) => (b.r.score < a.r.score ? b : a), vistas[0]);
+    const checks = peor.r.checks.map((c) => {
+      let mejor = c, de = peor.ci, hay = false;
+      vistas.forEach((v) => {
+        const x = v.r.checks.find((y) => y.id === c.id); if (!x) return;
+        if (NIVEL[x.nivel] > NIVEL[mejor.nivel] || (NIVEL[x.nivel] === NIVEL[mejor.nivel] && (x.pen || 0) > (mejor.pen || 0))) { mejor = x; de = v.ci; }
+      });
+      vistas.forEach((v) => { const x = v.r.checks.find((y) => y.id === c.id); if (x && NIVEL[x.nivel] < NIVEL[mejor.nivel]) hay = true; });
+      return hay && (mejor.nivel === 'fail' || mejor.nivel === 'warn') ? Object.assign({}, mejor, { detalle: 'Cuadrilla ' + E.CREW[de] + ': ' + mejor.detalle }) : mejor;
+    });
+    const score = Math.max(0, 100 - checks.reduce((a, c) => a + (c.pen || 0), 0));
+    const met = Object.assign({}, peor.r.met);
+    const ext = (k, f) => { const v = vistas.map((x) => x.r.met[k]).filter((x) => Number.isFinite(x)); if (v.length) met[k] = f.apply(null, v); };
+    ['maxRunTrab', 'maxRunNoches', 'maxDia', 'maxNoche', 'rapidos', 'cargaMax', 'sinDescansoPct', 'maxGapH'].forEach((k) => ext(k, Math.max));
+    ext('minGapH', Math.min);
+    met.cuadrillas = vistas.map((x) => E.CREW[x.ci]); met.peorCuadrilla = E.CREW[peor.ci];
+    met.score = Math.round(score); met.penTotal = Math.round((100 - score) * 100) / 100; met.scoreExacto = Math.round(score * 100) / 100;
     return { checks, score: met.score, met };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -4168,7 +4278,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       así que usa siempre la forma de hoy. */
   E.vacMetodo = (P, m, which, forzar) => {
     if (forzar) return forzar;
-    return which === 'act' || !m || num(m.equipos) < 4 ? (P.vacCobAct || DEF.params.vacCobAct) : (P.vacCobSel || DEF.params.vacCobSel);
+    const v = which === 'act' || !m || num(m.equipos) < 4 ? (P.vacCobAct || DEF.params.vacCobAct) : (P.vacCobSel || DEF.params.vacCobSel);
+    // un modelo que ya trabaja turnos de 12 h (versión 23) no puede «pasar a dos turnos de 12 h» cuando alguien sale: cubre con personal de relevo
+    return v === 'dos12' && m && m.turnoLargo ? 'comodin' : v;
   };
 
   /** Parte de las vacaciones que cubre personal comodín con una forma dada (1 = todas; 0 = ninguna). */
@@ -4276,7 +4388,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       cuotas patronales, séptimo y provisiones. Devuelve también las personas de relevo equivalentes y las horas extra al mes. */
   E.vacOpciones = (st, which) => {
     const P = st.params, R = E.ctx(st, which), cero = E.macro(st, which, { vac: 'ninguna' }), f = DIAS_MES_PROM / cero.dias;
-    const ids = (R.m.equipos >= 4 ? DEF.vacOpciones('sel') : DEF.vacOpciones('act')).map((x) => x.id);
+    const ids = (R.m.equipos >= 4 ? DEF.vacOpciones('sel') : DEF.vacOpciones('act')).map((x) => x.id).filter((id) => !(R.m.turnoLargo && id === 'dos12'));
     const act = E.vacMetodo(P, R.m, which);
     return ids.map((id) => {
       const mac = E.macro(st, which, { vac: id }), v = mac.vac;
@@ -5801,8 +5913,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const s = mk(); s.params.rotActual = 30; s.params.rotNueva = 5; s.params.costoSalida = 40000; const d2 = E.decision(s);
     ok(d2.ben.rot > 0 && d2.equilibrioMes < d.equilibrioMes, 'beneficio por rotación');
   });
-  T('Costos', 'Comparativo: ordena 10 filas (las 2 de la rotación vigente y los 8 modelos), mismas horas en variantes, 1-1-1-1 con mejor puntaje que la rotación vigente', () => {
-    const f = E.comparar(mk()); eq(f.length, 10); near(f[0].extrasMes, f[1].extrasMes, 1e-6); ok(f[2].score > f[0].score + 50, 'puntaje');
+  T('Costos', 'Comparativo: ordena 16 filas (las 2 de la rotación vigente y los 14 modelos), mismas horas en variantes, 1-1-1-1 con mejor puntaje que la rotación vigente', () => {
+    const f = E.comparar(mk()); eq(f.length, 16); near(f[0].extrasMes, f[1].extrasMes, 1e-6); ok(f[2].score > f[0].score + 50, 'puntaje');
   });
 
   /* ---------- liquidación ---------- */
@@ -6048,7 +6160,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   });
   T('Planta', 'Comparar planta: el modelo vigente real no cambia el costo y la propuesta de 4 cuadrillas contrata personal nuevo', () => {
     const s = mk(), c = E.planta.comparar(s), act = E.planta.decision(s).act.ex;
-    eq(c.length, 10); eq(c[0].id, 'inf'); near(c[0].difMes, 0, 1e-6); eq(c[0].nuevos, 0); near(c[0].costoMes, act.costoMes, 1e-6);
+    eq(c.length, 16); eq(c[0].id, 'inf'); near(c[0].difMes, 0, 1e-6); eq(c[0].nuevos, 0); near(c[0].costoMes, act.costoMes, 1e-6);
     const r1 = c.find((x) => x.id === 'r1111'); ok(r1.nuevos > 0 && r1.equipos === 4 && r1.personas > act.personas, 'personal nuevo'); ok(r1.hExtMes < act.hExtMes, 'menos horas extra');
     near(r1.unico, r1.nuevos * (s.params.costoReclutamiento + s.params.costoEPP + s.params.costoCapacitacion), 1e-6);
   });
@@ -8454,8 +8566,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   T('Variantes 1-1-1-1', 'Mismo costo y mismas horas extra en las cuatro (el cálculo usa el promedio del ciclo); la comparación y la planta las incluyen en ese orden', () => {
     const s = mk(), f = E.comparar(s), g = (id) => f.find((x) => x.id === id);
     FAM.slice(1).forEach((id) => { near(g(id).totalMes, g('r1111').totalMes, 1e-6, id); near(g(id).extrasMes, g('r1111').extrasMes, 1e-6, id); near(g(id).extrasVacMes, g('r1111').extrasVacMes, 1e-6, id); });
-    eq(f.map((x) => x.id).join(), 'inf,inf,r1111,r2222,r3333,r4444,r6x2,r3131,rmttndd,custom');
-    eq(E.planta.comparar(s).map((x) => x.id).join(), 'inf,inf,r1111,r2222,r3333,r4444,r6x2,r3131,rmttndd,custom');
+    eq(f.map((x) => x.id).join(), 'inf,inf,r1111,r2222,r3333,r4444,r6x2,r3131,rmttndd,rmtn5,r2x12,r3x12,r4x4,rpit,rdupont,custom');
+    eq(E.planta.comparar(s).map((x) => x.id).join(), 'inf,inf,r1111,r2222,r3333,r4444,r6x2,r3131,rmttndd,rmtn5,r2x12,r3x12,r4x4,rpit,rdupont,custom');
   });
   T('Variantes 1-1-1-1', 'Ritmo y descansos: cambios de turno cada 28 días (21, 10.5, 7 y 5.25), días libres seguidos (1 a 4) y horas continuas sin turno (24, 48, 72 y 96)', () => {
     const v = E.variantesRot(mk());
@@ -8913,9 +9025,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     })(1, [0]);
     return mejor;
   };
-  T2('Catálogo: va entre la 3-1-3-1 y el personalizado, con 6 cuadrillas escalonadas un día y el ciclo M T T N D D (y N T T M D D hacia atrás)', () => {
+  T2('Catálogo: va después de la 3-1-3-1 (y antes de M-T-N-D-D), con 6 cuadrillas escalonadas un día y el ciclo M T T N D D (y N T T M D D hacia atrás)', () => {
     const s = mk(), m = E.modelo(s, 'rmttndd'), o = SM.DEF.ordenModelos;
-    eq(o.indexOf('rmttndd'), o.indexOf('r3131') + 1); eq(o.indexOf('custom'), o.indexOf('rmttndd') + 1);
+    eq(o.indexOf('rmttndd'), o.indexOf('r3131') + 1); eq(o.indexOf('rmtn5'), o.indexOf('rmttndd') + 1);
     eq(m.equipos, 6); eq(m.desfases.join(), '0,5,4,3,2,1'); eq(E.patron(m, 'adelante').join(''), 'MTTNDD'); eq(E.patron(m, 'atras').join(''), 'NTTMDD');
     eq(E.esContinental(m), false); eq(E.bloqueRot(m), 1); eq(E.labels(m).join(''), 'ABCDEF');
     ['adelante', 'atras'].forEach((v) => E.patron(m, v).forEach((c) => ok(s.codigos[c], v + ': el código ' + c + ' no está en el catálogo')));
@@ -8969,6 +9081,245 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
 ;
 /* ============================================================
+   22m-selftests-v23.js — autopruebas de la versión 23: respaldo en archivo .shift y patrones de 12 horas.
+   (1) Respaldo .shift: marcas del archivo (aplicación, formato, versión del formato, resumen), qué validación pasa y cuál no (archivos ajenos, de otro formato,
+       de una versión más nueva y los .json anteriores sin marca), ida y vuelta como texto con empleados y catorcenas registradas (con las entradas y salidas del reloj),
+       y compatibilidad: un estado guardado antes de esta versión recibe los turnos nuevos sin perder lo editado;
+   (2) Catálogo: turnos de 12 horas (Día 12 h y Noche 12 h con sus versiones «de más») y los seis modelos nuevos (M-T-N-D-D de cinco cuadrillas, dos cuadrillas fijas de
+       12 h, tres cuadrillas con 2 días-2 noches-2 libres, 4×4, 2-2-3 Pitman y DuPont): orden, nombres, cuadrillas, ciclos;
+   (3) Motor: cobertura de 24 horas, cuadrillas con patrón propio (día y noche fijas), horas pagadas por semana, validador por cuadrilla, costo y horas extra,
+       vacaciones (comodín en los modelos de 12 h), calendario de cobertura, Comparar de planta y decisión de cada modelo.
+   Se ejecutan en Node (tests/engine.test.js) y dentro del simulador (Validación → «Ejecutar autopruebas»).
+   ============================================================ */
+(function (g) {
+  'use strict';
+  const SM = g.SM, U = SM.U, E = SM.E, DEF = SM.DEF;
+  const tests = SM.tests;
+  const G = 'Respaldo .shift y patrones de 12 h (v23)';
+  const T = (nombre, fn) => tests.push({ grupo: G, nombre, fn });
+  const eq = (a, b, msg) => { if (a !== b) throw new Error((msg || 'eq') + ': esperado ' + JSON.stringify(b) + ' y se obtuvo ' + JSON.stringify(a)); };
+  const near = (a, b, tol, msg) => { if (!(Math.abs(a - b) <= (tol === undefined ? 0.005 : tol))) throw new Error((msg || 'near') + ': esperado ≈' + b + ' y se obtuvo ' + a); };
+  const ok = (c, msg) => { if (!c) throw new Error(msg || 'condición falsa'); };
+  const mk = (f) => { const s = SM.normalizeState({ fechaInicio: '2026-10-26', catorcenaAncla: '2026-10-26', fechaIngresoDef: '2021-03-15' }); if (f) f(s); SM.normalizeParams(s.params); return s; };
+  const em = (id, cod, cuad, sueldo) => SM.normalizeEmp({ id, codigo: cod, nombre: 'Persona ' + cod, sueldo: sueldo || 5001.6, cuadrilla: cuad });
+  const f2 = (n) => U.fmtISO(n);
+  const NUEVOS = ['rmtn5', 'r2x12', 'r3x12', 'r4x4', 'rpit', 'rdupont'];
+  const DE12 = ['r2x12', 'r3x12', 'r4x4', 'rpit', 'rdupont'];
+  /** Ejecuta fn con el estado, los empleados y el registro de catorcenas que se indican como los datos del simulador, y los deja como estaban. */
+  const conDatos = (s, emps, reg, fn) => {
+    const a = SM.S, b = SM.EMP, c = SM.REG;
+    SM.S = s; SM.EMP = emps; SM.REG = reg;
+    try { return fn(); } finally { SM.S = a; SM.EMP = b; SM.REG = c; }
+  };
+  /** Una catorcena registrada con las entradas y salidas del reloj de una persona. */
+  const regDe = (s) => {
+    const cat = E.catorcena(s, 0), mar = { f: 'reloj.csv', t: '2026-11-04 12:00', p: [['2026-10-26 21:00', '2026-10-27 06:00']], r: [3, 0, 0] };
+    return E.regNormalizar({ ini: f2(cat.ini), fin: f2(cat.fin), num: cat.num, turno: 'act', ts: '2026-11-04 12:00', filas: [{ id: 'a', codigo: '101', nombre: 'Ana', cuadrilla: 'A', sueldo: 5000, b: {}, rot: 3, adic: 0, asu: 0, aj: { rot: 3, adic: 0, mar } }], quin: [], sin: [] });
+  };
+  const nivel = (v, id) => { const c = v.checks.find((x) => x.id === id); return c ? c.nivel : '(sin chequeo ' + id + ')'; };
+
+  /* ---------- 1. Respaldo .shift ---------- */
+  T('Respaldo .shift: el archivo lleva la marca de la aplicación, del formato, la versión del formato, un resumen y todo lo guardado; el esquema del estado no cambia', () => {
+    eq(SM.RESPALDO.ext, '.shift'); eq(SM.RESPALDO.formato, 'shift'); eq(SM.RESPALDO.formatoVersion, 1); eq(SM.RESPALDO.app, 'simulador-maestro-24-7'); eq(SM.RESPALDO.version, 12);
+    const s = mk(), emps = [em('a', '101', 'A'), em('b', '102', 'B'), em('c', '103', 'C')], reg = [regDe(s)];
+    const x = conDatos(s, emps, reg, () => SM.exportAll());
+    eq(x.app, 'simulador-maestro-24-7'); eq(x.formato, 'shift'); eq(x.formatoVersion, 1); eq(x.version, 12, 'sin cambio de esquema');
+    ok(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(x.exportado), 'fecha de exportación ISO: ' + x.exportado);
+    eq(x.resumen.empleados, 3); eq(x.resumen.catorcenas, 1); eq(x.resumen.turnos, Object.keys(s.codigos).length); eq(x.resumen.modelo, DEF.modelos[s.modeloId].nombre);
+    ok(x.estado && typeof x.estado === 'object' && !Array.isArray(x.estado), 'estado'); eq(x.empleados.length, 3); eq(x.registro.length, 1);
+    eq(x.registro[0].filas[0].aj.mar.f, 'reloj.csv', 'las entradas y salidas del reloj viajan en el archivo'); eq(x.registro[0].filas[0].aj.mar.p.length, 1);
+    eq(SM.validateBackup(x), '', 'el propio respaldo es válido');
+    x.estado.params.sueldoBase = -1; ok(s.params.sueldoBase !== -1, 'el respaldo es una copia, no el mismo objeto');
+  });
+  T('validateBackup: acepta .shift y los .json anteriores sin marca de formato; rechaza archivos ajenos, de otro formato y de una versión más nueva', () => {
+    const base = { app: 'simulador-maestro-24-7', version: 12, estado: {}, empleados: [] };
+    eq(SM.validateBackup(Object.assign({ formato: 'shift', formatoVersion: 1 }, base)), '', '.shift actual');
+    eq(SM.validateBackup(base), '', 'respaldo .json de una versión anterior (sin formato)');
+    eq(SM.validateBackup(Object.assign({}, base, { version: 3 })), '', 'esquema anterior');
+    eq(SM.validateBackup(Object.assign({ formatoVersion: 1 }, base)), '');
+    eq(SM.validateBackup(Object.assign({ formato: 'shift', registro: [] }, base)), '');
+    const otro = SM.validateBackup(Object.assign({ formato: 'csv' }, base)); ok(/formato/.test(otro) && /csv/.test(otro), otro);
+    const largo = SM.validateBackup(Object.assign({ formato: 'x'.repeat(200) }, base)); ok(largo.length < 200, 'el nombre del formato se recorta en el mensaje');
+    const nueva = SM.validateBackup(Object.assign({ formato: 'shift', formatoVersion: 2 }, base)); ok(/más nueva/.test(nueva), nueva);
+    ok(SM.validateBackup(Object.assign({}, base, { app: 'otro' })) !== '', 'otra aplicación');
+    ok(SM.validateBackup(Object.assign({}, base, { empleados: 'no' })) !== '', 'empleados que no son una lista');
+    ok(SM.validateBackup(Object.assign({}, base, { estado: 5 })) !== '', 'estado que no es un objeto');
+    ok(SM.validateBackup(Object.assign({}, base, { registro: {} })) !== '', 'registro que no es una lista');
+    [null, undefined, 'texto', 7, []].forEach((v) => ok(SM.validateBackup(v) !== '', 'valor no válido ' + JSON.stringify(v)));
+  });
+  T('El archivo .shift es texto JSON: se guarda, se lee de vuelta y trae los mismos estado, empleados y catorcenas registradas (ida y vuelta)', () => {
+    const s = mk((x) => { x.modeloId = 'r3x12'; x.variante = 'adelante'; x.params.sueldoBase = 5400; }), emps = [em('a', '101', 'A'), em('b', '102', 'B', 6100)], reg = [regDe(s)];
+    const txt = conDatos(s, emps, reg, () => JSON.stringify(SM.exportAll()));
+    ok(typeof txt === 'string' && txt.charAt(0) === '{', 'es un objeto JSON');
+    const back = JSON.parse(txt);
+    eq(SM.validateBackup(back), '', 'el texto leído es válido');
+    eq(JSON.stringify(SM.normalizeState(back.estado)), JSON.stringify(SM.normalizeState(s)), 'estado');
+    eq(JSON.stringify(back.empleados.map(SM.normalizeEmp)), JSON.stringify(emps), 'empleados');
+    eq(JSON.stringify(SM.normalizeReg(back.registro)), JSON.stringify(SM.normalizeReg(reg)), 'catorcenas registradas');
+    eq(SM.normalizeState(back.estado).modeloId, 'r3x12', 'el modelo elegido viaja en el archivo');
+    eq(JSON.stringify(SM.normalizeState(JSON.parse(JSON.stringify(SM.normalizeState(back.estado))))), JSON.stringify(SM.normalizeState(back.estado)), 'idempotente');
+  });
+  T('Un estado guardado antes de la versión 23 recibe los turnos de 12 h sin perder lo editado; una variante que el modelo no tiene vuelve a «adelante»', () => {
+    const viejo = mk(); ['D12', 'D12x', 'N12', 'N12x'].forEach((k) => { delete viejo.codigos[k]; }); viejo.codigos.M.ord = 7;
+    const n = SM.normalizeState(JSON.parse(JSON.stringify(viejo)));
+    ['D12', 'D12x', 'N12', 'N12x'].forEach((k) => ok(n.codigos[k] && n.codigos[k].ord + n.codigos[k].ext > 0, 'turno ' + k + ' agregado'));
+    eq(n.codigos.M.ord, 7, 'lo editado se conserva');
+    const s = mk(); s.modeloId = 'r4x4'; s.variante = 'atras'; s.modeloActualId = 'rpit'; s.varianteActual = 'atras';
+    const t = SM.normalizeState(JSON.parse(JSON.stringify(s)));
+    eq(t.modeloId, 'r4x4'); eq(t.variante, 'adelante', 'la 4×4 no tiene variante hacia atrás'); eq(t.modeloActualId, 'rpit'); eq(t.varianteActual, 'adelante');
+    const u = mk(); u.modeloId = 'r2x12'; u.variante = 'atras'; u.modeloActualId = 'rmtn5'; u.varianteActual = 'atras';
+    const w = SM.normalizeState(JSON.parse(JSON.stringify(u)));
+    eq(w.variante, 'atras', 'la de 2 cuadrillas sí tiene la de 6 días'); eq(w.varianteActual, 'atras', 'el M-T-N-D-D sí tiene hacia atrás');
+  });
+
+  /* ---------- 2. Catálogo ---------- */
+  T('Turnos de 12 horas: Día 12 h y Noche 12 h con sus versiones «de más»; ninguno pasa de 12 horas por día (art. 122)', () => {
+    const c = mk().codigos;
+    const esp = { D12: [8, 3, 'M', 'diurna'], D12x: [0, 11, 'M', 'diurna'], N12: [6, 6, 'N', 'nocturna'], N12x: [0, 12, 'N', 'nocturna'] };
+    Object.keys(esp).forEach((k) => {
+      ok(c[k], 'existe ' + k); eq(c[k].ord, esp[k][0], k + ' ordinarias'); eq(c[k].ext, esp[k][1], k + ' extra'); eq(c[k].fila, esp[k][2], k + ' fila'); eq(c[k].tipo, esp[k][3], k + ' tipo');
+      ok(c[k].ord + c[k].ext <= 12, k + ' no pasa de 12 h'); ok(/^\d\d:\d\d$/.test(c[k].ini) && /^\d\d:\d\d$/.test(c[k].fin), k + ' horario');
+    });
+    eq(c.D12.ini, '06:00'); eq(c.D12.fin, '18:00'); eq(c.N12.ini, '18:00'); eq(c.N12.fin, '06:00');
+    ok(c.N12.ord <= 6, 'la jornada nocturna ordinaria es de 6 h'); ok(c.D12.ord <= 8, 'la diurna es de 8 h');
+  });
+  T('Catálogo v23: seis modelos nuevos, en este orden, con nombre, cuadrillas, ciclo y personas por cuadrilla', () => {
+    const ord = DEF.ordenModelos.join(',');
+    eq(ord, 'inf,r1111,r2222,r3333,r4444,r6x2,r3131,rmttndd,rmtn5,r2x12,r3x12,r4x4,rpit,rdupont,custom');
+    const esp = {
+      rmtn5: ['M-T-N-D-D · Ciclo de 5 días, 5 cuadrillas', 5, 5], r2x12: ['2 cuadrillas de 12 h · día y noche fijas', 2, 7], r3x12: ['3 cuadrillas de 12 h · 2 días, 2 noches y 2 libres', 3, 6],
+      r4x4: ['4×4 de 12 h · 4 días, 4 libres, 4 noches y 4 libres', 4, 16], rpit: ['2-2-3 de 12 h · Pitman (Panamá), 4 cuadrillas', 4, 28], rdupont: ['DuPont de 12 h · 28 días, 4 cuadrillas', 4, 28]
+    };
+    const s = mk();
+    NUEVOS.forEach((id) => {
+      const m = E.modelo(s, id);
+      eq(m.nombre, esp[id][0]); eq(m.equipos, esp[id][1], id + ' cuadrillas'); eq(E.patron(m, 'adelante').length, esp[id][2], id + ' largo del ciclo');
+      ok(m.corto && m.desc && m.desc.length > 60, id + ' con nombre corto y descripción'); eq(m.desfases.length, m.equipos, id + ' un desfase por cuadrilla');
+      E.patrones(m, 'adelante').forEach((p) => { eq(p.length, esp[id][2], id + ' todos los patrones del mismo largo'); p.forEach((k) => ok(s.codigos[k], id + ': el turno ' + k + ' está en el catálogo')); });
+    });
+    eq(DEF.modelos12h.join(','), DE12.join(',')); DE12.forEach((id) => ok(DEF.modelos[id].turnoLargo === true, id + ' es de turnos largos')); ok(!DEF.modelos.rmtn5.turnoLargo, 'el M-T-N-D-D es de 8 h');
+    eq(Object.keys(DEF.modelos).filter((k) => DEF.ordenModelos.indexOf(k) < 0).length, 0, 'todo modelo está en el orden');
+  });
+  T('Cobertura de 24 horas: los seis modelos nuevos cubren todos los días con una cuadrilla en cada turno, sin huecos diarios; los de 12 h usan las filas Día, Noche y Descansa', () => {
+    NUEVOS.forEach((id) => {
+      const s = mk((x) => { x.modeloId = id; x.variante = 'adelante'; }), m = E.modelo(s, id), cv = E.cobertura(m, 'adelante', s.codigos);
+      eq(cv.horasSinCobertura, 0, id + ' horas sin cubrir'); eq(cv.min, 1, id + ' mínimo por turno'); eq(cv.max, 1, id + ' máximo por turno (sin traslape)');
+      const R = E.ctx(s, 'sel'), h = E.huecosDiarios(R, E.roster(R, 56));
+      eq(h.length, 56); ok(h.every((x) => x.falta.length === 0), id + ' sin huecos diarios'); ok(h.every((x) => x.trab === m.equipos || x.trab === (id === 'rmtn5' ? 3 : 2)), id + ' trabajan solo las cuadrillas de turno');
+      eq(E.filasDe(m).map((r) => r.id).join(''), id === 'rmtn5' ? 'MTND' : 'MND', id + ' filas del tablero');
+    });
+    const s = mk((x) => { x.modeloId = 'r2x12'; x.variante = 'adelante'; }), d0 = U.parseISO(s.fechaInicio);
+    s.overrides = { B: { [d0 + 3]: 'D' } };
+    const R = E.ctx(s, 'sel'), h = E.huecosDiarios(R, E.roster(R, 7));
+    eq(h[3].falta.join(), 'N', 'si la cuadrilla de noche no va, falta la noche'); eq(h[3].trab, 1); ok(h.filter((x) => x.falta.length).length === 1, 'solo ese día');
+  });
+
+  /* ---------- 3. Dos cuadrillas fijas ---------- */
+  T('2 cuadrillas fijas de 12 h: cada cuadrilla tiene su patrón (A siempre de día, B siempre de noche) y no se turnan, con cualquier fase', () => {
+    const s = mk(), m = E.modelo(s, 'r2x12'), pa = E.patrones(m, 'adelante');
+    eq(pa.length, 2); ok(pa[0].every((k) => k === 'D12' || k === 'D12x'), 'A solo de día'); ok(pa[1].every((k) => k === 'N12' || k === 'N12x'), 'B solo de noche');
+    eq(pa[0].join(), 'D12,D12,D12,D12,D12,D12x,D12x'); eq(pa[1].join(), 'N12,N12,N12,N12,N12,N12,N12x');
+    [0, 1, 3, 6].forEach((fase) => { for (let k = 0; k < 60; k++) {
+      ok(/^D12/.test(E.codeAt(m, 'adelante', 0, k, fase)), 'A de día ' + k + '/' + fase); ok(/^N12/.test(E.codeAt(m, 'adelante', 1, k, fase)), 'B de noche ' + k + '/' + fase);
+    } });
+    const pd = E.patronDe(m, 'adelante', 1); eq(pd.join(), pa[1].join());
+    const sdia = E.patrones(E.modelo(s, 'r3x12'), 'adelante'); eq(sdia.length, 1, 'los demás modelos tienen un solo patrón');
+    const a6 = E.patrones(m, 'atras'); eq(a6[0].join(), 'D12,D12,D12,D12,D12,D12x,D'); eq(a6[1].join(), 'N12,N12,N12,N12,N12,N12,D');
+  });
+  T('2 cuadrillas fijas de 12 h: 77 h por semana de día y 84 h de noche (80.5 h de promedio); los días «de más» (D12x y N12x) son todo extra', () => {
+    const s = mk(), m = E.modelo(s, 'r2x12'), cod = s.codigos;
+    const sem = (p) => { const h = p.reduce((a, k) => { const x = E.hCode(cod, k); return { o: a.o + x.ord, e: a.e + x.ext }; }, { o: 0, e: 0 }); return { o: h.o * 7 / p.length, e: h.e * 7 / p.length }; };
+    const pa = E.patrones(m, 'adelante'), a = sem(pa[0]), b = sem(pa[1]);
+    near(a.o + a.e, 77, 1e-9, 'cuadrilla de día'); near(a.o, 40, 1e-9, 'ordinarias del día'); near(b.o + b.e, 84, 1e-9, 'cuadrilla de noche'); near(b.o, 36, 1e-9, 'ordinarias de noche');
+    ok(a.o <= 44 && b.o <= 36, 'las ordinarias no pasan del tope semanal (44 h diurnas y 36 h nocturnas)');
+    const v = E.validar(m, 'adelante', cod, U.parseISO(s.fechaInicio));
+    near(v.met.horasSemana, 80.5, 1e-9); near(v.met.ordSemana, 38, 1e-9); near(v.met.extSemana, 42.5, 1e-9); near(v.met.diasTrab28, 28, 1e-9);
+  });
+  T('2 cuadrillas fijas de 12 h: el validador revisa cada cuadrilla —sin día libre y con noches fijas— y marca fallo; con 6 días a la semana la planta queda un día sin cubrir', () => {
+    const s = mk(), m = E.modelo(s, 'r2x12'), st0 = U.parseISO(s.fechaInicio);
+    const v = E.validar(m, 'adelante', s.codigos, st0);
+    eq(v.score, 45); eq(nivel(v, 'cobertura'), 'ok'); eq(nivel(v, 'descanso'), 'fail'); eq(nivel(v, 'noches'), 'fail'); eq(nivel(v, 'noche9'), 'warn');
+    ok(/Cuadrilla B/.test(v.checks.find((x) => x.id === 'noches').detalle), 'el aviso dice qué cuadrilla'); eq(v.met.peorCuadrilla, 'B'); eq(v.met.cuadrillas.join(), 'A,B');
+    eq(v.met.maxRunTrab, 7); eq(v.met.maxRunNoches, 7); eq(v.met.minGapH, 12); eq(v.met.dir, 'n/a');
+    const v6 = E.validar(m, 'atras', s.codigos, st0), cv6 = E.cobertura(m, 'atras', s.codigos);
+    eq(cv6.horasSinCobertura, 24, 'un día completo sin turno'); eq(nivel(v6, 'cobertura'), 'fail'); eq(v6.score, 48); ok(/día 7 completo/.test(v6.checks.find((x) => x.id === 'cobertura').detalle), v6.checks.find((x) => x.id === 'cobertura').detalle);
+    eq(v6.met.maxRunTrab, 6);
+  });
+  T('Los otros cuatro patrones de 12 h y el M-T-N-D-D: puntaje, horas por semana, días seguidos, noches seguidas y descanso entre turnos', () => {
+    const esp = {
+      rmtn5: { score: 100, hs: 33.6, run: 3, noches: 1, gap: 24, dir: 'adelante' }, r3x12: { score: 95, hs: 46 * 7 / 6, run: 4, noches: 2, gap: 12, dir: 'dos' },
+      r4x4: { score: 91, hs: 40.25, run: 4, noches: 4, gap: 12, dir: 'dos' }, rpit: { score: 95, hs: 40.25, run: 3, noches: 3, gap: 12, dir: 'dos' }, rdupont: { score: 91, hs: 40.25, run: 4, noches: 4, gap: 12, dir: 'dos' }
+    };
+    const s = mk(), st0 = U.parseISO(s.fechaInicio);
+    Object.keys(esp).forEach((id) => {
+      const e = esp[id], v = E.validar(E.modelo(s, id), 'adelante', s.codigos, st0);
+      eq(v.score, e.score, id + ' puntaje'); near(v.met.horasSemana, e.hs, 1e-9, id + ' h/semana'); eq(v.met.maxRunTrab, e.run, id + ' días seguidos'); eq(v.met.maxRunNoches, e.noches, id + ' noches seguidas');
+      eq(v.met.minGapH, e.gap, id + ' descanso mínimo'); eq(v.met.dir, e.dir, id + ' dirección'); eq(nivel(v, 'cobertura'), 'ok', id + ' cobertura'); eq(nivel(v, 'descanso'), 'ok', id + ' día libre');
+      ok(v.checks.every((c) => c.nivel !== 'fail'), id + ' sin fallos');
+    });
+    const dir = E.validar(E.modelo(s, 'r3x12'), 'adelante', s.codigos, st0).checks.find((x) => x.id === 'dir'); ok(/día y noche/.test(dir.valor + ' ' + dir.detalle), 'dirección «día y noche»: ' + JSON.stringify(dir));
+    const m5a = E.validar(E.modelo(s, 'rmtn5'), 'atras', s.codigos, st0); eq(m5a.score, 74, 'el M-T-N-D-D hacia atrás (N-T-M) tiene relevos rápidos y rota en contra'); eq(m5a.met.minGapH, 8);
+  });
+
+  /* ---------- 4. Costo, vacaciones y planta ---------- */
+  T('Costo y horas extra de cada modelo nuevo (valores por omisión): personas = cuadrillas × personas por turno; la misma cobertura diaria da las mismas extras', () => {
+    const s = mk(), f = E.comparar(s), g2 = (id) => f.find((x) => x.id === id), por = g2('r1111').N / 4;
+    eq(f.length, 16); eq(f.map((x) => x.id).join(','), 'inf,inf,r1111,r2222,r3333,r4444,r6x2,r3131,rmttndd,rmtn5,r2x12,r3x12,r4x4,rpit,rdupont,custom');
+    NUEVOS.forEach((id) => {
+      const r = g2(id); eq(r.N, r.equipos * por, id + ' personas'); ok(Number.isFinite(r.totalMes) && r.totalMes > 0, id + ' costo finito'); ok(Number.isFinite(r.difMes) && Number.isFinite(r.extrasMes) && r.extrasMes > 0, id + ' extras finitas');
+      ok(r.score >= 0 && r.score <= 100, id + ' puntaje'); ok(r.val && r.val.checks.length > 0, id + ' trae su validación');
+    });
+    eq([g2('r2x12').N, g2('r3x12').N, g2('r4x4').N, g2('rpit').N, g2('rdupont').N, g2('rmtn5').N].join(','), [2, 3, 4, 4, 4, 5].map((n) => n * por).join(','));
+    near(g2('r3x12').extrasMes, g2('r4x4').extrasMes, 1e-6, 'misma cobertura diaria, mismas extras'); near(g2('r4x4').extrasMes, g2('rpit').extrasMes, 1e-6); near(g2('r4x4').extrasMes, g2('rdupont').extrasMes, 1e-6);
+    near(g2('r4x4').totalMes, g2('rpit').totalMes, 1e-6, 'mismo costo'); near(g2('r4x4').totalMes, g2('rdupont').totalMes, 1e-6);
+    near(g2('rmtn5').extrasMes, g2('r1111').extrasMes, 1e-6, 'el M-T-N-D-D tiene las mismas extras que la 1-1-1-1');
+    ok(g2('r3x12').extrasMes > 2.5 * g2('rmtn5').extrasMes, 'las jornadas de 12 h traen mucho más extra que las de 8 h');
+    ok(g2('r2x12').totalMes < g2('r3x12').totalMes && g2('r3x12').totalMes < g2('r4x4').totalMes, 'menos cuadrillas, menos costo');
+    ok(g2('r2x12').extrasMes > g2('r3x12').extrasMes, 'los 7 días de 12 h de las dos cuadrillas fijas suman más extra');
+    eq(Math.round(g2('inf').totalMes), 166542);
+    eq(NUEVOS.map((id) => Math.round(g2(id).totalMes)).join(','), '224849,169453,186744,226531,226531,226531', 'montos que citan los documentos');
+    eq(NUEVOS.map((id) => Math.round(g2(id).difMes)).join(','), '58307,2911,20201,59989,59989,59989');
+    eq(NUEVOS.map((id) => Math.round(g2(id).extrasMes)).join(','), '456,1847,1369,1369,1369,1369');
+  });
+  T('Vacaciones con los modelos de 12 h: se cubren con personal comodín (no hay «dos de 12 horas»); el calendario, el plan del año y la cobertura funcionan con los seis modelos', () => {
+    NUEVOS.forEach((id) => {
+      const s = mk((x) => { x.modeloId = id; x.variante = 'adelante'; }), m = E.modelo(s, id), P = s.params;
+      if (DE12.indexOf(id) >= 0) {
+        eq(E.vacMetodo(P, m, 'sel'), 'comodin', id + ' método'); const op = E.vacOpciones(s, 'sel');
+        ok(op.every((o) => o.id !== 'dos12'), id + ' sin «dos de 12 horas»'); ok(op.some((o) => o.id === 'comodin' && o.elegida), id + ' comodín elegido'); ok(op.every((o) => Number.isFinite(o.mes)), id + ' montos finitos');
+      } else ok(E.vacOpciones(s, 'sel').some((o) => o.id === 'dos12'), 'el M-T-N-D-D sí admite dos turnos de 12 horas');
+      const plan = E.vacPlanAnual(s, 'sel'); eq(plan.n, m.equipos, id + ' ventanas de vacaciones'); eq(plan.ventanas.length, m.equipos); ok(plan.ventanas.every((v) => v.fin >= v.ini), id + ' ventanas válidas');
+      const cal = E.vacCalendario(s, 'sel', {}); ok(cal.filas.length >= m.equipos, id + ' filas del calendario'); eq(cal.filas.filter((f) => f.rol === 'ausente').length, 1, id + ' una cuadrilla ausente');
+      cal.filas.forEach((f) => f.celdas.forEach((c) => { ok(Number.isFinite(c.ord) && Number.isFinite(c.ext), id + ' horas finitas ' + f.id); }));
+      const res = E.vacResumen(s, 'sel', {}); eq(res.n, m.equipos - 1, id + ' cuadrillas que quedan'); eq(res.huecos, 0, id + ': la cobertura de las vacaciones no deja huecos'); ok(Number.isFinite(res.semMin) && Number.isFinite(res.semMax) && res.semMax >= res.semMin, id + ' horas por semana de la cobertura');
+    });
+  });
+  T('Planta y decisión con los seis modelos: personas y costos finitos; con 3 cuadrillas de 12 h la planta tiene las mismas personas que hoy y con 2 cuadrillas fijas, menos', () => {
+    const s = mk(), p = E.planta.comparar(s), g3 = (id) => p.find((x) => x.id === id);
+    eq(p.length, 16);
+    NUEVOS.forEach((id) => { const r = g3(id); ok(r && Number.isFinite(r.personas) && Number.isFinite(r.costoMes) && Number.isFinite(r.difMes) && Number.isFinite(r.hExtMes), id + ' planta finita'); });
+    eq(g3('r3x12').personas, g3('inf').personas, 'tres cuadrillas, como hoy'); ok(g3('r2x12').personas < g3('inf').personas, 'dos cuadrillas, menos gente');
+    ok(g3('r4x4').personas > g3('inf').personas && g3('r4x4').personas === g3('rpit').personas && g3('rpit').personas === g3('rdupont').personas, 'cuatro cuadrillas');
+    NUEVOS.forEach((id) => {
+      const s2 = mk((x) => { x.modeloId = id; x.variante = 'adelante'; }), d = E.decision(s2), pd = E.planta.decision(s2);
+      ['difMes', 'difAnio', 'difPct', 'extrasEvitadasMes', 'ahorroMes'].forEach((k) => ok(Number.isFinite(d[k]) || Number.isFinite(pd[k]), id + ' decisión ' + k));
+      ok(Number.isFinite(d.sel.total) && d.sel.N > 0, id + ' costo y personas de la propuesta');
+    });
+  });
+  T('Evidencia de descanso (Vida y Carrera): con 2 cuadrillas fijas de 12 h la racha de trabajo se marca «sin día libre» (y su cifra del ciclo es 7); los demás modelos, no', () => {
+    NUEVOS.forEach((id) => {
+      const s = mk((x) => { x.modeloId = id; x.variante = 'adelante'; });
+      const ev = E.prog.maslowEvid(s);
+      eq(ev.prop.sinDiaLibre, id === 'r2x12', id + ': sin día libre');
+      ok(ev.prop.maxRunTrab === null || Number.isFinite(ev.prop.maxRunTrab), id + ': la racha sigue siendo un número del ciclo');
+      eq(ev.act.sinDiaLibre, false, id + ': la rotación vigente (la de hoy) tiene días libres');
+    });
+    eq(E.prog.maslowEvid(mk((x) => { x.modeloId = 'r2x12'; x.variante = 'adelante'; })).prop.maxRunTrab, 7, 'la cifra del ciclo de las dos cuadrillas fijas es 7');
+  });
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+
+;
+/* ============================================================
    23-engine-alerts.js — alertas sobre el calendario REAL mostrado
    (incluye ajustes manuales): rachas sin descanso, noches seguidas
    y relevos con menos de 11 h entre turnos.
@@ -9003,13 +9354,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     return out.sort((x, y) => x.dn - y.dn || x.crew.localeCompare(y.crew));
   };
 
-  /** Cobertura por día del calendario real: filas M/T/N que faltan. */
+  /** Cobertura por día del calendario real: filas que faltan (mañana, tarde y noche; en los modelos de turnos de 12 h, día y noche). */
   E.huecosDiarios = (R, ro) => {
-    const labs = Object.keys(ro), n = labs.length ? ro[labs[0]].length : 0, out = [];
+    const labs = Object.keys(ro), n = labs.length ? ro[labs[0]].length : 0, out = [], filas = E.filasDe(R.m).filter((f) => f.id !== 'D').map((f) => f.id);
     for (let i = 0; i < n; i++) {
       const set = new Set(); let trab = 0;
       labs.forEach((lab) => { const c = ro[lab][i]; if (E.esTrab(R.cod, c)) { trab++; set.add(E.filaDe(R.cod, c)); } });
-      out.push({ trab, falta: ['M', 'T', 'N'].filter((f) => !set.has(f)) });
+      out.push({ trab, falta: filas.filter((f) => !set.has(f)) });
     }
     return out;
   };
@@ -9999,7 +10350,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const f = (v) => (Number.isFinite(v) ? v : null);
     const pick = (v) => ({
       diasLibres28: Number.isFinite(v.met.diasTrab28) ? 28 - v.met.diasTrab28 : null, finesLibres28: f(v.met.finesLibres28), minGapH: f(v.met.minGapH),
-      maxRunTrab: f(v.met.maxRunTrab), horasSemana: f(v.met.horasSemana), maxDescanso: f(v.met.maxDescanso)
+      maxRunTrab: f(v.met.maxRunTrab), horasSemana: f(v.met.horasSemana), maxDescanso: f(v.met.maxDescanso), sinDiaLibre: !!v.met.sinDiaLibre // cuadrilla que trabaja todos los días: la racha no tiene fin
     });
     return { act: pick(va), prop: pick(vs) };
   };
@@ -10324,7 +10675,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     SM.normTalento(S);
     if (!DEF.modelos[S.modeloId]) S.modeloId = 'r1111';
     if (!DEF.modelos[S.modeloActualId]) S.modeloActualId = 'inf';
-    ['variante', 'varianteActual'].forEach((k) => { if (S[k] !== 'adelante' && S[k] !== 'atras') S[k] = k === 'variante' ? 'adelante' : 'atras'; });
+    ['variante', 'varianteActual'].forEach((k) => {
+      if (S[k] !== 'adelante' && S[k] !== 'atras') S[k] = k === 'variante' ? 'adelante' : 'atras';
+      const mm = DEF.modelos[k === 'variante' ? S.modeloId : S.modeloActualId];
+      if (mm && mm.variantes && !mm.variantes[S[k]]) S[k] = 'adelante'; // los modelos de 12 h con un solo ciclo no tienen «hacia atrás»
+    });
     S.fase = Math.max(0, Math.round(U.num(S.fase, 0)));
     S.faseActual = Math.max(0, Math.round(U.num(S.faseActual, 0)));
     S.personalPorTurno = U.clamp(Math.round(U.num(S.personalPorTurno, 5)), 0, 1000);
@@ -10521,10 +10876,24 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   };
 
   /* ---------- respaldos ---------- */
-  SM.exportAll = () => ({ app: 'simulador-maestro-24-7', version: 12, exportado: new Date().toISOString(), estado: U.clone(SM.S), empleados: U.clone(SM.EMP), registro: U.clone(SM.REG) });
+  /** Respaldo en archivo (versión 23): un solo archivo con extensión «.shift». Por dentro es texto JSON —el mismo de los respaldos «.json» anteriores— con la marca
+      `formato: 'shift'`, la versión del formato (`formatoVersion`) y un resumen legible. `version` sigue siendo la del esquema del estado (12: esta versión no lo cambia).
+      Trae todo lo guardado: el estado (parámetros, catálogo de turnos, modelo propio, ajustes del calendario, textos, entradas y salidas del reloj anotadas), la planilla de empleados
+      y las catorcenas registradas. Los respaldos «.json» anteriores (sin la marca de formato) se siguen cargando. */
+  SM.RESPALDO = { app: 'simulador-maestro-24-7', formato: 'shift', formatoVersion: 1, version: 12, ext: '.shift' };
+  SM.exportAll = () => {
+    const estado = U.clone(SM.S), empleados = U.clone(SM.EMP), registro = U.clone(SM.REG), mod = DEF.modelos[estado.modeloId];
+    return {
+      app: SM.RESPALDO.app, formato: SM.RESPALDO.formato, formatoVersion: SM.RESPALDO.formatoVersion, version: SM.RESPALDO.version, exportado: new Date().toISOString(),
+      resumen: { empleados: empleados.length, catorcenas: registro.length, turnos: Object.keys(estado.codigos || {}).length, modelo: mod ? mod.nombre : String(estado.modeloId || '') },
+      estado, empleados, registro
+    };
+  };
   SM.validateBackup = (o) => {
     if (!isObj(o)) return 'El archivo no es un respaldo del simulador (JSON inválido).';
     if (o.app !== 'simulador-maestro-24-7') return 'El archivo no parece un respaldo de este simulador.';
+    if (o.formato !== undefined && o.formato !== SM.RESPALDO.formato) return 'El archivo no es un respaldo .shift de este simulador (formato «' + String(o.formato).slice(0, 30) + '»).';
+    if (U.num(o.formatoVersion, 1) > SM.RESPALDO.formatoVersion) return 'El respaldo se hizo con una versión más nueva del simulador (formato ' + o.formatoVersion + '): abrirlo con esa versión o actualizar esta.';
     if (!isObj(o.estado) || !Array.isArray(o.empleados)) return 'El respaldo está incompleto (faltan estado o empleados).';
     if (o.registro !== undefined && !Array.isArray(o.registro)) return 'El registro de catorcenas del respaldo no es válido.'; // los respaldos anteriores a la versión 19 no lo traen
     return '';
@@ -11158,6 +11527,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     if (d.difMes > 1 && d.ben.total <= 0) p = 'Para alcanzar el equilibrio se requiere un ahorro de ' + K.q0(d.equilibrioPorEmp) + ' por empleado al mes en rotación, accidentes o ausentismo. El simulador no estima ese ahorro: los datos reales se registran en Parámetros.';
     else if (d.difMes > 1) p = 'Con los beneficios registrados (' + K.q0(d.ben.total) + ' al mes) ' + (d.equilibrioMes > 0 ? 'aún faltan ' + K.q0(d.equilibrioMes) + ' al mes para alcanzar el equilibrio.' : 'la propuesta se autofinancia' + (d.paybackMeses !== null && d.unico > 0 ? ' en ' + U.fmt(d.paybackMeses, 1) + ' meses.' : '.'));
     else p = 'El costo es menor o igual al actual; verificar en la validación que el modelo cumpla las reglas de descanso.';
+    // una propuesta que cubre las 24 h y cuesta poco puede incumplir el descanso o las noches seguidas: el titular no puede callarlo
+    const fallas = v.checks.filter((x) => x.nivel === 'fail');
+    if (fallas.length) p += ' Ojo: el validador marca ' + (fallas.length === 1 ? 'una falla' : fallas.length + ' fallas') + ' en esta propuesta (' + fallas.map((x) => String(x.titulo || x.id).toLowerCase()).join(', ') + '): el costo y la cobertura no bastan, hay que revisar «Salud del turno».';
     return { h, p };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -11264,7 +11636,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const body =
       '<div class="fgrid">' +
       K.sel('Modelo propuesto', 'modeloId', mods, { after: 'onModelo', wide: true, hint: E.esContinental(m) ? 'Variante de la 1-1-1-1 con bloques de ' + E.bloqueRot(m) + (E.bloqueRot(m) === 1 ? ' día' : ' días') + '. Las cuatro se comparan en Comparar, panel «Variantes de la 1-1-1-1».' : '' }) +
-      K.sel('Sentido de rotación', 'variante', vars(m), { wide: true }) +
+      K.sel('Sentido de rotación', 'variante', vars(m), { wide: true, hint: E.patrones(m, S.variante).length > 1 ? 'En este modelo cada cuadrilla tiene su propio horario fijo (la A siempre de día y la B siempre de noche): no rotan. El desfase mueve a las dos por igual.' : undefined }) +
       K.num('Desfase del ciclo (días)', 'fase', { t: 'int', min: 0, max: L - 1, hint: 'Desplazamiento del patrón para ajustarlo al calendario real.' }) +
       K.date('Día 1 del calendario', 'fechaInicio') +
       K.num('Personas por cuadrilla', 'personalPorTurno', { t: 'int', min: 0 }) +
@@ -11324,7 +11696,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   /* ---------- horario de 24 h (también es la leyenda) ---------- */
   function gantt(c) {
     const S = c.S, cod = S.codigos, used = new Set();
-    [[c.R.m, S.variante], [c.Ra.m, S.varianteActual]].forEach((p) => E.patron(p[0], p[1]).forEach((k) => used.add(k)));
+    [[c.R.m, S.variante], [c.Ra.m, S.varianteActual]].forEach((p) => E.patrones(p[0], p[1]).forEach((pp) => pp.forEach((k) => used.add(k))));
     const keys = Object.keys(cod).filter((k) => used.has(k) && E.esTrab(cod, k));
     const fila = (cd, k, etiqueta) => {
       const x = cd[k], s = U.hhmm(x.ini), e = U.hhmm(x.fin);
@@ -11377,7 +11749,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     let body = '', foot = '';
     const vista = S.vistaMatriz;
     if (vista === 'turno') {
-      DEF.filas.forEach((f) => {
+      E.filasDe(Rb.m).forEach((f) => {
         let tds = '';
         days.forEach((d) => {
           const who = labs.filter((lab) => { const k = ro[lab][d.i], t = E.esTrab(cod, k); return f.id === 'D' ? !t : (t && E.filaDe(cod, k) === f.id); });
@@ -11409,7 +11781,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       (nov ? '<span class="chip">' + nov + ' ajuste' + (nov === 1 ? '' : 's') + ' manual' + (nov === 1 ? '' : 'es') + '</span>' + K.btn('clearov', 'Quitar ajustes', { cls: 'sm' }) : '<span class="note">Seleccionar una celda para cambiar su turno' + (which === 'act' ? ' (lo que de verdad se trabajó: también se edita en Boletas)' : '') + '.</span>') + '</div>';
     const table = '<div class="boardwrap"><table class="board" style="--nd:' + nd + '"><caption class="sr">Tablero de turnos de ' + (which === 'act' ? 'la situación actual' : 'la propuesta') + ': ' + esc(Rb.m.nombre) + '</caption>' +
       '<thead><tr class="mr"><th class="rl" scope="col"><span class="sr">Mes</span></th>' + mh + '<th class="rt" scope="col"><span class="sr">Resumen</span></th></tr><tr><th class="rl" scope="col"><span class="sr">Día de la semana</span></th>' + wk + '<th class="rt" scope="col"><span class="sr">Resumen</span></th></tr><tr class="dn"><th class="rl" scope="col">Cuadrilla</th>' + dm + '<th class="rt" scope="col">Horas</th></tr></thead><tbody>' + body + '</tbody>' + foot + '</table></div>';
-    return K.panel((which === 'act' ? 'Situación actual: ' : 'Propuesta: ') + Rb.m.nombre + ' – ' + Rb.m.variantes[which === 'act' ? S.varianteActual : S.variante].label, tools + table + '<div style="margin-top:.75rem">' + alerts + '</div>', { cls: 'tablero' });
+    return K.panel((which === 'act' ? 'Situación actual: ' : 'Propuesta: ') + Rb.m.nombre + ' – ' + (Rb.m.variantes[which === 'act' ? S.varianteActual : S.variante] || Rb.m.variantes.adelante).label, tools + table + '<div style="margin-top:.75rem">' + alerts + '</div>', { cls: 'tablero' });
   }
 
   /* ---------- resumen por cuadrilla (días mostrados) ---------- */
@@ -12662,18 +13034,20 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   const corto = (m) => m.corto || String(m.nombre || '').split(' · ')[0];
   const lista = (a) => (a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1]);
   const sino = (v) => (v ? 'sí' : 'no');
-  const DIR = { adelante: 'hacia adelante (M → T → N)', atras: 'hacia atrás (N → T → M)', mixta: 'mixta', 'n/a': 'sin rotación' };
+  const DIR = { adelante: 'hacia adelante (M → T → N)', atras: 'hacia atrás (N → T → M)', mixta: 'mixta', dos: 'día y noche (dos turnos)', 'n/a': 'sin rotación' };
   const table = (head, rows) => '| ' + head.join(' | ') + ' |\n|' + head.map(() => '---').join('|') + '|\n' + rows.map((r) => '| ' + r.join(' | ') + ' |').join('\n');
   const nivel = (val, id) => ((val.checks.find((x) => x.id === id) || {}).nivel) || '';
   const gapNoche = (S, met) => { const a = (met.gaps || []).filter((x) => S.codigos[x.de] && S.codigos[x.de].fila === 'N'); return a.length ? Math.max.apply(null, a.map((x) => x.horas)) : null; };
 
   /** Frase de cumplimiento legal de un modelo, con lo que sí y lo que no. */
   const cumple = (val) => {
-    const ok = [], rev = [];
+    const ok = [], no = [], rev = [];
     [['descanso', 'descanso semanal (Art. 126)'], ['dia12', 'tope de 12 h diarias (Art. 122)'], ['semanal', 'tope semanal de horas ordinarias (Arts. 116–117)']].forEach((x) => {
-      const n = nivel(val, x[0]); (n === 'ok' || n === 'info' ? ok : rev).push(x[1]);
+      const n = nivel(val, x[0]); (n === 'ok' || n === 'info' ? ok : n === 'fail' ? no : rev).push(x[1]);
     });
-    return (ok.length ? 'Cumple ' + lista(ok) : 'No cumple los topes revisados') + (rev.length ? '; revisar ' + lista(rev) : '') + '.';
+    // lo que el validador marca como falla se dice como falla («no cumple»); «revisar» queda para los avisos
+    const partes = [ok.length ? 'Cumple ' + lista(ok) : no.length ? '' : 'No cumple los topes revisados', no.length ? (ok.length ? 'no cumple ' : 'No cumple ') + lista(no) : '', rev.length ? 'revisar ' + lista(rev) : ''].filter(Boolean);
+    return partes.join('; ') + '.';
   };
 
   /** Valores vivos para las plantillas. c = UI.ctx(). */
@@ -12691,10 +13065,17 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const paybackTxt = d.paybackMeses != null ? n1(d.paybackMeses) + ' meses' : (d.unico > 0 ? 'no se recupera con los supuestos actuales' : 'sin costos únicos registrados');
     const monTxt = (v) => (v > 0 ? q0(v) : 'por registrar');
     const veces = (n, uno, otros) => n + ' ' + (n === 1 ? uno : otros);
+    // la racha de trabajo y las noches seguidas: si la cuadrilla trabaja todos los días o es fija de noche, el número del ciclo no dice la verdad
+    const rachaTxt = (v) => v.sinDiaLibre ? 'sin fin, todos los días' : veces(v.maxRunTrab, 'día seguido', 'días seguidos');
+    const nochesTxt = (v) => v.maxRunNoches === undefined ? '—' : v.nocheFija ? 'cuadrilla fija de noche, todas las noches' : 'máximo ' + veces(v.maxRunNoches, 'noche seguida', 'noches seguidas');
     const mon = (v) => (Math.abs(v) < 0.5 ? 'sin datos registrados' : q0(v) + ' al mes');
     const benTexto = Math.abs(ben.total) < 0.5 ? 'Aún no se han registrado datos reales de rotación, accidentes ni ausentismo; el simulador no los estima (Parámetros → Beneficios no salariales).' : 'Rotación ' + mon(ben.rot) + '; accidentes ' + mon(ben.acc) + '; ausentismo ' + mon(ben.aus) + '.';
+    // una propuesta con fallas del validador no puede leerse como «justificada por salud y cumplimiento»: el texto lo advierte
+    const fallasV = ((c.val && c.val.checks) || []).filter((x) => x.nivel === 'fail');
+    const fallasVTxt = fallasV.length ? (fallasV.length === 1 ? 'una falla' : fallasV.length + ' fallas') + ' (' + fallasV.map((x) => String(x.titulo || x.id).toLowerCase()).join(', ') + ')' : '';
     let recomendacion;
     if (igual) recomendacion = 'La propuesta coincide con la situación actual; para evaluar una alternativa, seleccionar otro modelo en Operativo.';
+    else if (fallasV.length) recomendacion = 'Con los supuestos actuales la propuesta ' + (d.difMes <= 0.5 ? 'cuesta lo mismo o menos' : 'cuesta ' + q0(d.difMes) + ' más al mes') + ', pero el validador la marca con ' + fallasVTxt + ' (puntaje ' + c.val.score + '/100 contra ' + c.valAct.score + '/100). Mientras no se resuelvan no se puede justificar por salud y cumplimiento ni recomendar un piloto: el costo no basta. Conviene revisar «Salud del turno» o elegir otro modelo.';
     else if (d.difMes <= 0.5) recomendacion = 'Con los supuestos actuales la propuesta cuesta lo mismo o menos y su puntaje de salud y cumplimiento es ' + c.val.score + '/100 (actual: ' + c.valAct.score + '/100). Se recomienda ejecutar un piloto.';
     else if (ben.total >= d.difMes) recomendacion = 'La propuesta cuesta ' + q0(d.difMes) + ' más al mes en salarios, cargas y provisiones, pero los beneficios no salariales registrados (' + q0(ben.total) + ' al mes) lo compensan. Se recomienda ejecutar un piloto y verificar esos beneficios.';
     else recomendacion = 'Con los supuestos actuales la propuesta cuesta ' + q0(d.difMes) + ' más al mes. Se justifica por salud y cumplimiento (puntaje ' + c.val.score + '/100 contra ' + c.valAct.score + '/100) y se financia por sí sola únicamente si el beneficio no salarial supera ' + q0(d.equilibrioMes) + ' al mes. Antes de decidir, se recomienda medir rotación, accidentes y ausentismo en la planta.';
@@ -12763,7 +13144,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const T = {
       empresa: nomEmp || 'la empresa', empresaSuj: /^f[aá]brica$/i.test(nomEmp) ? 'La fábrica' : (nomEmp || 'La empresa'), hoy: U.fmtDMY(U.todayNum()),
       modeloActual: String(mA.nombre), modeloActualCorto: corto(mA), modeloProp: String(mS.nombre), modeloPropCorto: corto(mS),
-      varActual: (mA.variantes[S.varianteActual] || {}).label || '—', varProp: (mS.variantes[S.variante] || {}).label || '—',
+      varActual: (mA.variantes[S.varianteActual] || mA.variantes.adelante || {}).label || '—', varProp: (mS.variantes[S.variante] || mS.variantes.adelante || {}).label || '—',
       equiposAct: mA.equipos, equiposProp: mS.equipos, pers: S.personalPorTurno,
       plantillaAct: A.N, plantillaProp: L.N, nuevos: d.nuevos, sueldo: q0(S.sueldoGlobal),
       extActMes: n0(A.hExtTot * fct), extPropMes: n0(L.hExtTot * fct), extEvitadasMes: n0((A.hExtTot - L.hExtTot) * fct),
@@ -12782,8 +13163,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       ola1ExtAct: vOla(() => n0(o1.hExtAct)), ola1ExtProp: vOla(() => n0(o1.hExtSel)), ola1CostoAct: vOla(() => q0(o1.costoAct)), ola1CostoProp: vOla(() => q0(o1.costoSel)), ola1Dif: vOla(() => difOla(o1)),
       ola1ExtPersAct: vOla(() => q0(o1.extrasPersAct)), ola1ExtPersProp: vOla(() => q0(o1.extrasPersSel)), ola2Dif: vOla(() => difOla(o2)),
       scoreAct: c.valAct.score, scoreProp: c.val.score,
-      rachaAct: vA.maxRunTrab, rachaProp: vS.maxRunTrab, nochesAct: vA.maxRunNoches, nochesProp: vS.maxRunNoches,
-      nochesActTxt: vA.maxRunNoches === undefined ? '—' : veces(vA.maxRunNoches, 'noche seguida', 'noches seguidas'), nochesPropTxt: vS.maxRunNoches === undefined ? '—' : veces(vS.maxRunNoches, 'noche seguida', 'noches seguidas'),
+      rachaAct: vA.sinDiaLibre ? 'sin fin' : vA.maxRunTrab, rachaProp: vS.sinDiaLibre ? 'sin fin' : vS.maxRunTrab, nochesAct: vA.maxRunNoches, nochesProp: vS.maxRunNoches,
+      rachaActTxt: rachaTxt(vA), rachaPropTxt: rachaTxt(vS), nochesActTxt: nochesTxt(vA), nochesPropTxt: nochesTxt(vS),
+      familiasTxt: vS.sinDiaLibre ? 'sin ningún día libre en el ciclo: el modelo les quita el descanso semanal' : 'días libres más predecibles',
       gapMinAct: vA.minGapH !== undefined ? n0(vA.minGapH) : '—', gapMinProp: vS.minGapH !== undefined ? n0(vS.minGapH) : '—',
       restoNocheProp: gapNoche(S, vS) != null ? n0(gapNoche(S, vS)) : '—', restoNocheAct: gapNoche(S, vA) != null ? n0(gapNoche(S, vA)) : '—',
       horasSemAct: n1(vA.horasSemana), horasSemProp: n1(vS.horasSemana), ordSemAct: n1(vA.ordSemana), extSemAct: n1(vA.extSemana),
@@ -12831,8 +13213,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 - **Nómina** configurada con los criterios aprobados.
 - **Tiempo del asesor laboral.**` },
     { id: 'propuesta', t: 'Propuesta de valor', md:
-`- **Para el personal de turno:** {{libres28Prop}} días libres por cada 28 (actual: {{libres28Act}}); racha máxima de {{rachaProp}} días seguidos (actual: {{rachaAct}}).
-- **Noches:** máximo {{nochesPropTxt}} (actual: {{nochesActTxt}}); descanso mínimo de {{gapMinProp}} h entre turnos (actual: {{gapMinAct}} h).
+`- **Para el personal de turno:** {{libres28Prop}} días libres por cada 28 (actual: {{libres28Act}}); racha máxima de trabajo: {{rachaPropTxt}} (actual: {{rachaActTxt}}).
+- **Noches:** {{nochesPropTxt}} (actual: {{nochesActTxt}}); descanso mínimo de {{gapMinProp}} h entre turnos (actual: {{gapMinAct}} h).
 - **Rotación:** {{dirProp}}.
 - **Operación:** cobertura {{coberturaProp}}; puntaje de salud y cumplimiento {{scoreProp}}/100 (actual: {{scoreAct}}/100).
 - **Horas extra:** {{extActMes}} → {{extPropMes}} al mes en toda la planta; el modelo {{extTexto}}.
@@ -12859,7 +13241,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 - **Finanzas y Planillas:** costo total predecible (extras, cargas y prestaciones).
 - **Mantenimiento, Calidad y Seguridad:** menos errores y accidentes por fatiga.
 - **Clientes de la planta** (indirecto): entregas continuas con calidad estable.
-- **Familias de los trabajadores** (indirecto): días libres más predecibles.` },
+- **Familias de los trabajadores** (indirecto): {{familiasTxt}}.` },
     { id: 'costos', t: 'Estructura de costos', md:
 `- **Planilla adicional:** {{nuevosTxt}} con sueldo de {{sueldo}}: unos {{costoNuevosMes}} al mes con cargas y provisiones, antes de restar las horas extra que se dejan de pagar.
 - **Cargas patronales:** IGSS {{igssPat}}, IRTRA {{irtra}} e INTECAP {{intecap}} sobre la planilla afecta.
@@ -12924,8 +13306,8 @@ Cifras al {{hoy}}, calculadas con los supuestos de la sección {{secSupuestos}},
 `## Forma de trabajo actual
 - **Modelo:** {{modeloActual}} ({{varActual}}).
 - **Carga:** {{horasSemAct}} h por semana en promedio por persona: {{ordSemAct}} h ordinarias y {{extSemAct}} h extra.
-- **Descanso:** {{libres28Act}} días libres por cada 28; racha máxima de {{rachaAct}} días seguidos.
-- **Noches:** máximo {{nochesActTxt}}; el relevo más corto deja {{gapMinAct}} h de descanso.
+- **Descanso:** {{libres28Act}} días libres por cada 28; racha máxima de trabajo: {{rachaActTxt}}.
+- **Noches:** {{nochesActTxt}}; el relevo más corto deja {{gapMinAct}} h de descanso.
 - **Fines de semana completos libres:** {{findesAct}} por cada 4 semanas.
 - **Sentido de rotación:** {{dirAct}}.
 
@@ -13103,7 +13485,7 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
 
 | Cómo se alivian las frustraciones | Cómo se crea valor |
 |---|---|
-| {{modeloPropCorto}}: racha máxima de {{rachaProp}} días y máximo {{nochesPropTxt}} | {{libres28Prop}} días libres por cada 28, calendario personal y boleta estimada |
+| {{modeloPropCorto}}: racha máxima de trabajo, {{rachaPropTxt}}; noches, {{nochesPropTxt}} | {{libres28Prop}} días libres por cada 28, calendario personal y boleta estimada |
 
 ## Gerencia
 | Tareas | Frustraciones | Beneficios esperados |
@@ -13172,6 +13554,8 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
     { id: 'idb', area: 'Datos', que: 'Guardaba el estado y los técnicos en dos almacenes de IndexedDB, sin respaldo en archivo, sin copias y sin forma de volver atrás.', efecto: 'Borrar los datos del sitio o cambiar de equipo dejaba la planilla perdida; una edición equivocada no se podía deshacer.', arreglo: 'IndexedDB con tres almacenes (estado, empleados, copias), copia automática diaria, respaldo en archivo, deshacer en acciones destructivas y migración que no borra la base anterior.' },
     { id: 'variantes21', area: 'Modelos', que: 'De la familia de la 1-1-1-1 solo estaban la 1-1-1-1 y la 2-2-2-2 (bloques de 1 y 2 días): no se podían evaluar los bloques de 3 y 4 días ni ver cómo se organizarían las vacaciones con cada uno.', efecto: '⟨varTxt⟩', arreglo: 'La 3-3-3-3 y la 4-4-4-4 son dos modelos nuevos, elegibles como propuesta. Comparar tiene el panel «Variantes de la 1-1-1-1» (cambios de turno, días libres y de trabajo seguidos, noches seguidas, tope semanal, salud, costo y vacaciones) y Vacaciones muestra el calendario de cobertura de cada una, con la cuadrilla y la forma de cubrir que se elijan.' },
     { id: 'mttndd22', area: 'Modelos', que: 'No había forma de probar el ciclo M-T-T-N-D-D (una mañana, dos tardes, una noche y dos descansos): no se sabía si cubría las 24 horas, con cuántas cuadrillas ni cuánto costaría.', efecto: '⟨mttTxt⟩', arreglo: 'Es un modelo más, elegible como propuesta (Operativo, Propuesta, Comparar, Planta y Vacaciones lo incluyen). Se probaron todos los desfases posibles entre las cuadrillas: con 3, 4 o 5 cuadrillas siempre quedan horas sin cubrir (el ciclo tiene una sola mañana y una sola noche, y la cobertura pide las tres cada día); con 6 cuadrillas escalonadas de a un día cubre las 24 horas y cada tarde hay dos cuadrillas en turno. Hay pruebas de la cobertura, del validador, del calendario y del costo.' },
+    { id: 'patrones23', area: 'Modelos', que: 'Faltaban patrones que se usan en otras plantas: las dos cuadrillas de 12 horas, una fija de día y otra fija de noche, sin rotar (donde solo hay dos cuadrillas), la de tres cuadrillas con dos días, dos noches y dos libres, la 4×4, la 2-2-3 (Pitman o Panamá), la DuPont, y el M-T-N-D-D de cinco cuadrillas. Tampoco había turnos de 12 horas en el catálogo ni forma de que cada cuadrilla tuviera su propio patrón.', efecto: '⟨pat23Txt⟩', arreglo: 'Son seis modelos nuevos, elegibles como propuesta (Operativo, Propuesta, Comparar, Planta y Vacaciones los incluyen). El catálogo de turnos trae «Día 12 h» y «Noche 12 h» (06:00–18:00 y 18:00–06:00; la parte que pasa de las horas ordinarias del turno se paga como extra) y sus versiones «de más», que son todo extra (los días que se trabajan después de los turnos ordinarios de la semana). El motor acepta un patrón distinto por cuadrilla, y el validador revisa cada una por separado y avisa con el nombre de la cuadrilla. Las dos cuadrillas fijas incumplen el día libre semanal (art. 126) y las noches seguidas: el validador las marca como fallo. La cobertura de vacaciones usa el personal comodín (no hay una forma «de dos turnos de 12 horas»). Hay pruebas de la cobertura de 24 horas, de las horas pagadas, del validador, del costo y del calendario de cada modelo.' },
+    { id: 'shift23', area: 'Datos', que: 'El respaldo completo se bajaba como un archivo «.json» cualquiera: no se distinguía de otros archivos, no decía qué guardaba ni de qué versión era, y el simulador no avisaba si se le cargaba un archivo ajeno o de una versión más nueva. Tampoco se explicaba qué otros formatos hay y para qué sirve cada uno.', efecto: '⟨shiftTxt⟩', arreglo: 'El respaldo se guarda en un archivo «.shift» (por dentro es JSON, con la marca del simulador, el formato y la versión) y se carga con «Cargar un respaldo (.shift)»; los respaldos «.json» de versiones anteriores también se cargan. Lleva todo: parámetros, turnos, modelo propio, ajustes, textos, planilla, catorcenas con sus entradas y salidas del reloj y la pestaña. Un archivo ajeno o de una versión más nueva se rechaza con un mensaje claro, sin tocar nada, y antes de cargar uno válido se guarda una copia de lo que había. El panel Datos explica los otros formatos: la planilla sale a Excel o CSV, la catorcena a CSV, y las boletas y documentos se imprimen o se guardan como PDF; el CSV no sirve para un respaldo completo porque los datos son de formas distintas. Hay pruebas del ciclo completo (descargar, vaciar, cargar) y de los archivos inválidos.' },
     { id: 'calendarioVac21', area: 'Propuesta', que: 'El horario de 24 horas no mostraba lo que hacen hoy las dos personas que cubren una vacación: se cambian de día a noche el domingo con un traslape (quien pasa a la noche trabaja de 06:00 a 14:00 y de 21:00 a 06:00, y quien pasa al día de 14:00 a 21:00). Tampoco había un calendario de vacaciones del año ni de la cobertura día por día, y las horas extra por cubrir vacaciones no aparecían aparte para compararlas con la propuesta.', efecto: '⟨calVacTxt⟩', arreglo: 'La pestaña Vacaciones muestra el plan del año (una cuadrilla a la vez, unas tres semanas, repartidas en 52 semanas) y la cobertura día por día de hoy y de la propuesta, con los descansos, las horas por semana y los avisos de cada cuadrilla; las horas ordinarias de quien cubre (8, 7 o 6 según el turno de donde viene) y el almuerzo de la noche son parámetros. Las horas extra por vacaciones aparecen aparte en Operativo y en esa pestaña. Hay pruebas de que las 24 horas quedan cubiertas en cada forma de cubrir y de que las horas del calendario son las del cálculo.' },
     { id: 'extvac', area: 'Horas extra', que: 'Los indicadores de horas extra (Operativo, Comparar, Planta, Propuesta y el lienzo) solo sumaban las horas de la rotación: las que se hacen por cubrir vacaciones entraban al costo, pero no al conteo de horas ni al «% menos».', efecto: '⟨extVacTxt⟩', arreglo: 'Cada indicador suma las horas de la rotación y las de cubrir vacaciones, y muestra aparte cuántas son por vacaciones. El costo ya las incluía. Hay pruebas de que el total es la suma de ambas en el cálculo, en la decisión, en Comparar y en Planta.' },
     { id: 'teclado', area: 'Captura de datos', que: 'Al escribir con el teclado y pasar con Tab de un campo numérico al siguiente, el contenido del campo nuevo (que el navegador deja seleccionado) se perdía: la pantalla se vuelve a dibujar 30 ms después de confirmar el campo anterior y el campo recién dibujado quedaba sin selección. Lo escrito se sumaba al valor que ya tenía el campo.', efecto: 'Con un 8 en el campo, escribir 12.5 guardaba 12.58; un promedio de 7,100.50 se guardaba como 710,050. Ocurría en Parámetros, Planilla y Liquidación al capturar con Tab (con el ratón y borrando el valor antes de escribir no pasaba).', arreglo: 'Al dibujar de nuevo la pantalla, el campo numérico que recibió el foco y no se ha tocado vuelve a quedar seleccionado por completo. La prueba de teclado escribe como una persona (clic, texto, Tab) 31 valores en Parámetros, Liquidación y Planilla: todos se guardan como se escribieron; la versión 17 fallaba en 7 de las 8 comprobaciones (los campos de texto no tenían el problema).' }
@@ -13676,7 +14060,7 @@ Estas cifras son estimaciones del simulador con los supuestos actuales. Se relac
     T.bloquesMaslow = q.niveles.map((n) => '## ' + n.nombre + ' (índice con la propuesta: ' + pct(n.prop) + ')\n' +
       tabla(['Práctica', 'Programa que la aporta', 'Hoy', 'Con la propuesta'], DEF.maslowItems.filter((i) => i.nec === n.id).map((i) => [i.texto, DEF.maslowProg[i.prog] || i.prog, NIV_PRACT[String(G.maslow.hoy[i.id])], NIV_PRACT[String(G.maslow.prop[i.id])]]))).join('\n\n');
     T.tablaMaslowProg = tabla(['Programa o elemento del modelo', 'Prácticas', 'Índice con la propuesta'], q.programas.filter((p) => p.n > 0).map((p) => [p.nombre, n0(p.n), pct(p.prop)]));
-    const ev = PR.maslowEvid(S, { val: c.val, valAct: c.valAct }), nv = (x, d, suf) => (x === null || x === undefined || !Number.isFinite(x) ? '—' : U.fmt(x, d) + (suf || '')), fe = (crit, k, d, suf) => [crit, nv(ev.act[k], d, suf), nv(ev.prop[k], d, suf)];
+    const ev = PR.maslowEvid(S, { val: c.val, valAct: c.valAct }), nv = (x, d, suf) => (x === null || x === undefined || !Number.isFinite(x) ? '—' : U.fmt(x, d) + (suf || '')), fe = (crit, k, d, suf) => { const c1 = (o) => (k === 'maxRunTrab' && o.sinDiaLibre ? 'sin fin' : nv(o[k], d, suf)); return [crit, c1(ev.act), c1(ev.prop)]; };
     T.tablaMaslowEvid = tabla(['Indicador', 'Rotación vigente', 'Propuesta'], [
       fe('Días libres de cada 28 días', 'diasLibres28', 1), fe('Fines de semana completos libres por cada 4 semanas', 'finesLibres28', 1), fe('Descanso mínimo entre turnos', 'minGapH', 0, ' h'),
       fe('Días de trabajo seguidos (máximo del ciclo)', 'maxRunTrab', 0), fe('Descanso continuo más largo del ciclo (días libres seguidos)', 'maxDescanso', 0), fe('Horas promedio por semana', 'horasSemana', 1, ' h')]);
@@ -14069,6 +14453,53 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     r: 'Art. 126 del Código de Trabajo (descanso semanal); Garde et al., 2020 (noches seguidas y descanso entre turnos).',
     u: [['comparar', 'Panel «Variantes de la 1-1-1-1»'], ['vacaciones', 'Panel «Variantes de la 1-1-1-1 en las vacaciones»'], ['operativo', 'Selector del modelo propuesto']],
     rel: ['salud', 'topeSemanal', 'libres', 'descanso', 'noches']
+  });
+
+  add({
+    id: 'turnos12h', alias: ['d12', 'n12', 'turno12'], g: 'turnos', t: 'Turnos de 12 horas (Día 12 h y Noche 12 h)',
+    c: 'Dos turnos de 12 horas, de 06:00 a 18:00 y de 18:00 a 06:00, para las plantas que trabajan con dos turnos al día.',
+    d: [
+      'El catálogo trae «Día 12 h» (D12: de 06:00 a 18:00, con una hora de almuerzo sin pago) y «Noche 12 h» (N12: de 18:00 a 06:00). De las horas de cada turno, las ordinarias son las que caben en la jornada de su tipo (8 h de día y 6 h de noche) y el resto se paga como extra: por eso un turno de 12 horas siempre trae horas extra, y más en la noche.',
+      'D12x y N12x son los días «de más»: se trabajan después de los turnos ordinarios de la semana y todo lo que se hace en ellos es extra. Los usan las dos cuadrillas fijas, que trabajan los siete días.',
+      'Ningún turno pasa de 12 horas en un día. Los turnos se pueden editar en Parámetros → Turnos y los cambios se reflejan en todos los modelos de 12 horas.'
+    ],
+    f: () => [
+      'Horas de trabajo del turno = horas ordinarias + horas extra',
+      'Día 12 h = 12 h de presencia − 1 h de almuerzo = ' + nd(DEF.codigos.D12.ord + DEF.codigos.D12.ext) + ' h (' + nd(DEF.codigos.D12.ord) + ' ordinarias + ' + nd(DEF.codigos.D12.ext) + ' extra)',
+      'Noche 12 h = ' + nd(DEF.codigos.N12.ord + DEF.codigos.N12.ext) + ' h (' + nd(DEF.codigos.N12.ord) + ' ordinarias + ' + nd(DEF.codigos.N12.ext) + ' extra)',
+      'Límite de horas por día: ' + DEF.topes.maxDiaTotal + ' h'
+    ],
+    v: (c) => ul(['D12', 'D12x', 'N12', 'N12x'].filter((k) => c.S.codigos[k]).map((k) => {
+      const x = c.S.codigos[k], o = +x.ord || 0, e = +x.ext || 0;
+      return '<b>' + esc(k) + ':</b> de ' + esc(x.ini) + ' a ' + esc(x.fin) + '; ' + nd(o) + ' h ordinarias + ' + nd(e) + ' h extra = ' + nd(o + e) + ' h de trabajo.';
+    })),
+    r: 'Arts. 116, 117 y 122 del Código de Trabajo.',
+    u: [['parametros', 'Turnos: catálogo de códigos'], ['operativo', 'Tablero de turnos de los modelos de 12 horas']], rel: ['patrones12h', 'codigosTurno', 'jornadas', 'dia12']
+  });
+
+  add({
+    id: 'patrones12h', alias: ['pitman', 'dupont', '4x4', 'cuadrillasFijas'], g: 'turnos', t: 'Patrones de 12 horas y M-T-N-D-D',
+    c: 'Dos cuadrillas fijas, tres cuadrillas, 4×4, 2-2-3 (Pitman) y DuPont, de 12 horas, y el M-T-N-D-D de 8 horas: personas, horas y salud de cada uno.',
+    d: [
+      'Dos cuadrillas fijas: la A siempre de día y la B siempre de noche. Cubre las 24 horas con la menor cantidad de gente, pero son 7 días de 12 horas a la semana, sin ningún día libre, y la cuadrilla de noche nunca rota. Incumple el descanso semanal (art. 126) y las noches seguidas, y por eso el validador la marca como fallo. Con 6 días a la semana la planta se detiene un día.',
+      'Tres cuadrillas, 2 días, 2 noches y 2 libres: cada persona libra 2 de cada 6 días, hace 2 noches seguidas y promedia unas 54 horas pagadas por semana. Es el paso natural de dos a tres cuadrillas.',
+      'La 4×4 (4 días, 4 libres, 4 noches y 4 libres), la 2-2-3 Pitman o Panamá (2 turnos, 2 libres, 3 turnos, 2 libres, 2 turnos y 3 libres, con 14 días de día y 14 de noche) y la DuPont (ciclo de 28 días con una semana libre cada cuatro) reparten cuatro cuadrillas de 12 horas. Las tres promedian unas 40 horas pagadas por semana; cambian las noches seguidas y la forma de los descansos.',
+      'El M-T-N-D-D es de 8 horas: una mañana, una tarde, una noche y dos descansos, con cinco cuadrillas escalonadas de a un día.'
+    ],
+    f: () => [
+      'Personas = cuadrillas × personas por cuadrilla',
+      'Horas extra al mes = horas extra de cada turno × personas × días del mes (las dos 12 h llevan más extra que los turnos de 8 h)',
+      'Salud del turno: cada cuadrilla se revisa por separado y se muestra el peor resultado de cada regla'
+    ],
+    v: (c) => {
+      const f = E.comparar(c.S);
+      return ul(['r2x12', 'r3x12', 'r4x4', 'rpit', 'rdupont', 'rmtn5'].map((id) => f.find((x) => x.id === id)).filter(Boolean).map((r) => {
+        const m = r.val.met;
+        return '<b>' + esc(corto(DEF.modelos[r.id])) + ':</b> ' + r.N + ' personas; ' + n1(m.horasSemana) + ' h por semana; ' + (m.sinDiaLibre ? 'sin ningún día libre' : 'hasta ' + m.maxRunTrab + ' días seguidos') + ' y ' + (m.nocheFija ? 'una cuadrilla fija de noche' : 'hasta ' + m.maxRunNoches + ' noche' + (m.maxRunNoches === 1 ? '' : 's') + ' seguida' + (m.maxRunNoches === 1 ? '' : 's')) + '; Salud del turno ' + r.score + '/100; ' + K.q0(r.totalMes) + ' al mes (' + K.sgn(r.difMes) + ' frente a la situación actual).';
+      }));
+    },
+    r: 'Arts. 116, 117, 122 y 126 del Código de Trabajo; Garde et al., 2020 (noches seguidas y descanso entre turnos).',
+    u: [['operativo', 'Selector del modelo propuesto'], ['comparar', 'Una fila por modelo'], ['validacion', 'Chequeo de cada modelo de rotación']], rel: ['turnos12h', 'cuadrilla', 'salud', 'noches', 'descanso', 'variantesRot']
   });
 
   add({
@@ -14574,7 +15005,8 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   add({
     id: 'respaldo', g: 'datos', t: 'Respaldo y copias',
     c: 'Los datos viven en este navegador; el respaldo en archivo y las copias automáticas los protegen.',
-    d: ['El simulador guarda todo en IndexedDB, en este equipo y este navegador. Para no perder el trabajo conviene descargar un respaldo en archivo (Parámetros → Datos). Además se crean copias automáticas cada día con trabajo guardado, antes de importar o restablecer, y al pulsar «Crear copia en este navegador»; cualquiera se puede restaurar.'],
+    d: ['El simulador guarda todo en IndexedDB, en este equipo y este navegador. Para no perder el trabajo conviene descargar un respaldo en archivo (Parámetros → Datos): un archivo con extensión .shift que guarda todo —parámetros, turnos, planilla, catorcenas registradas, entradas y salidas del reloj, ajustes y textos— y que se vuelve a cargar con «Cargar un respaldo» en este u otro equipo. Por dentro es texto JSON; los respaldos .json de versiones anteriores también se cargan. Además se crean copias automáticas cada día con trabajo guardado, antes de importar o restablecer, y al pulsar «Crear copia en este navegador»; cualquiera se puede restaurar o descargar como .shift.',
+      'Otros formatos: la planilla de empleados se exporta a Excel o CSV y cada catorcena registrada a CSV, pero llevan una sola tabla y no permiten recuperar todo; las boletas y los documentos se imprimen o se guardan como PDF.'],
     u: [['parametros', 'Datos']], rel: ['registroCat']
   });
 
@@ -18951,7 +19383,8 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
 
   function masEvidencia(c) {
     const ev = PR.maslowEvid(c.S), n = (x, d) => (x === null || x === undefined || !Number.isFinite(x) ? '—' : U.fmt(x, d === undefined ? 0 : d));
-    const f = (crit, k, d, sufijo) => '<tr>' + K.td('Indicador', esc(crit), { cls: 'ttl' }) + K.td('Rotación vigente', n(ev.act[k], d) + (n(ev.act[k], d) === '—' ? '' : sufijo || ''), { cls: 'n' }) + K.td('Propuesta', '<b>' + n(ev.prop[k], d) + (n(ev.prop[k], d) === '—' ? '' : sufijo || '') + '</b>', { cls: 'n' }) + '</tr>';
+    const cel = (o, k, d, sufijo) => (k === 'maxRunTrab' && o.sinDiaLibre ? 'sin fin' : n(o[k], d) + (n(o[k], d) === '—' ? '' : sufijo || ''));
+    const f = (crit, k, d, sufijo) => '<tr>' + K.td('Indicador', esc(crit), { cls: 'ttl' }) + K.td('Rotación vigente', cel(ev.act, k, d, sufijo), { cls: 'n' }) + K.td('Propuesta', '<b>' + cel(ev.prop, k, d, sufijo) + '</b>', { cls: 'n' }) + '</tr>';
     const filas = f('Días libres de cada 28 días', 'diasLibres28', 1) + f('Fines de semana completos libres por cada 4 semanas', 'finesLibres28', 1) + f('Descanso mínimo entre turnos', 'minGapH', 0, ' h') + f('Días de trabajo seguidos (máximo del ciclo)', 'maxRunTrab', 0) +
       f('Descanso continuo más largo del ciclo (días libres seguidos)', 'maxDescanso', 0) + f('Horas promedio por semana', 'horasSemana', 1, ' h');
     return K.panel('Evidencia medida de descanso y tiempo libre', '<div class="tblwrap"><table class="tbl rsp"><thead><tr><th>Indicador</th><th class="n">Rotación vigente</th><th class="n">Propuesta</th></tr></thead><tbody>' + filas + '</tbody></table></div>', {
@@ -19169,6 +19602,26 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       return 'Con los parámetros actuales necesita ' + r.N + ' personas (' + a.N + ' la 1-1-1-1) y cuesta ' + K.q0(r.totalMes) + ' al mes: ' + K.sgn(r.difMes) + ' frente a la situación actual y ' + K.sgn(r.totalMes - a.totalMes) + ' frente a la 1-1-1-1. Las horas extra son las mismas que en la 1-1-1-1 (≈ ' + K.n(r.extrasMes, 0) + ' h al mes) y el validador le da ' + r.score + '/100.';
     } catch (_) { return ''; }
   }
+  /** Los patrones de 12 horas y el M-T-N-D-D de cinco cuadrillas con los parámetros de hoy: personas, costo frente a hoy, horas por semana y puntaje del validador. */
+  function pat23Txt(c) {
+    try {
+      const f = E.comparar(c.S), g = (id) => f.find((x) => x.id === id);
+      const d2 = g('r2x12'), d3 = g('r3x12'), d44 = g('r4x4'), pit = g('rpit'), dup = g('rdupont'), m5 = g('rmtn5');
+      if (!d2 || !d3 || !d44 || !pit || !dup || !m5) return '';
+      const hs = (x) => K.n(x.val.met.horasSemana, 1);
+      const d = (x) => x.N + ' personas, ' + K.q0(x.totalMes) + ' al mes (' + K.sgn(x.difMes) + ' frente a hoy), ' + hs(x) + ' h por semana, ' + x.score + '/100';
+      const cod = c.S.codigos, h2 = E.patrones(E.modelo(c.S, 'r2x12'), 'adelante').map((p) => p.reduce((a, k) => { const h = E.hCode(cod, k); return a + h.ord + h.ext; }, 0) / (p.length || 1) * 7);
+      const fijas = h2.length > 1 ? ' (el equipo de día trabaja ' + K.n(h2[0], 0) + ' h por semana y el de noche ' + K.n(h2[1], 0) + ' h, sin día libre)' : '';
+      return 'Con los parámetros actuales: dos cuadrillas fijas de 12 h, ' + d(d2) + fijas + '; tres cuadrillas (2 días, 2 noches, 2 libres), ' + d(d3) + '; 4×4, ' + d(d44) + '; 2-2-3 (Pitman), ' + d(pit) + '; DuPont, ' + d(dup) + '; M-T-N-D-D de cinco cuadrillas, ' + d(m5) + '.';
+    } catch (_) { return ''; }
+  }
+  /** El respaldo .shift con los datos de hoy: empleados, catorcenas registradas, turnos del catálogo y modelo. */
+  function shiftTxt(c) {
+    try {
+      const nEmp = (SM.EMP || []).length, nReg = (SM.REG || []).length, nCod = Object.keys(c.S.codigos || {}).length, mod = DEF.modelos[c.S.modeloId];
+      return 'Con los datos actuales, el respaldo lleva ' + nEmp + ' empleados, ' + nReg + ' catorcenas registradas, ' + nCod + ' turnos del catálogo y el modelo «' + (mod ? mod.nombre : String(c.S.modeloId)) + '»; se descarga como respaldo_simulador_247_<fecha>' + SM.RESPALDO.ext + '.';
+    } catch (_) { return ''; }
+  }
   function vivas(c) {
     const a = c.dec.act, s = c.dec.sel, f = FPM / a.dias;
     const pv = (x) => (x.base > 0 ? K.pct(x.variable / x.base, 1) : '—');
@@ -19179,6 +19632,8 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     return {
       '⟨varTxt⟩': vr.length ? 'Con los parámetros actuales, ' + E.variantesTexto(vr).replace(/^./, (ch) => ch.toLowerCase()) : '',
       '⟨mttTxt⟩': mttTxt(c),
+      '⟨pat23Txt⟩': pat23Txt(c),
+      '⟨shiftTxt⟩': shiftTxt(c),
       '⟨calVacTxt⟩': hayTr ? 'Con los parámetros actuales, el domingo de cambio quien pasa a la noche trabaja ' + K.n(trs.horasNoche, 0) + ' horas (' + K.n(trs.pasaNoche.ord, 0) + ' ordinarias y ' + K.n(trs.pasaNoche.ext, 0) + ' extra) y quien pasa al día ' + K.n(trs.horasDia, 0) + ' horas; ese traslape ya está en el calendario y en el horario de 24 horas.' : 'Con los parámetros actuales, la situación actual no se cubre con dos personas que se cambian de turno, así que no hay traslape que mostrar.',
       '⟨vacTxt⟩': vA && vB ? 'Con los parámetros actuales, cubrir las vacaciones cuesta ' + K.q0(vA.mes) + ' al mes en la situación actual (' + nomV(vA) + ') y ' + K.q0(vB.mes) + ' en la propuesta (' + nomV(vB) + '): ' + K.sgn(vB.mes - vA.mes) + ' al mes.' : '',
       '⟨inflaTxt⟩': 'Con los parámetros actuales, el pago variable (extras, séptimo y asuetos) equivale a ' + pv(a) + ' del sueldo base en la rotación actual y a ' + pv(s) + ' en la propuesta: un único porcentaje no describe ambas situaciones.',
@@ -20102,6 +20557,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   PAR.turnos = (c) => {
     const S = c.S, ks = Object.keys(S.codigos);
     return K.banner('info', '<b>Los horarios de los turnos puente T11 y M12 son supuestos.</b> Deben ajustarse a los relevos reales de la planta: de ellos depende que el modelo actual cubra las 24 horas. Los turnos predefinidos solo pueden editarse o restablecerse; los agregados en esta pantalla pueden eliminarse.') +
+      K.banner('info', '<b>Turnos de 12 horas (D12, D12x, N12 y N12x).</b> Los usan los cinco modelos de 12 horas: «Día 12 h» de 06:00 a 18:00 (con una hora de almuerzo sin pago) y «Noche 12 h» de 18:00 a 06:00. De cada turno, las horas ordinarias son las de su jornada y el resto es extra; los turnos «de más» (los que llevan x) se trabajan después de los turnos ordinarios de la semana y son todo extra. Si se cambian sus horas o su horario, cambian la cobertura, el costo y la salud del turno de esos modelos.') +
       cobertura(c) +
       '<div class="btns noprint">' + K.btn('parCodeAdd', 'Agregar un turno', { ico: 'plus', cls: 'pri' }) + K.btn('parCodesReset', 'Restablecer todo el catálogo', { ico: 'reset' }) + '</div>' +
       '<div class="cgrid">' + ks.map((k) => ficha(S, k)).join('') + '</div>';
@@ -20124,8 +20580,8 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     const r = await UI.dialog({
       title: 'Agregar un turno',
       body: '<p class="note">El turno nuevo se crea como copia de otro; sus horarios y horas se ajustan después. Puede utilizarse en el modelo personalizado o en los ajustes manuales del calendario.</p><div class="fgrid">' +
-        '<div class="field"><label for="nc-code">Código (1 a 4 letras o números)</label><input class="in" id="nc-code" maxlength="4" autocomplete="off" placeholder="Ej. N12"></div>' +
-        '<div class="field wide"><label for="nc-name">Nombre</label><input class="in" id="nc-name" maxlength="80" placeholder="Ej. Noche de 12 h"></div>' +
+        '<div class="field"><label for="nc-code">Código (1 a 4 letras o números)</label><input class="in" id="nc-code" maxlength="4" autocomplete="off" placeholder="Ej. N10"></div>' +
+        '<div class="field wide"><label for="nc-name">Nombre</label><input class="in" id="nc-name" maxlength="80" placeholder="Ej. Noche de 10 h"></div>' +
         '<div class="field wide"><label for="nc-from">Copiar de</label><select class="sel" id="nc-from">' + ops + '</select></div></div>',
       actions: [{ label: 'Cancelar', value: '' }, { label: 'Agregar', value: 'ok', kind: 'pri' }],
       collect: (d) => ({ code: d.querySelector('#nc-code').value.trim().toUpperCase(), name: d.querySelector('#nc-name').value.trim(), from: d.querySelector('#nc-from').value }),
@@ -20162,7 +20618,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
 
   PAR.modelo = (c) => {
     const S = c.S, m = E.modelo(S, 'custom'), n = m.equipos;
-    const modelos = DEF.ordenModelos.filter((id) => id !== 'custom').map((id) => '<option value="' + id + '">' + esc(DEF.modelos[id].nombre) + '</option>').join('');
+    const modelos = DEF.ordenModelos.filter((id) => id !== 'custom' && !DEF.modelos[id].variantes.adelante.patrones).map((id) => '<option value="' + id + '">' + esc(DEF.modelos[id].nombre) + '</option>').join('');
     const desf = E.labels(m).map((lab, i) => K.num('Desfase de la cuadrilla ' + lab + ' (días)', 'modelosCustom.desfases.' + i, { t: 'int', min: 0 })).join('');
     return K.banner('info', '<b>Diseño de un ciclo propio.</b> Ingresar los códigos del catálogo separados por espacio. El desfase indica en qué día del ciclo inicia cada cuadrilla; para garantizar cobertura permanente, los desfases se reparten en partes iguales del ciclo. El modelo se compara en Comparar y se valida y costea igual que los demás.') +
       K.panel('Ciclo personalizado', '<div class="fgrid">' +
@@ -20185,7 +20641,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     if (!(await UI.confirm('Copiar «' + base.nombre.split(' · ')[0] + '»', 'Los ciclos y desfases del modelo personalizado se reemplazan por los de este modelo. Después pueden editarse.', 'Copiar'))) return;
     const mc = SM.S.modelosCustom;
     mc.equipos = base.equipos; mc.desfases = base.desfases.slice();
-    mc.adelante = base.variantes.adelante.patron.join(' '); mc.atras = base.variantes.atras.patron.join(' ');
+    mc.adelante = base.variantes.adelante.patron.join(' '); mc.atras = (base.variantes.atras || base.variantes.adelante).patron.join(' ');
     SM.touch(); UI.toast('Modelo personalizado copiado de ' + base.nombre.split(' · ')[0] + '.', 'ok');
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -20221,8 +20677,9 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   }
 
   function respaldo() {
-    return K.panel('Respaldo en un archivo', '<p class="note" style="margin-bottom:.7rem">El archivo incluye parámetros, catálogo de turnos, modelo personalizado, ajustes del calendario, textos de la propuesta, la planilla de empleados y las catorcenas registradas. Puede cargarse en este u otro navegador para recuperar toda la información.</p>' +
-      '<div class="btns">' + K.btn('parExport', 'Descargar respaldo', { ico: 'download', cls: 'pri' }) + K.btn('parImport', 'Cargar un respaldo', { ico: 'upload' }) + K.btn('parSnap', 'Crear copia en este navegador', { ico: 'save' }) + '</div>', { cls: 'noprint' });
+    return K.panel('Respaldo en un archivo (.shift)', '<p class="note" style="margin-bottom:.7rem">Un solo archivo <b>.shift</b> guarda todo: parámetros, catálogo de turnos, modelo personalizado, ajustes del calendario, textos de la propuesta, la planilla de empleados, las catorcenas registradas (con las entradas y salidas del reloj) y la pestaña en que se estaba. Se carga en este u otro navegador o equipo y deja todo como estaba. Por dentro es texto JSON con otra extensión: no conviene editarlo a mano. Los respaldos .json de versiones anteriores también se cargan.</p>' +
+      '<div class="btns">' + K.btn('parExport', 'Descargar respaldo (.shift)', { ico: 'download', cls: 'pri' }) + K.btn('parImport', 'Cargar un respaldo (.shift)', { ico: 'upload' }) + K.btn('parSnap', 'Crear copia en este navegador', { ico: 'save' }) + '</div>' +
+      '<p class="note" style="margin-top:.7rem"><b>Otros formatos:</b> la planilla de empleados se exporta aparte a Excel (.xlsx) o CSV, y cada catorcena registrada a CSV, pero esos archivos llevan una sola tabla y no sirven para recuperar todo. Las boletas y los documentos se imprimen o se guardan como PDF desde Imprimir. Para volver a tener todo, el único archivo que sirve es el .shift.</p>', { cls: 'noprint' });
   }
 
   function copias() {
@@ -20249,17 +20706,18 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   UI.A.parExport = async () => {
     await SM.flush();
     const o = SM.exportAll();
-    U.download('respaldo_simulador_247_' + hoy() + '.json', JSON.stringify(o, null, 2), 'application/json;charset=utf-8');
-    UI.toast('Respaldo descargado (' + o.empleados.length + ' empleados).', 'ok');
+    // application/octet-stream: así el navegador respeta la extensión .shift y no le agrega .json ni .txt
+    U.download('respaldo_simulador_247_' + hoy() + SM.RESPALDO.ext, JSON.stringify(o, null, 2), 'application/octet-stream');
+    UI.toast('Respaldo .shift descargado (' + o.empleados.length + ' empleados, ' + o.registro.length + ' catorcenas registradas).', 'ok');
   };
   UI.A.parImport = async () => {
-    const f = await UI.pickFile('.json,application/json');
+    const f = await UI.pickFile('.shift,.json,application/json,application/octet-stream,text/plain');
     if (!f) return;
     let o;
-    try { o = JSON.parse(await UI.readText(f)); } catch (_) { UI.toast('El archivo no es un JSON válido.', 'bad'); return; }
+    try { o = JSON.parse(await UI.readText(f)); } catch (_) { UI.toast('No se pudo leer «' + f.name + '»: no es un respaldo .shift (ni .json) del simulador.', 'bad'); return; }
     const err = SM.validateBackup(o);
     if (err) { UI.toast(err, 'bad'); return; }
-    const ok = await UI.confirm('Cargar el respaldo', 'Se reemplazan los datos actuales por los del archivo «' + f.name + '»: ' + o.empleados.length + ' empleado(s)' + (Array.isArray(o.registro) ? ' y ' + o.registro.length + ' catorcena(s) registrada(s)' : '') + ', exportado el ' + (o.exportado ? fecha(Date.parse(o.exportado)) : 'una fecha desconocida') + '. ' + (Array.isArray(o.registro) ? '' : 'El archivo es anterior al registro de catorcenas: se conservan las catorcenas registradas actuales. ') + 'Antes se guarda una copia automática de la información actual.', 'Cargar respaldo', true);
+    const ok = await UI.confirm('Cargar el respaldo', 'Se reemplazan los datos actuales por los del archivo «' + f.name + '»: ' + o.empleados.length + ' empleado(s)' + (Array.isArray(o.registro) ? ' y ' + o.registro.length + ' catorcena(s) registrada(s)' : '') + ', exportado el ' + (o.exportado ? fecha(Date.parse(o.exportado)) : 'una fecha desconocida') + '. ' + (Array.isArray(o.registro) ? '' : 'El archivo es anterior al registro de catorcenas: se conservan las catorcenas registradas actuales. ') + (o.formato === SM.RESPALDO.formato ? '' : 'Es un respaldo .json de una versión anterior; se carga igual. ') + 'Antes se guarda una copia automática de la información actual.', 'Cargar respaldo', true);
     if (!ok) return;
     await SM.snapshot('Antes de cargar un respaldo');
     await SM.applyBackup(o);
@@ -20282,7 +20740,8 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   UI.A.parDlCopy = async (el) => {
     const rec = await DB.getRespaldo(+el.dataset.id);
     if (!rec) { UI.toast('No se encontró esa copia.', 'bad'); return; }
-    U.download('copia_simulador_247_' + U.fmtISO(Math.floor(rec.ts / 86400000)) + '.json', JSON.stringify(rec.data, null, 2), 'application/json;charset=utf-8');
+    // la copia se descarga como un respaldo .shift más: se puede cargar igual que el que se descarga con «Descargar respaldo»
+    U.download('copia_simulador_247_' + U.fmtISO(Math.floor(rec.ts / 86400000)) + SM.RESPALDO.ext, JSON.stringify(Object.assign({}, rec.data, { formato: SM.RESPALDO.formato }), null, 2), 'application/octet-stream');
   };
   UI.A.parDelCopy = async (el) => {
     if (!(await UI.confirm('Eliminar la copia', 'La copia se borra de este navegador y no se puede recuperar.', 'Eliminar', true))) return;
