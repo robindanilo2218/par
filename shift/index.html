@@ -283,6 +283,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .tbl.rsp td.ttl .note { font-weight: 400; }
   .tbl.rsp tfoot tr, .tbl.rsp tr.tot { background: var(--strip); border-color: var(--ink); }
   .tbl.rsp tfoot td, .tbl.rsp tr.tot td { border-top: 0; background: transparent; }
+  .tbl.rsp tfoot td:empty { display: none; } /* la celda vacía de la fila de totales no tiene nada que rotular */
   .tbl.rsp tr.detail { margin-top: -.65rem; border-top: 0; border-radius: 0 0 var(--r2) var(--r2); background: var(--strip); }
   .tbl.rsp td .in, .tbl.rsp td .sel { max-width: 62%; }
   .tbl.rsp td.ttl .in, .tbl.rsp td.ttl .sel { max-width: 100%; } /* el nombre ocupa todo el ancho de la ficha */
@@ -1501,7 +1502,7 @@ ul.vflags li.warn { color: var(--warn); }
 }
 
 /* ============================================================
-   52-presupuesto.css — pestaña «Presupuesto» (versión 27): aumentos, horas extra, boleta global y cuentas contables.
+   52-presupuesto.css — pestaña «Presupuesto» (versión 27): aumentos, horas extra, boleta global y cuentas contables (versión 28: aplicar a la planilla).
    Las tablas anchas (pgb-t2, pgb-mx) se desplazan de lado con la primera columna fija; la boleta por concepto usa un bloque plegable por concepto (details.pgb).
    ============================================================ */
 [data-view="presupuesto"] .z { color: var(--ink3); }
@@ -1573,6 +1574,18 @@ ul.vflags li.warn { color: var(--warn); }
 [data-view="presupuesto"] .pa-ef b { color: var(--ink); }
 [data-view="presupuesto"] .pa-ef .chip { margin: 0; }
 [data-view="presupuesto"] .pa-reg { margin-left: auto; }
+/* aplicar a la planilla (versión 28) */
+[data-view="presupuesto"] .pa-ap-t { margin: 0 0 .5rem; }
+[data-view="presupuesto"] .pa-ap-l { margin: 0 0 .7rem; padding-left: 1.15rem; display: grid; gap: .3rem; line-height: 1.4; }
+[data-view="presupuesto"] .pa-ap .btns .note { align-self: center; }
+[data-view="presupuesto"] .pa-ef .btn { margin: 0; }
+[data-view="presupuesto"] .pa-ef .btn[disabled] { opacity: .55; cursor: not-allowed; }
+[data-view="presupuesto"] .pa-ap .btn[disabled] { opacity: .55; cursor: not-allowed; }
+[data-view="presupuesto"] .pa-hist td > div + div { margin-top: .25rem; }
+[data-view="presupuesto"] .pa-hist td.ttl { white-space: nowrap; }
+.dlg .pa-prevw { flex: none; } /* el cuerpo del cuadro es una columna flexible: sin esto las tablas se encogen hasta tapar sus filas */
+.dlg .pa-prev { width: 100%; }
+.dlg .pa-prev tbody th, .dlg .pa-prev td.ttl { text-align: left; }
 [data-view="presupuesto"] details.steps > summary { cursor: pointer; color: var(--info); font-size: 13px; white-space: nowrap; }
 [data-view="presupuesto"] details.steps ol { margin: .35rem 0 .2rem; padding-left: 1.15rem; font-size: 13px; line-height: 1.4; white-space: normal; max-width: 44rem; }
 [data-view="presupuesto"] details.steps li { margin-bottom: .25rem; }
@@ -2222,7 +2235,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     { g: 'Cobertura de vacaciones', k: 'dos12AlmuerzoNoche', l: 'Almuerzo no trabajado del turno largo de noche (horas)', t: 'num', s: 0.25, min: 0, max: 3, h: 'Por omisión 0: de noche no se sale a almorzar, se come unos minutos en el puesto y se sigue trabajando, así que se pagan las 12 horas: 6 ordinarias y 6 extra. Cambiar solo si en la planta se descuenta tiempo.' },
     { g: 'Cobertura de vacaciones', k: 'vacSemCambio', l: 'Semanas entre cambios de día a noche de quien cubre (0 = no cambia)', t: 'num', s: 1, min: 0, max: 3, int: true, h: 'Con dos turnos de 12 horas, quien estaba de día pasa a la noche y viceversa cada tantas semanas. El cambio se hace el domingo con un traslape: quien pasa a la noche trabaja de 06:00 a 14:00 y regresa de 21:00 a 06:00; quien pasa al día trabaja de 14:00 a 21:00. Por confirmar cada cuántas semanas se hace en la planta.' },
     { g: 'Cobertura de vacaciones', k: 'dos12DomingoExtra', l: 'Con dos turnos de 12 h, el domingo todas las horas son extra', t: 'bool', h: 'Cuando el puesto lo cubren dos personas, las dos trabajan los siete días de la semana: de lunes a sábado completan la semana ordinaria (44 h pagadas como 48) y el domingo es el séptimo día seguido, así que se paga completo como hora extra. El domingo de cambio, quien pasa a la noche trabaja de 06:00 a 14:00 (8 h) y de 21:00 a 06:00 (9 h), todas extra, y quien sale de la noche trabaja de 14:00 a 21:00 (7 h), también extra. Apagado reproduce las versiones anteriores (el domingo conserva sus horas ordinarias). Por confirmar con el asesor laboral (arts. 126 y 128). No aplica cuando tres o más cuadrillas cubren por turnos, porque allí cada una descansa.' },
-    { g: 'Cobertura de vacaciones', k: 'dos12AlmuerzoIni', l: 'Hora del almuerzo del turno de día de 12 h (06:00 a 18:00)', t: 'sel', o: [['12:00', 'A las 12:00'], ['13:00', 'A las 13:00']], h: 'Solo cambia el dibujo: en el horario de Operativo, el turno de día de 12 horas se ve cortado a la hora del almuerzo (la hora sin pago de «Almuerzo no trabajado del turno de día»). No se cuenta como hora sin cobertura. Los turnos D12 y D12x del catálogo llevan su propia hora de almuerzo en Parámetros → Turnos.' },
+    { g: 'Cobertura de vacaciones', k: 'dos12AlmuerzoIni', l: 'Hora del almuerzo del turno de día de 12 h (06:00 a 18:00)', t: 'sel', o: [['12:00', 'A las 12:00'], ['13:00', 'A las 13:00']], h: 'Solo cambia el dibujo: en el horario de Operativo, el turno de día de 12 horas se ve cortado a la hora del almuerzo (la hora sin pago de «Almuerzo no trabajado del turno de día»). No se cuenta como hora sin cobertura. Los turnos D12, D12x y T11 del catálogo llevan su propia hora de almuerzo en Parámetros → Turnos.' },
     { g: 'Cobertura de vacaciones', k: 'vacSeparacion', l: 'Semanas entre el inicio de las vacaciones de una cuadrilla y la siguiente (0 = repartidas en el año)', t: 'num', s: 1, min: 0, max: 52, int: true, h: 'El plan de vacaciones del año pone a una cuadrilla de vacaciones a la vez. Con 0, las ventanas se reparten por igual en 52 semanas (con cuatro cuadrillas, cada 13 semanas). La fecha del primer inicio se elige en la pestaña Vacaciones.' },
     { g: 'Cobertura de vacaciones', k: 'vacCargas', l: 'El personal comodín lleva cuotas patronales y prestaciones', t: 'bool', h: 'Encendido: además del pago se suman el IGSS, el IRTRA y el INTECAP patronales y las provisiones de aguinaldo, bono 14 e indemnización de quienes se contratan. Apagado reproduce las versiones anteriores, que solo sumaban el pago del relevo.' },
     { g: 'Cobertura de vacaciones', k: 'vacSueldoAlto', l: 'Sueldo alto para comparar lo que cobra quien cubre (Q)', t: 'num', s: 500, h: 'Solo se usa en el cuadro «Lo que cobra quien cubre» de la pestaña Comparar, junto al salario mínimo de la planta y el sueldo base del simulador.' },
@@ -2288,7 +2301,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     T: { nombre: 'Tarde', ini: '14:00', fin: '21:00', ord: 7, ext: 0, fila: 'T', tipo: 'mixta', color: '#78aedb' },
     N: { nombre: 'Noche', ini: '21:00', fin: '06:00', ord: 6, ext: 3, fila: 'N', tipo: 'nocturna', color: '#1f3a6e' },
     M4: { nombre: 'Mañana, 6.º día (4 h ord. + 4 h extra)', ini: '06:00', fin: '14:00', ord: 4, ext: 4, fila: 'M', tipo: 'diurna', color: '#cfe6f5' },
-    T11: { nombre: 'Puente de día 11 h (supuesto 07:00–18:00)', ini: '07:00', fin: '18:00', ord: 0, ext: 11, fila: 'T', tipo: 'diurna', color: '#78aedb' },
+    // Versión 28: el puente de día va de 06:00 a 18:00 con 1 h de almuerzo sin pago (11 h pagadas, todas extra), como lo confirmó la planta, y el almuerzo se ve cortado en el horario.
+    // Hasta la versión 27 se había supuesto de 07:00 a 18:00, lo que dejaba 1 h sin cubrir (de 06:00 a 07:00). Los estados guardados con el supuesto anterior se actualizan una sola vez (ver migrar en 40-state.js).
+    T11: { nombre: 'Puente de día 11 h (06:00–18:00, con 1 h de almuerzo)', ini: '06:00', fin: '18:00', ord: 0, ext: 11, fila: 'T', tipo: 'diurna', color: '#78aedb', almIni: '12:00' },
     M12: { nombre: 'Puente de noche 12 h (supuesto 18:00–06:00)', ini: '18:00', fin: '06:00', ord: 0, ext: 12, fila: 'N', tipo: 'nocturna', color: '#1f3a6e' },
     // Turnos de 12 horas (versión 23), para los modelos de dos turnos al día: el de día con 1 h de almuerzo sin pago (8 h ordinarias + 3 extra) y el de noche sin almuerzo (6 + 6),
     // igual que en la cobertura de vacaciones con dos turnos de 12 h. Los «de más» son los días que se trabajan después de los turnos ordinarios de la semana: se pagan completos como extra (igual que los «puentes» T11 y M12).
@@ -2521,6 +2536,18 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   DEF.presModos = [{ id: 'pct', l: '% sobre el sueldo' }, { id: 'monto', l: 'Q más al mes' }, { id: 'nuevo', l: 'Sueldo nuevo (Q)' }];
   DEF.presAlcances = [{ id: 'todos', l: 'Toda la planilla' }, { id: 'turno', l: 'Personal de turno' }, { id: 'dia', l: 'Personal solo de día' }]
     .concat(['A', 'B', 'C', 'D', 'E', 'F'].map((c) => ({ id: c, l: 'Cuadrilla ' + c }))).concat([{ id: 'LV', l: 'Diurno L–V (catorcenal)' }, { id: 'MQ', l: 'Mensual L–V (quincenal)' }]);
+  // A qué mes (y a qué año) se carga cada catorcena entera en el presupuesto (versión 28): ver E.presFechaCat en 21k-engine-presupuesto.js
+  // l = rótulo del selector; d = qué hace; h = cómo se cuentan las catorcenas del año («Se cuentan las catorcenas ___ ese año»); s = cómo se rotula en la hoja impresa
+  DEF.presReglas = [
+    { id: 'mayor', l: 'Donde cae la mayor parte de sus días', h: 'cuya mayor parte de días cae en', s: 'catorcenas en el mes donde cae la mayor parte de sus días',
+      d: 'Cada catorcena se carga entera al mes en que caen más de sus 14 días; con 7 y 7, al mes en que empieza. La que cruza el fin de año va al año donde cae la mayor parte.' },
+    { id: 'inicio', l: 'El mes en que empieza', h: 'que empiezan en', s: 'catorcenas en el mes en que empiezan',
+      d: 'Cada catorcena se carga entera al mes de su primer día (el lunes en que abre), aunque la mayor parte de sus días caiga en el mes siguiente.' },
+    { id: 'fin', l: 'El mes en que termina', h: 'que terminan en', s: 'catorcenas en el mes en que terminan',
+      d: 'Cada catorcena se carga entera al mes de su último día (el domingo en que cierra).' },
+    { id: 'pago', l: 'El mes en que se paga', h: 'que se pagan en', s: 'catorcenas en el mes en que se pagan',
+      d: 'Cada catorcena se carga entera al mes de su fecha de pago: su cierre más los días que la planilla tarda en pagar (Parámetros).' }
+  ];
   // Cuentas de la partida de planilla: lado D = gasto (Debe), H = por pagar o provisión (Haber), A = ajuste de centavos. El nombre y el código de cada una se pueden cambiar en la pestaña Presupuesto.
   DEF.presCuentas = [
     { id: 'sueldos', nom: 'Sueldos ordinarios', lado: 'D', g: 'Sueldos y bonificaciones' }, { id: 'septimo', nom: 'Séptimo día y feriados', lado: 'D', g: 'Sueldos y bonificaciones' },
@@ -2556,10 +2583,12 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     fechaIngresoDef: '',
     // Presupuesto del año siguiente (versión 27): año, calendario de turnos ('sel' = propuesta, 'act' = situación actual), sección, período de la boleta global (cat: n.º de la catorcena del año; mes), forma (por concepto o por persona),
     // grupo (todos, de turno o solo de día), granularidad de las cuentas (cat, mes, anio), si la matriz de cuentas muestra el saldo acumulado (acum), si la boleta global separa las catorcenas del mes o los meses del año (desglose),
-    // cuenta del detalle por persona, persona de los aumentos individuales, los aumentos generales (gobierno o empresa: { id, origen, alcance, fecha, modo, valor, nota, ya, reg }; los individuales están en empleado.aum)
-    // y el nombre y código de cada cuenta contable
+    // cuenta del detalle por persona, persona de los aumentos individuales, los aumentos generales (gobierno o empresa: { id, origen, alcance, fecha, modo, valor, nota, ya, reg, apl }; los individuales están en empleado.aum)
+    // y el nombre y código de cada cuenta contable. Versión 28: regla = a qué mes se carga cada catorcena ('mayor', 'inicio', 'fin' o 'pago': DEF.presReglas) y apl = diario de «Aplicar a la planilla»
+    // (una entrada por aplicación: { id, f, hoy, aum: [aumentos], det: [[persona, sueldo antes, sueldo después]] }; ver E.presNormApl en 21k-engine-presupuesto.js)
     pres: {
       anio: U.ymd(U.todayNum()).y + 1, turno: 'sel', vista: 'resumen', per: 'cat', cat: 1, mes: 1, forma: 'concepto', grupo: 'todos', gran: 'mes', acum: false, desglose: true, cuenta: 'pIndem', emp: '', aumentos: [],
+      regla: 'mayor', apl: [],
       cuentas: DEF.presCuentas.reduce((o, c) => { o[c.id] = { cod: '', nom: '' }; return o; }, {})
     },
     // Historial de impresiones (versión 18): { t: 'AAAA-MM-DD HH:MM', k: clave del documento, n: nombre, d: detalle, h: hojas (0 = sin dato) }; se anota al abrir el diálogo de impresión del navegador
@@ -6411,9 +6440,15 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   E.PRES_ORIGEN = ['gobierno', 'empresa', 'individual'];
   E.PRES_MODOS = ['pct', 'monto', 'nuevo'];
   E.PRES_ALCANCES = ['todos', 'turno', 'dia', 'A', 'B', 'C', 'D', 'E', 'F', 'LV', 'MQ'];
+  /** A qué mes (y a qué año) se carga cada catorcena del presupuesto (versión 28). La catorcena entera cuenta en un solo mes:
+      'mayor' = donde cae la mayor parte de sus 14 días (con 7 y 7, el mes en que empieza; es la regla de las versiones 27 y anteriores), 'inicio' = el mes de su primer día,
+      'fin' = el mes de su último día, 'pago' = el mes en que se paga (último día + «días que tarda la planilla en pagar»). */
+  E.PRES_REGLAS = ['mayor', 'inicio', 'fin', 'pago'];
+  const FECHA_HORA = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/;
 
   /* ---------- 1. Aumentos ---------- */
-  /** Lista de aumentos limpia (general: con origen y alcance; individual: sin ellos). Nada se descarta por tener la fecha vacía: se conserva y el cálculo la ignora hasta que se escriba. */
+  /** Lista de aumentos limpia (general: con origen y alcance; individual: sin ellos). Nada se descarta por tener la fecha vacía: se conserva y el cálculo la ignora hasta que se escriba.
+      apl (versión 28): cuándo se pasó el aumento al sueldo de la planilla con el botón «Aplicar a la planilla»; solo se conserva mientras siga marcado «ya está en el sueldo». */
   E.presNormAum = (arr, general) => {
     const out = [], vistos = new Set();
     (Array.isArray(arr) ? arr : []).slice(0, 300).forEach((a) => {
@@ -6421,11 +6456,31 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       let id = txt(a.id, 30); if (!id || vistos.has(id)) id = U.uid(); vistos.add(id);
       const f = U.parseISO(a.fecha), modo = E.PRES_MODOS.includes(a.modo) ? a.modo : 'pct';
       let valor = Math.max(0, num(a.valor, 0)); if (modo === 'pct') valor = Math.min(valor, 1000);
-      const o = { id, fecha: Number.isFinite(f) ? U.fmtISO(f) : '', modo, valor: Math.round(valor * 10000) / 10000, nota: txt(a.nota, 120), ya: a.ya === true, reg: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(String(a.reg)) ? a.reg : '' };
+      const ya = a.ya === true;
+      const o = { id, fecha: Number.isFinite(f) ? U.fmtISO(f) : '', modo, valor: Math.round(valor * 10000) / 10000, nota: txt(a.nota, 120), ya, reg: FECHA_HORA.test(String(a.reg)) ? a.reg : '' };
+      if (ya && FECHA_HORA.test(String(a.apl))) o.apl = a.apl;
       if (general) { o.origen = a.origen === 'empresa' ? 'empresa' : 'gobierno'; o.alcance = E.PRES_ALCANCES.includes(a.alcance) ? a.alcance : 'todos'; }
       out.push(o);
     });
     return out;
+  };
+  /** El diario de lo que se pasó a la planilla (S.pres.apl, versión 28): una entrada por pulsación del botón, las últimas 30.
+      { id, f: 'AAAA-MM-DD HH:MM' (cuándo se aplicó), hoy: 'AAAA-MM-DD' (la fecha con la que se decidió qué aumentos ya habían llegado),
+        aum: [{ k (clave del aumento), origen, alcance, modo, valor, fecha, nota }], det: [[id de la persona, sueldo antes, sueldo después]] }. */
+  E.presNormApl = (arr) => {
+    const out = [];
+    (Array.isArray(arr) ? arr : []).forEach((x) => {
+      if (!x || typeof x !== 'object' || !FECHA_HORA.test(String(x.f))) return;
+      const hoy = U.parseISO(x.hoy);
+      const aum = (Array.isArray(x.aum) ? x.aum : []).slice(0, 300).map((a) => {
+        if (!a || typeof a !== 'object' || !txt(a.k, 120)) return null;
+        const f = U.parseISO(a.fecha), modo = E.PRES_MODOS.includes(a.modo) ? a.modo : 'pct';
+        return { k: txt(a.k, 120), origen: E.PRES_ORIGEN.includes(a.origen) ? a.origen : 'gobierno', alcance: E.PRES_ALCANCES.includes(a.alcance) ? a.alcance : '', modo, valor: Math.round(Math.max(0, num(a.valor, 0)) * 10000) / 10000, fecha: Number.isFinite(f) ? U.fmtISO(f) : '', nota: txt(a.nota, 120) };
+      }).filter(Boolean);
+      const det = (Array.isArray(x.det) ? x.det : []).slice(0, 1500).map((d) => (Array.isArray(d) && txt(d[0], 60) ? [txt(d[0], 60), r2(Math.max(0, num(d[1], 0))), r2(Math.max(0, num(d[2], 0)))] : null)).filter(Boolean);
+      out.push({ id: txt(x.id, 30) || U.uid(), f: x.f, hoy: Number.isFinite(hoy) ? U.fmtISO(hoy) : x.f.slice(0, 10), aum, det });
+    });
+    return out.slice(-30);
   };
   /** El estado del presupuesto (S.pres): lo guardado se corrige si ya no es válido. */
   E.presNormalizar = (p) => {
@@ -6442,12 +6497,15 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     p.cuenta = DEF.presCuentas.some((c) => c.id === p.cuenta) ? p.cuenta : 'pIndem';
     p.emp = typeof p.emp === 'string' ? p.emp.slice(0, 60) : '';
     p.aumentos = E.presNormAum(p.aumentos, true);
+    p.regla = E.PRES_REGLAS.includes(p.regla) ? p.regla : 'mayor'; // a qué mes se carga cada catorcena (versión 28)
+    p.apl = E.presNormApl(p.apl); // diario de «Aplicar a la planilla» (versión 28)
     const cu = {}; DEF.presCuentas.forEach((c) => { const x = p.cuentas && typeof p.cuentas === 'object' ? p.cuentas[c.id] : null; cu[c.id] = { cod: txt(x && x.cod, 20), nom: txt(x && x.nom, 60) }; });
     p.cuentas = cu;
     return p;
   };
   /** Los aumentos que le tocan a una persona, en el orden en que se aplican: fecha, luego gobierno, empresa e individual, luego el orden en que se anotaron.
-      o = { sinAumentos, origenes: [..] (solo esos), hasta: número de día (los posteriores no cuentan) }. Los marcados «ya está en el sueldo» no se aplican. */
+      o = { sinAumentos, origenes: [..] (solo esos), hasta: número de día (los posteriores no cuentan) }. Los marcados «ya está en el sueldo» no se aplican.
+      Cada aumento trae su clave (k: ver E.presClaveAum), la persona a la que se le anotó (emp, solo en los individuales) y su posición en el orden (ver E.presCmpAum). */
   E.presAumentosDe = (emp, S, o) => {
     o = o || {};
     if (o.sinAumentos || !emp) return [];
@@ -6455,10 +6513,18 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const aplica = (a) => a.alcance === 'todos' || (a.alcance === 'turno' && turno) || (a.alcance === 'dia' && dia) || a.alcance === crew;
     const lst = [];
     ((S && S.pres && S.pres.aumentos) || []).forEach((a, i) => { if (!a.ya && aplica(a)) lst.push(Object.assign({ via: 'general', orden: i }, a)); });
-    (emp.aum || []).forEach((a, i) => { if (!a.ya) lst.push(Object.assign({ via: 'individual', origen: 'individual', orden: 10000 + i }, a)); });
-    return lst.map((a) => Object.assign(a, { dia: U.parseISO(a.fecha) }))
+    (emp.aum || []).forEach((a, i) => { if (!a.ya) lst.push(Object.assign({ via: 'individual', origen: 'individual', orden: 10000 + i, emp: emp.id }, a)); });
+    return lst.map((a) => Object.assign(a, { dia: U.parseISO(a.fecha), k: E.presClaveAum(a) }))
       .filter((a) => Number.isFinite(a.dia) && (!o.origenes || o.origenes.includes(a.origen)) && (o.hasta === undefined || a.dia <= o.hasta))
-      .sort((a, b) => a.dia - b.dia || E.PRES_ORIGEN.indexOf(a.origen) - E.PRES_ORIGEN.indexOf(b.origen) || a.orden - b.orden);
+      .sort(E.presCmpAum);
+  };
+  /** Clave de un aumento: «g:» + su id si es general; «i:» + la persona + «:» + su id si es individual (los ids de dos personas pueden coincidir al copiar una ficha). */
+  E.presClaveAum = (a) => (a.via === 'individual' ? 'i:' + a.emp + ':' : 'g:') + a.id;
+  /** El orden en que se aplican los aumentos: fecha (dia), luego gobierno, empresa e individual, luego el orden en que se anotaron (entre dos individuales de distinta persona, por la persona,
+      solo para que el orden sea siempre el mismo). */
+  E.presCmpAum = (a, b) => {
+    const ea = a.emp || '', eb = b.emp || '';
+    return a.dia - b.dia || E.PRES_ORIGEN.indexOf(a.origen) - E.PRES_ORIGEN.indexOf(b.origen) || (ea < eb ? -1 : ea > eb ? 1 : 0) || a.orden - b.orden;
   };
   /** El sueldo después de un aumento: % (sobre el sueldo del momento), Q más al mes o sueldo nuevo (solo si es mayor: nunca baja el sueldo). A centavos. */
   E.presAplicar = (s, a) => r2(a.modo === 'monto' ? s + num(a.valor) : a.modo === 'nuevo' ? Math.max(s, num(a.valor)) : s * (1 + num(a.valor) / 100));
@@ -6482,19 +6548,23 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   };
 
   /* ---------- 2. Calendario del año ---------- */
-  /** Las catorcenas del año del presupuesto (las que EMPIEZAN en el año, con la numeración de la planilla real) y las 24 quincenas del personal mensual.
-      Cada catorcena cuenta en el mes donde cae la mayor parte de sus 14 días (con 7 y 7, el mes en que empieza); la que cruza el año se queda en el año del presupuesto. */
+  /** La regla con la que se carga cada catorcena a un mes (S.pres.regla): una de E.PRES_REGLAS; 'mayor' si falta o no es válida. */
+  E.presRegla = (S) => (S && S.pres && E.PRES_REGLAS.includes(S.pres.regla) ? S.pres.regla : 'mayor');
+  /** La fecha (número de día) que decide el mes y el año de una catorcena según la regla: 'inicio' = su primer día; 'mayor' = su séptimo día (si el mes cambia a mitad de la catorcena,
+      el séptimo día está en el mes en que cae la mayor parte de los 14 días; con 7 y 7, en el mes en que empieza); 'fin' = su último día; 'pago' = su fecha de pago. */
+  E.presFechaCat = (P, cat, regla) => (regla === 'inicio' ? cat.ini : regla === 'fin' ? cat.fin : regla === 'pago' ? E.pagoCat(P, cat) : cat.ini + 6);
+  /** Las catorcenas del año del presupuesto y las 24 quincenas del personal mensual. Cada catorcena cuenta ENTERA en un solo mes y un solo año, el de su fecha según la regla (E.presFechaCat):
+      con 'inicio' (o 'mayor'), las que empiezan (o tienen su mayor parte) en el año; con 'fin' o 'pago', las que terminan o se pagan en el año. Mantienen la numeración de la planilla real: la que se
+      carga a enero pero empezó en diciembre conserva el número del año anterior. Cada catorcena trae `fecha` (la que decide), `pago` y `mes` (1 a 12, del año del presupuesto). */
   E.presCalendario = (S, anio) => {
-    const cats = E.catorcenasAnio(S, anio, false).map((c, i) => {
-      const cuenta = {};
-      for (let d = c.ini; d <= c.fin; d++) { const y = U.ymd(d), key = y.y * 100 + y.m; cuenta[key] = (cuenta[key] || 0) + 1; }
-      let mejor = null; Object.keys(cuenta).forEach((k) => { if (mejor === null || cuenta[k] > cuenta[mejor]) mejor = k; });
-      let m = mejor % 100; const y = Math.floor(mejor / 100);
-      if (y < anio) m = 1; else if (y > anio) m = 12;
-      return Object.assign({}, c, { i, mes: m });
-    });
+    const P = S.params, regla = E.presRegla(S), a = U.dayNum(anio, 1, 1), b = U.dayNum(anio, 12, 31), A = E.anclaCat(S), off = E.presFechaCat(P, { ini: 0, fin: 13 }, regla);
+    const cats = [];
+    for (let k = Math.ceil((a - off - A) / 14); k <= Math.floor((b - off - A) / 14); k++) {
+      const c = E.catorcena(S, k), fecha = E.presFechaCat(P, c, regla);
+      cats.push(Object.assign({}, c, { i: cats.length, fecha, pago: E.pagoCat(P, c), mes: U.ymd(fecha).m }));
+    }
     const quincenas = []; for (let m = 1; m <= 12; m++) [1, 2].forEach((q) => quincenas.push(E.quincena(anio, m, q)));
-    return { anio, ini: U.dayNum(anio, 1, 1), fin: U.dayNum(anio, 12, 31), cats, quincenas };
+    return { anio, regla, ini: a, fin: b, cats, quincenas };
   };
 
   /* ---------- 3. Una línea por persona y período ---------- */
@@ -6773,6 +6843,128 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
 ;
 /* ============================================================
+   21l-engine-presupuesto-aplicar.js — «Aplicar a la planilla» (versión 28). Sin DOM.
+   Cuando llega la fecha de un aumento hay que pasarlo al sueldo real de cada persona (ficha → Sueldo) y marcarlo «ya está en el sueldo»: así el presupuesto no lo cuenta dos veces.
+   (1) E.presPlan: qué cambiaría —los aumentos que ya llegaron y todavía no están aplicados, y el sueldo de cada persona antes y después—, sin tocar nada.
+   (2) E.presAplicarPlan: lo hace (sueldo de las fichas, aumentos marcados con la fecha y la hora, una entrada en el diario S.pres.apl).
+   (3) E.presRevertible / E.presRevertirPlan: deshace la última aplicación si nadie volvió a cambiar esos sueldos.
+   (4) E.presProximo: el próximo aumento que todavía no llega.
+   Se aplican en el mismo orden y con las mismas cuentas que el presupuesto (E.presPasos): fecha, luego gobierno, empresa e individual, a centavos. Por eso un aumento
+   aplicado no mueve el presupuesto de un año posterior: el sueldo base ya lo trae.
+   ============================================================ */
+(function (g) {
+  'use strict';
+  const SM = g.SM, U = SM.U, E = SM.E;
+  const num = U.num, r2 = U.r2;
+
+  /** El estado de un aumento anotado frente a hoy (número de día): 'aplicado' (se pasó con el botón), 'ya' (marcado a mano como ya incluido en el sueldo), 'sin-fecha', 'sin-valor'
+      (el valor es cero: todavía no se escribió), 'llego' (la fecha ya llegó y falta pasarlo a la planilla) o 'futuro' (la fecha todavía no llega). */
+  E.presEstadoAum = (a, hoy) => {
+    if (a.ya) return a.apl ? 'aplicado' : 'ya';
+    const d = U.parseISO(a.fecha);
+    if (!Number.isFinite(d)) return 'sin-fecha';
+    if (!(num(a.valor) > 0)) return 'sin-valor';
+    return d <= hoy ? 'llego' : 'futuro';
+  };
+
+  /** Todos los aumentos anotados (generales y los individuales de las personas dadas) como una sola lista, cada uno con su clave (k), su día (dia), su posición en el orden (orden) y su estado frente a hoy. */
+  E.presTodosAum = (S, emps, hoy) => {
+    const lst = [];
+    ((S.pres && S.pres.aumentos) || []).forEach((a, i) => lst.push(Object.assign({ via: 'general', orden: i }, a)));
+    (emps || []).forEach((emp) => (emp.aum || []).forEach((a, i) => lst.push(Object.assign({ via: 'individual', origen: 'individual', orden: 10000 + i, emp: emp.id }, a))));
+    return lst.map((a) => Object.assign(a, { dia: U.parseISO(a.fecha), k: E.presClaveAum(a), estado: E.presEstadoAum(a, hoy) }));
+  };
+  /** Un aumento por su clave (ver E.presClaveAum), o null. */
+  E.presAumPorClave = (S, emps, k, hoy) => E.presTodosAum(S, emps, hoy).find((a) => a.k === k) || null;
+
+  /** ¿El aumento R entra cuando se aplica «hasta» el aumento K? Entran los que van antes de K en el orden de aplicación (fecha, gobierno, empresa, individual) y K mismo. El mismo día, el aumento
+      individual de OTRA persona no entra (no depende de K). */
+  const entra = (R, K) => !K || (R.via === 'individual' && K.via === 'individual' && R.emp !== K.emp ? R.dia < K.dia : E.presCmpAum(R, K) <= 0);
+
+  /** Lo que pasaría al aplicar a la planilla los aumentos que ya llegaron, sin tocar nada.
+      o = { hoy: número de día (por omisión, hoy), hasta: clave de un aumento (solo hasta ese, con los que se aplican antes) }.
+      Devuelve { hoy, hasta, aums, personas, n, cambian, delta, sinSueldo }:
+        aums = los aumentos que se pasarían, en el orden en que se aplican, cada uno con n (personas a las que les cambia el sueldo) y delta (Q más al mes en total);
+        personas = quienes tienen algo que aplicar: { emp, id, antes, despues, delta, cambia, pasos: [{ k, antes, despues }] }; sinSueldo = personas con aumentos pero sin sueldo en la ficha (no se les toca). */
+  E.presPlan = (S, emps, o) => {
+    o = o || {};
+    const hoy = Number.isFinite(o.hoy) ? o.hoy : U.todayNum();
+    const todos = E.presTodosAum(S, emps, hoy), K = o.hasta ? todos.find((a) => a.k === o.hasta) || null : null;
+    const aums = todos.filter((a) => a.estado === 'llego' && entra(a, K)).sort(E.presCmpAum);
+    const claves = new Set(aums.map((a) => a.k)), por = {};
+    aums.forEach((a) => { a.n = 0; a.delta = 0; por[a.k] = a; });
+    const personas = [], sinSueldo = [];
+    (emps || []).forEach((emp) => {
+      const s0 = r2(num(emp.sueldo));
+      const pasos = E.presPasos(emp, S, { hasta: hoy }).filter((p) => claves.has(p.a.k));
+      if (!pasos.length) return;
+      if (!(s0 > 0)) { sinSueldo.push(emp); return; }
+      const despues = pasos[pasos.length - 1].despues;
+      personas.push({ emp, id: emp.id, antes: s0, despues, delta: r2(despues - s0), cambia: Math.abs(despues - s0) >= 0.005, pasos: pasos.map((p) => ({ k: p.a.k, antes: p.antes, despues: p.despues })) });
+      pasos.forEach((p) => { if (!p.sinEfecto && por[p.a.k]) { por[p.a.k].n++; por[p.a.k].delta = r2(por[p.a.k].delta + p.delta); } });
+    });
+    return { hoy, hasta: K ? K.k : '', aums, personas, n: personas.length, cambian: personas.filter((p) => p.cambia).length, delta: r2(personas.reduce((s, p) => s + p.delta, 0)), sinSueldo };
+  };
+
+  /** Pasa el plan a la planilla. ahora = { f: 'AAAA-MM-DD HH:MM', hoy: 'AAAA-MM-DD' }. poner(emp, patch) cambia a la persona (patch: { sueldo, aum }) y lo guarda: quien llama decide cómo
+      (en pantalla, SM.updEmp). Los aumentos generales se cambian aquí mismo (S.pres.aumentos); quien llama guarda el estado después. Devuelve la entrada del diario, o null si no había nada. */
+  E.presAplicarPlan = (S, emps, plan, ahora, poner) => {
+    if (!plan || !plan.aums.length) return null;
+    const claves = new Set(plan.aums.map((a) => a.k)), nuevo = new Map(plan.personas.filter((p) => p.cambia).map((p) => [p.id, p.despues]));
+    (emps || []).forEach((emp) => {
+      const patch = {};
+      if (nuevo.has(emp.id)) patch.sueldo = nuevo.get(emp.id);
+      if ((emp.aum || []).some((a) => claves.has('i:' + emp.id + ':' + a.id))) patch.aum = emp.aum.map((a) => (claves.has('i:' + emp.id + ':' + a.id) ? Object.assign({}, a, { ya: true, apl: ahora.f }) : a));
+      if (Object.keys(patch).length) poner(emp, patch);
+    });
+    S.pres.aumentos.forEach((a) => { if (claves.has('g:' + a.id)) { a.ya = true; a.apl = ahora.f; } });
+    const entrada = {
+      id: U.uid(), f: ahora.f, hoy: ahora.hoy,
+      aum: plan.aums.map((a) => ({ k: a.k, origen: a.origen, alcance: a.alcance || '', modo: a.modo, valor: a.valor, fecha: a.fecha, nota: a.nota || '' })),
+      det: plan.personas.filter((p) => p.cambia).map((p) => [p.id, p.antes, p.despues])
+    };
+    S.pres.apl = E.presNormApl((S.pres.apl || []).concat([entrada]));
+    return entrada;
+  };
+
+  /** ¿Se puede deshacer la última aplicación? Solo si el sueldo de cada persona que sigue en la planilla es todavía el que dejó esa aplicación (nadie lo volvió a cambiar).
+      Devuelve { ok, entrada, cambiaron: [personas cuyo sueldo ya no es ese] }; sin aplicaciones, { ok: false, entrada: null }. */
+  E.presRevertible = (S, emps) => {
+    const l = (S.pres && S.pres.apl) || [];
+    if (!l.length) return { ok: false, entrada: null, cambiaron: [] };
+    const entrada = l[l.length - 1], por = new Map((emps || []).map((e) => [e.id, e])), cambiaron = [];
+    entrada.det.forEach((d) => { const emp = por.get(d[0]); if (emp && Math.abs(num(emp.sueldo) - d[2]) >= 0.005) cambiaron.push(emp); });
+    return { ok: !cambiaron.length, entrada, cambiaron };
+  };
+  /** Deshace la última aplicación: devuelve el sueldo anterior a cada persona, quita la marca «ya está en el sueldo» de esos aumentos y borra la entrada del diario. Mismos poner que E.presAplicarPlan. */
+  E.presRevertirPlan = (S, emps, poner) => {
+    const rv = E.presRevertible(S, emps);
+    if (!rv.ok) return rv;
+    const e = rv.entrada, claves = new Set(e.aum.map((a) => a.k)), antes = new Map(e.det.map((d) => [d[0], d[1]]));
+    const marcado = (emp, a) => a.ya && claves.has('i:' + emp.id + ':' + a.id);
+    (emps || []).forEach((emp) => {
+      const patch = {};
+      if (antes.has(emp.id)) patch.sueldo = antes.get(emp.id);
+      if ((emp.aum || []).some((a) => marcado(emp, a))) patch.aum = emp.aum.map((a) => { if (!marcado(emp, a)) return a; const b = Object.assign({}, a, { ya: false }); delete b.apl; return b; });
+      if (Object.keys(patch).length) poner(emp, patch);
+    });
+    S.pres.aumentos.forEach((a) => { if (a.ya && claves.has('g:' + a.id)) { a.ya = false; delete a.apl; } });
+    S.pres.apl = S.pres.apl.slice(0, -1);
+    return rv;
+  };
+
+  /** El próximo aumento que todavía no llega: los de la fecha más cercana después de hoy (con fecha y valor). { dia, dias (cuántos días faltan), aums } o null si no hay. */
+  E.presProximo = (S, emps, hoy) => {
+    hoy = Number.isFinite(hoy) ? hoy : U.todayNum();
+    const fut = E.presTodosAum(S, emps, hoy).filter((a) => a.estado === 'futuro');
+    if (!fut.length) return null;
+    const dia = Math.min.apply(null, fut.map((a) => a.dia));
+    return { dia, dias: dia - hoy, aums: fut.filter((a) => a.dia === dia).sort(E.presCmpAum) };
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+
+;
+/* ============================================================
    22-selftests.js — autopruebas del motor. Se ejecutan en Node
    (tests/engine.test.js) y dentro del propio simulador
    (pestaña Validación → "Ejecutar autopruebas").
@@ -6842,8 +7034,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const s = mk();
     ['r1111', 'r2222', 'r6x2', 'r3131'].forEach((id) => ['adelante', 'atras'].forEach((v) => eq(E.cobertura(E.modelo(s, id), v, s.codigos).horasSinCobertura, 0, id + '/' + v)));
   });
-  T('Turnos', 'Rotación vigente: 3 h sin cobertura por ciclo de 21 días (puentes T11/M12 = 23 h); supuesto de horarios', () => {
-    const s = mk(); eq(E.cobertura(E.modelo(s, 'inf'), 'atras', s.codigos).horasSinCobertura, 3);
+  T('Turnos', 'Rotación vigente: cubre las 24 h (puentes T11 de 06:00 a 18:00 con 1 h de almuerzo y M12 de 18:00 a 06:00 = 11 + 12 = 23 h pagadas); con el T11 supuesto de 07:00 quedaban 3 h sin cobertura por ciclo de 21 días', () => {
+    const s = mk(); eq(E.cobertura(E.modelo(s, 'inf'), 'atras', s.codigos).horasSinCobertura, 0);
+    eq(s.codigos.T11.ini + '–' + s.codigos.T11.fin, '06:00–18:00'); eq(E.almuerzoDe(s.codigos.T11).horas, 1, 'el T11 tiene 1 h de almuerzo sin pago');
+    s.codigos.T11.ini = '07:00'; eq(E.cobertura(E.modelo(s, 'inf'), 'atras', s.codigos).horasSinCobertura, 3, 'con el supuesto anterior');
   });
   T('Turnos', 'Horas extra promedio por día (ciclo completo)', () => {
     const s = mk(), x = (id, v) => E.ciclo(E.modelo(s, id), v, s.codigos).extDia;
@@ -6861,7 +7055,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   });
   T('Turnos', 'Descansos entre turnos: 1-1-1-1 adelante ≥ 24 h; hacia atrás tiene un relevo de 8 h', () => {
     const s = mk(), mn = (id, v) => Math.min(...E.gaps(E.modelo(s, id), v, s.codigos).map((x) => x.horas));
-    eq(mn('r1111', 'adelante'), 24); eq(mn('r1111', 'atras'), 8); eq(mn('inf', 'atras'), 10);
+    eq(mn('r1111', 'adelante'), 24); eq(mn('r1111', 'atras'), 8); eq(mn('inf', 'atras'), 9); // rotación vigente: la última tarde termina a las 21:00 y el T11 empieza a las 06:00 (con el supuesto de 07:00 eran 10 h)
   });
   T('Turnos', 'Validador: la rotación vigente falla en descanso y noches; 1-1-1-1 hacia adelante no presenta fallas', () => {
     const s = mk(), V = (id, v) => E.validar(E.modelo(s, id), v, s.codigos, U.parseISO(s.fechaInicio));
@@ -7060,11 +7254,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   });
 
   /* ---------- alertas sobre el calendario real ---------- */
-  T('Alertas', 'Rotación vigente: marca la 4.ª noche seguida, el 7.º día sin descanso y el relevo de 10 h', () => {
+  T('Alertas', 'Rotación vigente: marca la 4.ª noche seguida, el 7.º día sin descanso y el relevo de 9 h (la tarde termina a las 21:00 y el T11 empieza a las 06:00)', () => {
     const s = mk(), R = E.ctx(s, 'act'), a = E.alertas(R, E.roster(R, 21)).filter((x) => x.crew === 'A');
     ok(a.some((x) => x.tipo === 'noches' && x.dn === R.start + 3), 'noches');
     ok(a.some((x) => x.tipo === 'racha' && x.dn === R.start + 13), 'racha');
-    ok(a.some((x) => x.tipo === 'descanso' && Math.abs(x.horas - 10) < 1e-9), 'descanso de 10 h');
+    ok(a.some((x) => x.tipo === 'descanso' && Math.abs(x.horas - 9) < 1e-9), 'descanso de 9 h');
   });
   T('Alertas', '1-1-1-1 hacia adelante no genera alertas; hacia atrás sí (relevos de 8 y 9 h)', () => {
     const s = mk(); s.modeloId = 'r1111'; s.variante = 'adelante';
@@ -9468,13 +9662,16 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   const penDe = (r) => { const o = {}; r.checks.forEach((c) => { if (c.pen) o[c.id] = c.pen; }); return o; };
 
   /* ---------- Salud del turno ---------- */
-  T('Glosario (v20)', 'Salud del turno: la rotación vigente suma 100 − 12 − 30 − 16 − 8 − 10 − 5 − 5 = 14, y cada regla informa sus puntos', () => {
+  T('Glosario (v20)', 'Salud del turno: la rotación vigente suma 100 − 30 − 16 − 8 − 10 − 5 − 5 = 26 (con el T11 de 06:00 a 18:00 la cobertura cumple y ya no descuenta los 12 puntos), y cada regla informa sus puntos', () => {
     const r = V(mk(), 'inf', 'atras'), p = penDe(r);
-    const esperado = { cobertura: 12, descanso: 30, noches: 16, gap: 8, dir: 10, semanal: 5, noche9: 5 };
+    const esperado = { descanso: 30, noches: 16, gap: 8, dir: 10, semanal: 5, noche9: 5 };
     Object.keys(esperado).forEach((k) => near(p[k], esperado[k], 1e-9, 'puntos de ' + k));
     eq(Object.keys(p).length, Object.keys(esperado).length, 'reglas que descuentan');
-    near(Object.keys(p).reduce((a, k) => a + p[k], 0), 86, 1e-9, 'suma');
-    near(r.met.penTotal, 86, 1e-9, 'penTotal'); near(r.met.scoreExacto, 14, 1e-9, 'puntaje exacto'); eq(r.score, 14);
+    near(Object.keys(p).reduce((a, k) => a + p[k], 0), 74, 1e-9, 'suma');
+    near(r.met.penTotal, 74, 1e-9, 'penTotal'); near(r.met.scoreExacto, 26, 1e-9, 'puntaje exacto'); eq(r.score, 26);
+    // con el supuesto anterior (T11 de 07:00 a 18:00) quedaban 3 h sin cubrir y la cobertura descontaba 12 puntos: 100 − 12 − 30 − 16 − 8 − 10 − 5 − 5 = 14
+    const s0 = mk(); s0.codigos.T11.ini = '07:00'; const r0 = V(s0, 'inf', 'atras'), p0 = penDe(r0);
+    near(p0.cobertura, 12, 1e-9, 'cobertura con el supuesto anterior'); eq(r0.score, 14, 'puntaje con el supuesto anterior');
   });
   T('Glosario (v20)', 'Un ciclo que cumple todas las reglas no descuenta puntos y queda en 100', () => {
     const r = V(mk(), 'r1111', 'adelante');
@@ -10040,8 +10237,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     near(dia(a, d0 + 6).w, 11, 1e-9); near(dia(a, d0 + 6).ord, 0); near(dia(a, d0 + 6).ext, 11, 1e-9); near(a.adic, 11, 1e-9);
   });
   T('Los turnos largos del catálogo (T11 y M12) siguen su definición: todas las horas son extra y salen como las del calendario', () => {
-    const s = mk(), b = em('b', '102', 'B'), c = em('c', '103', 'C'), d0 = E.catorcena(s, 0).ini, d6 = d0 + 6; // el 1 de noviembre B hace el T11 (07:00 a 18:00) y C el M12 (18:00 a 06:00)
-    let p = pers(corre(s, [b], [['Código', 'Entrada', 'Salida'], ['102', f2(d6) + ' 07:03', f2(d6) + ' 18:00']]), '102'); eq(dia(p, d6).sched, 'T11'); eq(dia(p, d6).cod, 'T11'); near(dia(p, d6).w, 11, 1e-9); near(dia(p, d6).ord, 0); near(dia(p, d6).rot, 11, 1e-9); near(dia(p, d6).adic, 0); ok(!hay(p, 'largo'));
+    const s = mk(), b = em('b', '102', 'B'), c = em('c', '103', 'C'), d0 = E.catorcena(s, 0).ini, d6 = d0 + 6; // el 1 de noviembre B hace el T11 (06:00 a 18:00, con 1 h de almuerzo sin pago desde la versión 28) y C el M12 (18:00 a 06:00)
+    let p = pers(corre(s, [b], [['Código', 'Entrada', 'Salida'], ['102', f2(d6) + ' 06:03', f2(d6) + ' 18:00']]), '102'); eq(dia(p, d6).sched, 'T11'); eq(dia(p, d6).cod, 'T11'); near(dia(p, d6).w, 11, 1e-9); near(dia(p, d6).ord, 0); near(dia(p, d6).rot, 11, 1e-9); near(dia(p, d6).adic, 0); ok(!hay(p, 'largo'));
     p = pers(corre(s, [c], [['Código', 'Entrada', 'Salida'], ['103', f2(d6) + ' 18:00', f2(d6 + 1) + ' 06:00']]), '103'); eq(dia(p, d6).sched, 'M12'); eq(dia(p, d6).cod, 'M12'); near(dia(p, d6).w, 12, 1e-9); near(dia(p, d6).rot, 12, 1e-9);
   });
   T('Pausa marcada y almuerzo del turno: dos tramos cercanos son una jornada que descuenta la pausa; sin pausa, se descuenta el almuerzo que el turno tiene previsto', () => {
@@ -11276,12 +11473,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     eq(cal.cats[0].mes + ',' + cal.cats[1].mes, '1,1', 'las catorcenas 1 y 2 son de enero');
     eq(U.fmtISO(cal.cats[6].ini) + ' m' + cal.cats[6].mes, '2027-03-29 m4', 'la que empieza el 29 de marzo tiene 11 de sus 14 días en abril');
   });
-  T('La catorcena que cruza el año se queda en el año del presupuesto (diciembre) y los meses siempre van de 1 a 12', () => {
-    const S = mk((s) => { s.catorcenaAncla = '2027-12-27'; });
+  T('La catorcena que cruza el año va al año de su regla (desde la versión 28, con la regla «mayor parte de sus días» la del 27 de diciembre ya es de enero de 2028; con «inicio» se queda en diciembre) y los meses siempre van de 1 a 12', () => {
+    const S = mk((s) => { s.catorcenaAncla = '2027-12-27'; s.pres.regla = 'inicio'; });
     const cal = E.presCalendario(S, 2027), ult = cal.cats[cal.cats.length - 1];
-    eq(U.fmtISO(ult.ini), '2027-12-27', 'empieza el 27 de diciembre'); eq(ult.mes, 12, 'más de la mitad cae en enero de 2028, pero cuenta en diciembre');
+    eq(U.fmtISO(ult.ini), '2027-12-27', 'empieza el 27 de diciembre'); eq(ult.mes, 12, 'más de la mitad cae en enero de 2028, pero con «inicio» cuenta en diciembre');
     ok(cal.cats.every((c) => c.mes >= 1 && c.mes <= 12), 'meses válidos');
-    eq(E.presCalendario(S, 2027).cats.reduce((a, c) => a + 1, 0), cal.cats.length);
+    const S2 = mk((s) => { s.catorcenaAncla = '2027-12-27'; }), cal2 = E.presCalendario(S2, 2027);
+    eq(U.fmtISO(cal2.cats[cal2.cats.length - 1].ini), '2027-12-13', 'con la regla por omisión la del 27 de diciembre (9 de sus 14 días en enero) es del año siguiente'); ok(cal2.cats.every((c) => c.mes >= 1 && c.mes <= 12), 'meses válidos');
   });
 
   /* ---------- 4. Las boletas de toda la planilla ---------- */
@@ -11509,6 +11707,281 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     eq('aum' in SM.normalizeEmp({ id: 'y' }), false, 'sin aumentos no hay clave'); eq('aum' in SM.normalizeEmp({ id: 'z', aum: [] }), false); eq('aum' in DEF.emp(), false, 'no está entre los valores de fábrica');
     eq(DEF.presCuentas.filter((c) => c.lado === 'D').length, 12); eq(DEF.presCuentas.filter((c) => c.lado === 'H').length, 9); eq(DEF.presCuentas.filter((c) => c.lado === 'A').length, 1);
     ok(DEF.presCuentas.every((c) => E.PRES_CTA[c.id]), 'cada cuenta tiene su cálculo'); eq(new Set(DEF.presCuentas.map((c) => c.id)).size, DEF.presCuentas.length, 'ids únicos');
+  });
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+
+;
+/* ============================================================
+   22r-selftests-v28.js — autopruebas de la versión 28.
+   (1) El puente de día T11 es de 06:00 a 18:00 con 1 h de almuerzo sin pago (lo confirmó la planta): catálogo, estados guardados con el supuesto anterior y cobertura de las 24 horas;
+   (2) A qué mes (y año) se carga cada catorcena del presupuesto: las cuatro reglas (mayor parte de sus días, inicio, fin y pago), el calendario de cada una y lo que cambia en los totales;
+   (3) «Aplicar a la planilla»: qué aumentos ya llegaron, el plan con el sueldo antes y después de cada persona, el orden, «hasta este aumento», aplicar, que el presupuesto no cambie y deshacer;
+   (4) Lo guardado: la regla, el diario de aplicaciones y la marca de cuándo se aplicó cada aumento.
+   La pantalla, la impresión y la persistencia en IndexedDB se prueban en el navegador (tests/e2e_v28.js).
+   Se ejecutan en Node (tests/engine.test.js) y dentro del simulador (Validación → «Ejecutar autopruebas»).
+   ============================================================ */
+(function (g) {
+  'use strict';
+  const SM = g.SM, U = SM.U, E = SM.E, DEF = SM.DEF;
+  const tests = SM.tests;
+  const G = 'Turnos, mes de las catorcenas y aplicar aumentos (v28)';
+  const T = (nombre, fn) => tests.push({ grupo: G, nombre, fn });
+  const eq = (a, b, msg) => { if (a !== b) throw new Error((msg || 'eq') + ': esperado ' + JSON.stringify(b) + ' y se obtuvo ' + JSON.stringify(a)); };
+  const ok = (c, msg) => { if (!c) throw new Error(msg || 'condición falsa'); };
+  const r2 = U.r2;
+  const mk = (f) => { const s = SM.normalizeState({ fechaInicio: '2026-10-12', catorcenaAncla: '2026-10-12' }); if (f) f(s); SM.normalizeParams(s.params); return s; };
+  const D = (iso) => U.parseISO(iso);
+  const persona = (o) => SM.normalizeEmp(Object.assign({ id: 'e1', codigo: '1', nombre: 'Uno', cargo: 'Electricista', cuadrilla: 'A', sueldo: 5001.6, fechaIngreso: '2016-09-05' }, o || {}));
+  const gen = (o) => Object.assign({ id: 'g' + Math.random().toString(36).slice(2, 6), origen: 'gobierno', alcance: 'todos', fecha: '2027-01-01', modo: 'pct', valor: 0, nota: '', ya: false, reg: '' }, o);
+  const ind = (o) => Object.assign({ id: 'i' + Math.random().toString(36).slice(2, 6), fecha: '2027-01-01', modo: 'pct', valor: 0, nota: '', ya: false, reg: '' }, o);
+  const conAum = (lst, f) => mk((s) => { s.pres.aumentos = E.presNormAum(lst, true); if (f) f(s); });
+  const tres = () => [persona({}), persona({ id: 'e2', nombre: 'Dos', cuadrilla: 'LV', sueldo: 4200 }), persona({ id: 'e3', nombre: 'Tres', cuadrilla: 'MQ', sueldo: 7000 })];
+  const calc = (S, emps, o) => E.presCalcular(S, emps, Object.assign({ anio: 2027, which: 'sel' }, o || {}));
+  const anio = (p) => E.presTotalPersona(p, { t: 'anio' });
+  /** Cuenta de catorcenas por mes (12 números) del calendario de un año con una regla. */
+  const porMes = (cal) => { const a = Array(12).fill(0); cal.cats.forEach((c) => { a[c.mes - 1]++; }); return a.join(); };
+  const regla = (r) => mk((s) => { s.pres.regla = r; });
+  /** Aplica el plan como lo hace la pantalla: cada cambio de una persona pasa por la normalización de la ficha. */
+  const poner = (emp, patch) => { Object.assign(emp, SM.normalizeEmp(Object.assign({}, emp, patch))); };
+  const AHORA = { f: '2027-02-01 09:30', hoy: '2027-02-01' };
+  const near2 = (a, b, msg) => { if (!(Math.abs(a - b) <= 0.02)) throw new Error((msg || 'near') + ': esperado ≈' + b + ' y se obtuvo ' + a); };
+
+  /* ---------- 1. El puente de día T11 ---------- */
+  T('T11: de 06:00 a 18:00 con 11 h pagadas y 1 h de almuerzo sin pago a las 12:00 (confirmado por la planta)', () => {
+    const t = DEF.codigos.T11;
+    eq(t.ini, '06:00'); eq(t.fin, '18:00'); eq(t.ord + t.ext, 11, 'horas pagadas'); eq(t.almIni, '12:00');
+    const a = E.almuerzoDe(t); eq(a.ini, 12 * 60); eq(a.fin, 13 * 60); eq(a.horas, 1);
+    eq(SM.normalizeState({}).codigos.T11.ini, '06:00', 'un estado nuevo parte del horario confirmado');
+  });
+  T('T11: un estado guardado con el supuesto anterior (07:00 a 18:00 sin hora de almuerzo) pasa al horario confirmado una sola vez; el que el usuario cambió se conserva', () => {
+    const viejo = { codigos: { T11: { nombre: 'Puente de día 11 h (supuesto 07:00–18:00)', ini: '07:00', fin: '18:00', ord: 0, ext: 11, fila: 'T', tipo: 'diurna', color: '#78aedb' } } };
+    const n = SM.normalizeState(viejo).codigos.T11;
+    eq(n.ini, '06:00'); eq(n.almIni, '12:00'); eq(n.nombre, DEF.codigos.T11.nombre, 'el nombre del supuesto se reemplaza');
+    eq(SM.normalizeState(SM.normalizeState(viejo)).codigos.T11.ini, '06:00', 'volver a normalizar no cambia nada');
+    const propio = SM.normalizeState({ codigos: { T11: Object.assign({}, viejo.codigos.T11, { ini: '08:00' }) } }).codigos.T11;
+    eq(propio.ini, '08:00', 'un horario que el usuario escribió se conserva');
+    const vuelto = SM.normalizeState({ codigos: { T11: Object.assign({}, viejo.codigos.T11, { almIni: '12:00' }) } }).codigos.T11;
+    eq(vuelto.ini, '07:00', 'quien ya trae la hora de almuerzo (estado de la versión 28) y vuelve a escribir 07:00 lo conserva');
+  });
+  T('T11: con el horario confirmado la rotación vigente cubre las 24 horas del día', () => {
+    const S = mk(), r = E.validar(E.modelo(S, 'inf'), 'atras', S.codigos, D(S.fechaInicio)), pen = {};
+    r.checks.forEach((c) => { if (c.pen) pen[c.id] = c.pen; });
+    ok(pen.cobertura === undefined, 'la cobertura no descuenta puntos: ' + pen.cobertura);
+    const S0 = mk((s) => { s.codigos.T11.ini = '07:00'; }), r0 = E.validar(E.modelo(S0, 'inf'), 'atras', S0.codigos, D(S0.fechaInicio)), c0 = r0.checks.find((c) => c.id === 'cobertura');
+    ok(c0 && c0.pen > 0, 'con el supuesto anterior (07:00) quedaban horas sin cubrir');
+  });
+
+  /* ---------- 2. A qué mes se carga cada catorcena ---------- */
+  T('Reglas: «mayor parte de sus días» es la predeterminada y lo inválido vuelve a ella; el estado conserva las otras tres', () => {
+    eq(DEF.state().pres.regla, 'mayor'); eq(E.PRES_REGLAS.join(), 'mayor,inicio,fin,pago'); eq(DEF.presReglas.map((r) => r.id).join(), E.PRES_REGLAS.join());
+    eq(SM.normalizeState({}).pres.regla, 'mayor'); eq(SM.normalizeState({ pres: { regla: 'otra' } }).pres.regla, 'mayor'); eq(SM.normalizeState({ pres: { regla: 5 } }).pres.regla, 'mayor');
+    E.PRES_REGLAS.forEach((r) => eq(SM.normalizeState({ pres: { regla: r } }).pres.regla, r, r));
+    eq(E.presRegla({}), 'mayor'); eq(E.presRegla({ pres: { regla: 'fin' } }), 'fin'); eq(E.presRegla({ pres: { regla: 'x' } }), 'mayor');
+  });
+  T('Regla «mayor parte de sus días» (la de siempre) en 2027: 26 catorcenas desde el 4 de enero, dos o tres por mes (mayo y octubre, tres); la del 29 de marzo cuenta en abril', () => {
+    const cal = E.presCalendario(mk(), 2027);
+    eq(cal.regla, 'mayor'); eq(cal.cats.length, 26); eq(U.fmtISO(cal.cats[0].ini), '2027-01-04'); eq(cal.cats[0].num, 1); eq(U.fmtISO(cal.cats[25].ini), '2027-12-20');
+    eq(porMes(cal), '2,2,2,2,3,2,2,2,2,3,2,2');
+    const c = cal.cats[6]; eq(U.fmtISO(c.ini) + ' m' + c.mes, '2027-03-29 m4', '11 de sus 14 días caen en abril');
+    eq(U.fmtISO(c.fecha), '2027-04-04', 'la fecha que decide es su séptimo día'); eq(U.fmtISO(c.pago), '2027-04-15', 'pago: 4 días después de cerrar');
+  });
+  T('Regla «mayor» coincide con contar los días de cada catorcena: en todos los años, con cualquier ancla, el mes es donde caen más de sus 14 días (con 7 y 7, donde empieza)', () => {
+    ['2026-10-12', '2026-10-13', '2026-10-18', '2026-12-28', '2027-01-05'].forEach((ancla) => {
+      const S = mk((s) => { s.catorcenaAncla = ancla; });
+      [2027, 2028, 2029].forEach((y) => {
+        E.presCalendario(S, y).cats.forEach((c) => {
+          const n = {}; for (let d = c.ini; d <= c.fin; d++) { const x = U.ymd(d), k = x.y * 100 + x.m; n[k] = (n[k] || 0) + 1; }
+          let mejor = null; Object.keys(n).forEach((k) => { if (mejor === null || n[k] > n[mejor] || (n[k] === n[mejor] && +k < +mejor)) mejor = k; });
+          eq(c.mes, mejor % 100, 'mes de la catorcena ' + U.fmtISO(c.ini)); eq(Math.floor(mejor / 100), y, 'año de la catorcena ' + U.fmtISO(c.ini) + ' (ancla ' + ancla + ')');
+        });
+      });
+    });
+  });
+  T('Regla «el mes en que empieza»: las mismas 26 catorcenas de 2027 y cada una en el mes de su primer día (la del 29 de marzo cuenta en marzo)', () => {
+    const cal = E.presCalendario(regla('inicio'), 2027);
+    eq(cal.cats.length, 26); eq(porMes(cal), '2,2,3,2,2,2,2,3,2,2,2,2'); eq(cal.cats[6].mes, 3); eq(U.fmtISO(cal.cats[0].ini), '2027-01-04');
+    cal.cats.forEach((c) => { eq(c.mes, U.ymd(c.ini).m, 'mes de ' + U.fmtISO(c.ini)); eq(c.fecha, c.ini); });
+  });
+  T('Regla «el mes en que termina»: entra la catorcena del 21 de diciembre de 2026 (termina el 3 de enero, con su número 26) y sale la del 20 de diciembre de 2027 (termina el 2 de enero)', () => {
+    const cal = E.presCalendario(regla('fin'), 2027);
+    eq(cal.cats.length, 26); eq(porMes(cal), '3,2,2,2,2,2,2,3,2,2,2,2'); eq(U.fmtISO(cal.cats[0].ini), '2026-12-21'); eq(cal.cats[0].num, 26, 'conserva el número de la planilla real'); eq(cal.cats[0].mes, 1);
+    eq(U.fmtISO(cal.cats[25].ini), '2027-12-06'); eq(cal.cats[25].mes, 12);
+    cal.cats.forEach((c) => { eq(c.mes, U.ymd(c.fin).m); eq(U.ymd(c.fin).y, 2027, 'termina en el año'); });
+  });
+  T('Regla «el mes en que se paga»: la fecha de pago es el cierre más los días de Parámetros, y cambiarlos cambia el mes', () => {
+    const cal = E.presCalendario(regla('pago'), 2027);
+    eq(cal.cats.length, 26); eq(porMes(cal), '2,2,2,3,2,2,2,2,3,2,2,2'); eq(U.fmtISO(cal.cats[0].ini), '2026-12-21'); eq(U.fmtISO(cal.cats[0].pago), '2027-01-07');
+    cal.cats.forEach((c) => { eq(c.pago, c.fin + 4); eq(c.mes, U.ymd(c.pago).m); eq(U.ymd(c.pago).y, 2027, 'se paga en el año'); });
+    const S = regla('pago'); S.params.diasPagoCat = 0; const c0 = E.presCalendario(S, 2027);
+    eq(porMes(c0), '3,2,2,2,2,2,2,3,2,2,2,2', 'pagando el mismo día del cierre, igual que «termina»'); eq(U.fmtISO(c0.cats[0].pago), '2027-01-03');
+    S.params.diasPagoCat = 13; const c13 = E.presCalendario(S, 2027); eq(c13.cats.length, 26); eq(U.fmtISO(c13.cats[0].ini), '2026-12-07', 'con 13 días de espera, la que cerró el 20 de diciembre se paga el 2 de enero'); eq(U.fmtISO(c13.cats[0].pago), '2027-01-02');
+  });
+  T('Cada regla da 26 o 27 catorcenas por año, sin huecos ni repetidas, con meses de 1 a 12, y una catorcena cuenta en un solo año', () => {
+    E.PRES_REGLAS.forEach((r) => {
+      [2026, 2027, 2028, 2029, 2030].forEach((y) => {
+        const S = regla(r), cal = E.presCalendario(S, y), ks = cal.cats.map((c) => c.k);
+        ok(cal.cats.length === 26 || cal.cats.length === 27, r + ' ' + y + ': ' + cal.cats.length + ' catorcenas');
+        ks.forEach((k, i) => { if (i) eq(k, ks[i - 1] + 1, r + ' ' + y + ' sin huecos'); });
+        cal.cats.forEach((c, i) => { eq(c.i, i); ok(c.mes >= 1 && c.mes <= 12, 'mes ' + c.mes); eq(U.ymd(c.fecha).y, y, r + ' ' + y + ': la fecha de la regla cae en el año'); });
+        // una catorcena no está en dos años: la última de este año y la primera del siguiente son seguidas
+        const sig = E.presCalendario(S, y + 1); eq(sig.cats[0].k, ks[ks.length - 1] + 1, r + ' ' + y + ' → ' + (y + 1));
+      });
+    });
+  });
+  T('Una catorcena que cruza el año va al año de su regla: con «inicio» se queda en diciembre; con «mayor parte», al año donde caen más de sus días (ancla 27 de diciembre de 2027)', () => {
+    const base = (r) => mk((s) => { s.catorcenaAncla = '2027-12-27'; s.pres.regla = r; });
+    const ini = E.presCalendario(base('inicio'), 2027), ult = ini.cats[ini.cats.length - 1];
+    eq(U.fmtISO(ult.ini), '2027-12-27'); eq(ult.mes, 12, 'empieza el 27 de diciembre: cuenta en diciembre de 2027 aunque 9 de sus días caigan en 2028');
+    const may = E.presCalendario(base('mayor'), 2027), u2 = may.cats[may.cats.length - 1], p2 = may.cats[0];
+    eq(U.fmtISO(u2.ini), '2027-12-13', 'la del 27 de diciembre (9 de 14 días en enero) ya es de 2028'); eq(u2.mes, 12);
+    eq(U.fmtISO(p2.ini), '2026-12-28', 'y la del 28 de diciembre de 2026 (10 de 14 días en enero) es de enero de 2027'); eq(p2.mes, 1);
+    eq(E.presCalendario(base('mayor'), 2028).cats[0].mes, 1, 'la del 27 de diciembre abre 2028'); eq(U.fmtISO(E.presCalendario(base('mayor'), 2028).cats[0].ini), '2027-12-27');
+  });
+  T('Los totales: «mayor» e «inicio» suman el mismo año (son las mismas catorcenas) pero reparten distinto los meses; «fin» y «pago» cambian cuál catorcena abre el año', () => {
+    const emps = tres(), S0 = mk(), a = {};
+    E.PRES_REGLAS.forEach((r) => { const S = regla(r), pres = calc(S, emps); a[r] = { pres, tot: pres.personas.map((p) => anio(p)), meses: E.presResumen(pres, 'todos').meses.map((m) => m.costo) }; });
+    eq(JSON.stringify(a.mayor.tot), JSON.stringify(calc(S0, emps).personas.map((p) => anio(p))), 'la regla por omisión es la de siempre');
+    a.mayor.tot.forEach((t, i) => { ['dev', 'costo', 'hExt', 'ext'].forEach((k) => eq(a.inicio.tot[i][k], t[k], k + ' de ' + emps[i].nombre)); });
+    ok(JSON.stringify(a.mayor.meses) !== JSON.stringify(a.inicio.meses), 'los meses no se reparten igual');
+    near2(a.mayor.meses.reduce((s, v) => s + v, 0), a.inicio.meses.reduce((s, v) => s + v, 0), 'el año suma lo mismo');
+    eq(a.fin.pres.cal.cats[0].k, a.mayor.pres.cal.cats[0].k - 1, 'con «termina» el año abre con la catorcena anterior'); eq(a.pago.pres.cal.cats[0].k, a.fin.pres.cal.cats[0].k);
+    E.PRES_REGLAS.forEach((r) => { eq(a[r].pres.cal.regla, r); eq(a[r].pres.cal.cats.length, 26); eq(a[r].pres.personas[0].filas.length, 26); eq(a[r].pres.personas[2].filas.length, 24, 'el personal mensual no depende de la regla'); });
+    // cada línea trae el mes de su regla, y la suma por mes recoge exactamente esas catorcenas
+    const pi = a.inicio.pres.personas[0];
+    pi.filas.forEach((l, i) => eq(l.mes, a.inicio.pres.cal.cats[i].mes));
+    const marzo = pi.filas.filter((l) => l.mes === 3).length; eq(marzo, 3, 'marzo con tres catorcenas bajo «inicio»');
+    near2(E.presTotalPersona(pi, { t: 'mes', m: 3 }).dev, pi.filas.filter((l) => l.mes === 3).reduce((s, l) => s + l.dev, 0), 'el mes suma sus catorcenas');
+  });
+
+  /* ---------- 3. Aplicar a la planilla ---------- */
+  /** Cinco aumentos: dos generales del 1 de enero (gobierno 5 %, empresa Q 100 solo al personal de turno), uno individual de la persona 1 (15 de enero, Q 50) y dos que todavía no llegan (el individual de la persona 2 del 1 de marzo y el general del 1 de julio). */
+  const caso = () => {
+    const emps = tres(); emps[0] = persona({ aum: [ind({ id: 'i1', fecha: '2027-01-15', modo: 'monto', valor: 50 })] }); emps[1] = persona({ id: 'e2', nombre: 'Dos', cuadrilla: 'LV', sueldo: 4200, aum: [ind({ id: 'i2', fecha: '2027-03-01', valor: 2 })] });
+    const S = conAum([gen({ id: 'g1', origen: 'gobierno', fecha: '2027-01-01', valor: 5 }), gen({ id: 'g2', origen: 'empresa', alcance: 'turno', fecha: '2027-01-01', modo: 'monto', valor: 100 }), gen({ id: 'g3', origen: 'gobierno', fecha: '2027-07-01', valor: 3 })]);
+    return { S, emps, hoy: D('2027-02-01') };
+  };
+  T('Estado de un aumento frente a hoy: llegó, futuro, sin fecha, sin valor, ya en el sueldo (a mano) o aplicado con el botón', () => {
+    const hoy = D('2027-02-01'), est = (o) => E.presEstadoAum(Object.assign({ fecha: '2027-01-01', valor: 5, ya: false }, o), hoy);
+    eq(est({}), 'llego'); eq(est({ fecha: '2027-02-01' }), 'llego', 'el mismo día ya llegó'); eq(est({ fecha: '2027-02-02' }), 'futuro'); eq(est({ fecha: '' }), 'sin-fecha'); eq(est({ valor: 0 }), 'sin-valor');
+    eq(est({ ya: true }), 'ya'); eq(est({ ya: true, apl: '2027-02-01 09:30' }), 'aplicado'); eq(est({ ya: true, fecha: '' }), 'ya', 'ya en el sueldo manda sobre lo demás');
+  });
+  T('Claves: un aumento general es g:id y uno individual i:persona:id; dos personas con el mismo id de aumento (ficha copiada) no se confunden', () => {
+    const { S, emps, hoy } = caso(), todos = E.presTodosAum(S, emps, hoy);
+    eq(todos.map((a) => a.k).join(), 'g:g1,g:g2,g:g3,i:e1:i1,i:e2:i2'); eq(new Set(todos.map((a) => a.k)).size, 5);
+    const copia = [persona({ id: 'a', aum: [ind({ id: 'mismo', valor: 1 })] }), persona({ id: 'b', aum: [ind({ id: 'mismo', valor: 2 })] })];
+    eq(E.presTodosAum(mk(), copia, hoy).map((a) => a.k).join(), 'i:a:mismo,i:b:mismo');
+    eq(E.presAumPorClave(S, emps, 'i:e2:i2', hoy).valor, 2); eq(E.presAumPorClave(S, emps, 'g:no', hoy), null);
+  });
+  T('El plan: los aumentos que ya llegaron en el orden de aplicación (fecha, gobierno, empresa, individual) y el sueldo de cada persona antes y después', () => {
+    const { S, emps, hoy } = caso(), pl = E.presPlan(S, emps, { hoy });
+    eq(pl.aums.map((a) => a.k).join(), 'g:g1,g:g2,i:e1:i1', 'los dos del 1 de julio y del 1 de marzo todavía no llegan');
+    const p = (id) => pl.personas.find((x) => x.id === id);
+    eq(p('e1').antes, 5001.6); eq(p('e1').despues, 5401.68, '5 % → 5,251.68; + Q 100 → 5,351.68; + Q 50 → 5,401.68'); eq(p('e1').pasos.map((s) => s.despues).join(), '5251.68,5351.68,5401.68');
+    eq(p('e2').antes, 4200); eq(p('e2').despues, 4410, 'solo el 5 % del gobierno: el de la empresa es para el personal de turno'); eq(p('e3').despues, 7350);
+    eq(pl.n, 3); eq(pl.cambian, 3); eq(pl.delta, r2(400.08 + 210 + 350)); eq(pl.hoy, hoy); eq(pl.hasta, '');
+    const a = (k) => pl.aums.find((x) => x.k === k);
+    eq(a('g:g1').n, 3); eq(a('g:g1').delta, r2(250.08 + 210 + 350)); eq(a('g:g2').n, 1); eq(a('g:g2').delta, 100); eq(a('i:e1:i1').n, 1); eq(a('i:e1:i1').delta, 50);
+    eq(E.presPlan(S, emps, { hoy: D('2026-12-31') }).aums.length, 0, 'el 31 de diciembre todavía no llega ninguno'); eq(E.presPlan(S, emps, { hoy: D('2026-12-31') }).n, 0);
+    eq(E.presPlan(S, emps, { hoy: D('2027-01-01') }).aums.map((x) => x.k).join(), 'g:g1,g:g2', 'el 1 de enero llegan los dos generales');
+    eq(E.presPlan(S, emps, { hoy: D('2027-12-31') }).aums.length, 5, 'a fin de año, todos');
+  });
+  T('«Hasta este aumento»: se aplican ese y los que van antes en el orden; el aumento individual de otra persona del mismo día no entra', () => {
+    const { S, emps, hoy } = caso();
+    eq(E.presPlan(S, emps, { hoy, hasta: 'g:g1' }).aums.map((a) => a.k).join(), 'g:g1'); eq(E.presPlan(S, emps, { hoy, hasta: 'g:g2' }).aums.map((a) => a.k).join(), 'g:g1,g:g2');
+    eq(E.presPlan(S, emps, { hoy, hasta: 'i:e1:i1' }).aums.map((a) => a.k).join(), 'g:g1,g:g2,i:e1:i1');
+    const pl = E.presPlan(S, emps, { hoy, hasta: 'g:g1' }); eq(pl.hasta, 'g:g1'); eq(pl.personas.find((x) => x.id === 'e1').despues, 5251.68); eq(pl.personas.find((x) => x.id === 'e3').despues, 7350);
+    eq(E.presPlan(S, emps, { hoy, hasta: 'g:no' }).aums.length, 3, 'una clave que no existe aplica todos los que llegaron');
+    // el mismo día, el individual de otra persona no entra al aplicar hasta el de esta
+    const e3 = [persona({ id: 'a', aum: [ind({ id: 'x', fecha: '2027-01-10', modo: 'monto', valor: 10 })] }), persona({ id: 'b', aum: [ind({ id: 'y', fecha: '2027-01-10', modo: 'monto', valor: 20 })] })];
+    eq(E.presPlan(mk(), e3, { hoy, hasta: 'i:a:x' }).aums.map((a) => a.k).join(), 'i:a:x');
+    eq(E.presPlan(mk(), e3, { hoy, hasta: 'i:b:y' }).aums.map((a) => a.k).join(), 'i:b:y');
+    eq(E.presPlan(mk(), e3, { hoy }).aums.length, 2, 'sin límite, los dos');
+  });
+  T('El plan ignora lo que no corresponde: aumentos en cero, sin fecha, ya incluidos y personas sin sueldo en la ficha', () => {
+    const S = conAum([gen({ id: 'cero', valor: 0 }), gen({ id: 'sinf', fecha: '', valor: 5 }), gen({ id: 'ya', valor: 5, ya: true }), gen({ id: 'ok', valor: 2 })]);
+    const emps = [persona({}), persona({ id: 'sin', nombre: 'Sin sueldo', sueldo: 0 })], pl = E.presPlan(S, emps, { hoy: D('2027-02-01') });
+    eq(pl.aums.map((a) => a.id).join(), 'ok'); eq(pl.personas.map((p) => p.id).join(), 'e1'); eq(pl.sinSueldo.map((e) => e.id).join(), 'sin', 'se avisa pero no se le toca');
+    // un sueldo nuevo menor al actual no cambia nada, pero el aumento llegó y se marca
+    const S2 = conAum([gen({ id: 'min', modo: 'nuevo', valor: 3000 })]), pl2 = E.presPlan(S2, [persona({})], { hoy: D('2027-02-01') });
+    eq(pl2.aums.length, 1); eq(pl2.cambian, 0); eq(pl2.personas[0].cambia, false); eq(pl2.aums[0].n, 0); eq(pl2.delta, 0);
+    const ap = E.presAplicarPlan(S2, [persona({})], pl2, AHORA, () => {}); ok(ap && ap.det.length === 0, 'sin cambios de sueldo, el diario no lleva personas'); eq(S2.pres.aumentos[0].ya, true);
+  });
+  T('Aplicar: el sueldo de la ficha pasa al nuevo, los aumentos quedan «ya en el sueldo» con la fecha y la hora, y el diario guarda a quién y cuánto', () => {
+    const { S, emps, hoy } = caso(), pl = E.presPlan(S, emps, { hoy }), e = E.presAplicarPlan(S, emps, pl, AHORA, poner);
+    eq(emps.map((x) => x.sueldo).join(), '5401.68,4410,7350'); eq(emps[0].aum.find((a) => a.id === 'i1').ya, true); eq(emps[0].aum.find((a) => a.id === 'i1').apl, AHORA.f); eq(emps[1].aum.find((a) => a.id === 'i2').ya, false, 'el individual que no llegó queda igual');
+    eq(S.pres.aumentos.map((a) => a.ya).join(), 'true,true,false'); eq(S.pres.aumentos[0].apl, AHORA.f); eq(S.pres.aumentos[2].apl, undefined);
+    eq(S.pres.apl.length, 1); eq(S.pres.apl[0].id, e.id); eq(e.f, AHORA.f); eq(e.hoy, '2027-02-01'); eq(e.aum.map((a) => a.k).join(), 'g:g1,g:g2,i:e1:i1'); eq(JSON.stringify(e.det), JSON.stringify([['e1', 5001.6, 5401.68], ['e2', 4200, 4410], ['e3', 7000, 7350]]));
+    eq(E.presPlan(S, emps, { hoy }).aums.length, 0, 'no queda nada por aplicar'); eq(E.presAplicarPlan(S, emps, E.presPlan(S, emps, { hoy }), AHORA, poner), null, 'aplicar sin nada no escribe en el diario'); eq(S.pres.apl.length, 1);
+    eq(E.presEstadoAum(S.pres.aumentos[0], hoy), 'aplicado'); eq(E.presEstadoAum(emps[0].aum[0], hoy), 'aplicado');
+    // lo que sigue pendiente se aplica sobre el sueldo nuevo
+    const pl2 = E.presPlan(S, emps, { hoy: D('2027-12-31') }); eq(pl2.aums.map((a) => a.k).join(), 'i:e2:i2,g:g3', 'por fecha: el 1 de marzo y el 1 de julio');
+    eq(pl2.personas.find((p) => p.id === 'e2').pasos.map((s) => s.despues).join(), '4498.2,4633.15', '4,410 + 2 % = 4,498.20; + 3 % = 4,633.15 (4,633.146)');
+  });
+  T('Aplicar solo «hasta» un aumento deja los demás pendientes y calcula igual que el presupuesto', () => {
+    const { S, emps, hoy } = caso(), pl = E.presPlan(S, emps, { hoy, hasta: 'g:g1' });
+    E.presAplicarPlan(S, emps, pl, AHORA, poner);
+    eq(emps.map((x) => x.sueldo).join(), '5251.68,4410,7350'); eq(S.pres.aumentos.map((a) => a.ya).join(), 'true,false,false'); eq(emps[0].aum[0].ya, false);
+    eq(E.presPlan(S, emps, { hoy }).aums.map((a) => a.k).join(), 'g:g2,i:e1:i1', 'quedan por aplicar');
+    const e1 = E.presPasos(emps[0], S, { hasta: D('2027-12-31') }); eq(e1.map((p) => p.a.id).join(), 'g2,i1,g3', 'y el presupuesto sigue desde el sueldo nuevo'); eq(e1[0].antes, 5251.68);
+  });
+  T('Después de aplicar, el presupuesto no cambia: los aumentos del 1 de enero o anteriores ya están en el sueldo base y el año suma lo mismo, al centavo', () => {
+    const { S, emps } = caso(), antes = calc(S, emps), tot = (pres) => pres.personas.map((p) => JSON.stringify(anio(p))).join('|');
+    const hecho = caso(); const pl = E.presPlan(hecho.S, hecho.emps, { hoy: D('2027-01-01') }); eq(pl.aums.map((a) => a.k).join(), 'g:g1,g:g2');
+    E.presAplicarPlan(hecho.S, hecho.emps, pl, AHORA, poner);
+    eq(hecho.emps[0].sueldo, 5351.68); eq(tot(calc(hecho.S, hecho.emps)), tot(antes), 'mismo presupuesto del año');
+    eq(calc(hecho.S, hecho.emps).personas.map((p) => p.sueldoFin).join(), antes.personas.map((p) => p.sueldoFin).join(), 'mismo sueldo al 31 de diciembre');
+    // y un aumento de 2026 (anterior al año) también
+    const A = conAum([gen({ id: 'viejo', fecha: '2026-11-01', valor: 4 })]), es = [persona({}), persona({ id: 'e2', cuadrilla: 'LV', sueldo: 4200 })], base = calc(A, es);
+    E.presAplicarPlan(A, es, E.presPlan(A, es, { hoy: D('2026-11-06') }), { f: '2026-11-06 08:00', hoy: '2026-11-06' }, poner);
+    eq(es[0].sueldo, 5201.66); eq(tot(calc(A, es)), tot(base), 'un aumento de 2026 aplicado deja igual el presupuesto de 2027');
+  });
+  T('Deshacer: devuelve el sueldo anterior, quita la marca de los aumentos y borra la entrada; solo la última y solo si nadie volvió a cambiar esos sueldos', () => {
+    const { S, emps, hoy } = caso(), copia = JSON.stringify([S.pres.aumentos, emps.map((e) => [e.sueldo, e.aum])]);
+    E.presAplicarPlan(S, emps, E.presPlan(S, emps, { hoy }), AHORA, poner);
+    const rv = E.presRevertible(S, emps); eq(rv.ok, true); eq(rv.cambiaron.length, 0);
+    emps[1].sueldo = 4500; const rv2 = E.presRevertible(S, emps); eq(rv2.ok, false); eq(rv2.cambiaron.map((e) => e.id).join(), 'e2', 'se avisa a quién le cambiaron el sueldo');
+    const no = E.presRevertirPlan(S, emps, poner); eq(no.ok, false); eq(emps[0].sueldo, 5401.68, 'no toca nada'); eq(S.pres.apl.length, 1);
+    emps[1].sueldo = 4410; const r = E.presRevertirPlan(S, emps, poner); eq(r.ok, true);
+    eq(JSON.stringify([S.pres.aumentos, emps.map((e) => [e.sueldo, e.aum])]), copia, 'todo como estaba, aumentos incluidos'); eq(S.pres.apl.length, 0);
+    eq(E.presRevertible(S, emps).ok, false, 'sin aplicaciones, no hay nada que deshacer'); eq(E.presRevertible(S, emps).entrada, null);
+    eq(E.presPlan(S, emps, { hoy }).aums.length, 3, 'los tres vuelven a estar por aplicar');
+  });
+  T('Deshacer solo la última de dos aplicaciones; las personas que ya no están en la planilla no lo impiden', () => {
+    const { S, emps } = caso();
+    E.presAplicarPlan(S, emps, E.presPlan(S, emps, { hoy: D('2027-01-01') }), { f: '2027-01-01 08:00', hoy: '2027-01-01' }, poner);
+    const tras1 = emps.map((e) => e.sueldo).join();
+    E.presAplicarPlan(S, emps, E.presPlan(S, emps, { hoy: D('2027-03-05') }), { f: '2027-03-05 08:00', hoy: '2027-03-05' }, poner);
+    eq(S.pres.apl.length, 2); ok(emps.map((e) => e.sueldo).join() !== tras1, 'la segunda cambió sueldos');
+    const sinE1 = emps.filter((e) => e.id !== 'e1'); eq(E.presRevertible(S, sinE1).ok, true, 'quien ya no está en la planilla no cuenta');
+    E.presRevertirPlan(S, emps, poner); eq(emps.map((e) => e.sueldo).join(), tras1, 'vuelve a como quedó la primera'); eq(S.pres.apl.length, 1); eq(S.pres.apl[0].f, '2027-01-01 08:00');
+    eq(S.pres.aumentos.map((a) => a.ya).join(), 'true,true,false'); eq(emps[1].aum[0].ya, false, 'el individual de la segunda aplicación vuelve a estar pendiente');
+  });
+  T('El próximo aumento: el de fecha más cercana después de hoy, con los días que faltan; sin fechas futuras, nada', () => {
+    const { S, emps, hoy } = caso(), p = E.presProximo(S, emps, hoy);
+    eq(p.aums.map((a) => a.k).join(), 'i:e2:i2'); eq(U.fmtISO(p.dia), '2027-03-01'); eq(p.dias, 28);
+    eq(E.presProximo(S, emps, D('2027-03-01')).aums.map((a) => a.k).join(), 'g:g3', 'el 1 de marzo ya llegó'); eq(E.presProximo(S, emps, D('2027-07-01')), null);
+    eq(E.presProximo(mk(), [persona({})], hoy), null, 'sin aumentos registrados');
+    const dos = conAum([gen({ id: 'a', fecha: '2027-05-01', valor: 1 }), gen({ id: 'b', origen: 'empresa', fecha: '2027-05-01', valor: 1 })]);
+    eq(E.presProximo(dos, [], hoy).aums.map((a) => a.id).join(), 'a,b', 'dos el mismo día, en el orden de aplicación');
+  });
+
+  /* ---------- 4. Lo guardado ---------- */
+  T('La marca de cuándo se aplicó un aumento (apl) solo se conserva si sigue «ya en el sueldo» y con el formato AAAA-MM-DD HH:MM', () => {
+    const lim = (o, gral) => E.presNormAum([Object.assign({ id: 'a', fecha: '2027-01-01', modo: 'pct', valor: 5 }, o)], gral)[0];
+    eq(lim({ ya: true, apl: '2027-02-01 09:30' }, true).apl, '2027-02-01 09:30'); eq(lim({ ya: false, apl: '2027-02-01 09:30' }, true).apl, undefined, 'si la persona quitó la marca a mano, se pierde la fecha');
+    eq(lim({ ya: true, apl: 'ayer' }, true).apl, undefined); eq(lim({ ya: true }, false).apl, undefined); eq(lim({ ya: true, apl: '2027-02-01 09:30' }, false).apl, '2027-02-01 09:30');
+    eq(SM.normalizeEmp({ id: 'x', aum: [{ id: 'k', fecha: '2027-04-01', valor: 3, ya: true, apl: '2027-04-02 07:05' }] }).aum[0].apl, '2027-04-02 07:05');
+    eq('apl' in SM.normalizeEmp({ id: 'x', aum: [{ id: 'k', fecha: '2027-04-01', valor: 3, ya: false, apl: '2027-04-02 07:05' }] }).aum[0], false);
+  });
+  T('El diario de aplicaciones (pres.apl) se guarda limpio: entradas válidas, las últimas 30, textos y sueldos saneados', () => {
+    const ent = (i, o) => Object.assign({ id: 'x' + i, f: '2027-02-' + String(1 + (i % 27)).padStart(2, '0') + ' 09:30', hoy: '2027-02-01', aum: [{ k: 'g:a', origen: 'gobierno', alcance: 'todos', modo: 'pct', valor: 5, fecha: '2027-01-01', nota: 'n' }], det: [['e1', 100, 105]] }, o || {});
+    const lim = E.presNormApl([null, 5, { f: 'mal' }, ent(1), ent(2, { hoy: 'x', det: [['e1', -5, 'q'], [], ['', 1, 2], null], aum: [{ k: '' }, { k: 'g:b', origen: 'raro', alcance: 'nadie', modo: 'x', valor: -3, fecha: '2027-02-30', nota: 'n'.repeat(300) }, null] })]);
+    eq(lim.length, 2); eq(lim[0].id, 'x1'); eq(lim[1].hoy, '2027-02-03', 'una fecha inválida se reemplaza por el día de la aplicación'); eq(JSON.stringify(lim[1].det), JSON.stringify([['e1', 0, 0]]), 'sueldos negativos o no numéricos quedan en cero; sin persona se descarta');
+    eq(lim[1].aum.length, 1); eq(lim[1].aum[0].origen, 'gobierno'); eq(lim[1].aum[0].alcance, ''); eq(lim[1].aum[0].modo, 'pct'); eq(lim[1].aum[0].valor, 0); eq(lim[1].aum[0].fecha, ''); eq(lim[1].aum[0].nota.length, 120);
+    const muchas = []; for (let i = 0; i < 45; i++) muchas.push(ent(i, { id: 'n' + i }));
+    const l30 = E.presNormApl(muchas); eq(l30.length, 30); eq(l30[0].id, 'n15', 'se quedan las últimas'); eq(l30[29].id, 'n44');
+    eq(E.presNormApl(null).length, 0); eq(E.presNormApl('x').length, 0);
+    const S = SM.normalizeState({ pres: { regla: 'pago', apl: [ent(1)] } }); eq(S.pres.apl.length, 1); eq(S.pres.regla, 'pago'); eq(SM.normalizeState({}).pres.apl.length, 0); eq(SM.normalizeState({}).v, 12, 'la versión del estado no cambia');
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
@@ -12829,6 +13302,16 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     // versión 16: el nombre anterior de la empresa se sustituye por «fábrica» en todo texto guardado, una sola vez (la marca empresa.nombreGeneral indica que ya se hizo:
     // quien después escriba otro nombre, o incluso el anterior, lo conserva). Un estado nuevo no trae empresa y ya parte de «FÁBRICA».
     if (isObj(r.empresa) && r.empresa.nombreGeneral !== true) { SM.rotularFabrica(r); r.empresa.nombreGeneral = true; }
+    // versión 28: el puente de día T11 pasa de 07:00–18:00 (supuesto de las versiones anteriores) a 06:00–18:00 con 1 h de almuerzo sin pago, como lo confirmó la planta. Se actualiza solo el que sigue siendo el de fábrica:
+    // mismas horas y sin `almIni` (la hora del almuerzo, que trae todo estado guardado desde esta versión, así que esto ocurre una sola vez). Quien cambió el horario lo conserva, y quien después
+    // vuelva a escribir 07:00 también.
+    if (isObj(r.codigos) && isObj(r.codigos.T11) && r.codigos.T11.almIni === undefined) {
+      const t = r.codigos.T11;
+      if (t.ini === '07:00' && t.fin === '18:00' && U.num(t.ord, 0) === 0 && U.num(t.ext, 0) === 11) {
+        t.ini = '06:00'; t.almIni = '12:00';
+        if (t.nombre === 'Puente de día 11 h (supuesto 07:00–18:00)') t.nombre = DEF.codigos.T11.nombre;
+      }
+    }
     // antes de la versión 12 la numeración de las catorcenas era la escrita a mano (N.º de la primera catorcena): quien la había cambiado la conserva
     if ((+r.v || 0) < 12 && isObj(r.params) && r.params.numAnual === undefined && r.params.catorcenaInicial !== undefined && Math.round(+r.params.catorcenaInicial) !== 1) r.params.numAnual = false;
     if ((+r.v || 0) >= 4) return r;
@@ -13266,6 +13749,30 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     });
   };
   window.addEventListener('resize', U.debounce(() => UI.scrollRegions(), 200));
+  /** Tablas que se apilan como fichas en el celular (.rsp): las celdas de la fila de totales (tfoot) no traen su propio rótulo (data-l) y se verían como números sueltos.
+   *  Se les pone el nombre del encabezado de su columna. No se toca ninguna celda que ya traiga rótulo, ni el título de la fila (.ttl), ni las vacías (el estilo las oculta en el celular);
+   *  si la fila no tiene tantas columnas como el encabezado (celdas combinadas), se deja como está. */
+  UI.rspPie = (raiz) => {
+    $$('table.tbl.rsp', raiz).forEach((t) => {
+      const enc = t.tHead && t.tHead.rows.length ? t.tHead.rows[t.tHead.rows.length - 1] : null;
+      if (!enc || !t.tFoot) return;
+      const rot = [];
+      Array.from(enc.cells).forEach((h) => {
+        const c = h.cloneNode(true); c.querySelectorAll('button,svg,.ayuda').forEach((x) => x.remove());
+        const tx = c.textContent.replace(/\s+/g, ' ').trim();
+        for (let k = 0; k < (h.colSpan || 1); k++) rot.push(tx);
+      });
+      Array.from(t.tFoot.rows).forEach((tr) => {
+        const celdas = Array.from(tr.cells);
+        if (celdas.reduce((n, c) => n + (c.colSpan || 1), 0) !== rot.length) return;
+        let col = 0;
+        celdas.forEach((c) => {
+          if (c.tagName === 'TD' && (c.colSpan || 1) === 1 && !c.hasAttribute('data-l') && !c.classList.contains('ttl') && !c.classList.contains('nolabel') && c.textContent.trim() && rot[col]) c.setAttribute('data-l', rot[col]);
+          col += c.colSpan || 1;
+        });
+      });
+    });
+  };
   UI.render = (opts) => {
     opts = opts || {};
     const app = $('#app'), v = UI.cur();
@@ -13285,6 +13792,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       html = '<div class="banner bad"><svg class="ico"><use href="#i-warn"/></svg><div><b>No se pudo mostrar esta sección.</b><br><span class="note">' + U.esc(String(e && e.message || e)) + '</span></div></div>';
     }
     app.innerHTML = html;
+    UI.rspPie(app);
     try { if (v.after) v.after(app); } catch (e) { console.error(e); }
     $$('.tab').forEach((t) => { const on = t.dataset.id === v.id; t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1; });
     const bar = $('#tabs'), tabOn = $('.tab[aria-selected="true"]');
@@ -13337,6 +13845,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const acts = (opts.actions || [{ label: 'Cerrar', value: 'ok', kind: 'pri' }]).map((a) => '<button type="button" class="btn ' + (a.kind || '') + '" data-dlg="' + U.esc(a.value) + '">' + U.esc(a.label) + '</button>').join('');
     d.style.width = opts.wide ? 'min(960px, calc(100vw - 1.5rem))' : '';
     d.innerHTML = '<div class="dlg"><div class="dh"><h3>' + U.esc(opts.title || '') + '</h3><button type="button" class="btn icon ghost sm" data-dlg="" aria-label="Cerrar"><svg class="ico"><use href="#i-x"/></svg></button></div><div class="db" tabindex="0">' + (opts.body || '') + '</div><div class="df">' + acts + '</div></div>';
+    UI.rspPie(d);
     let value = null, data = null;
     const onClick = (ev) => {
       const b = ev.target.closest('[data-dlg]'); if (!b || !d.contains(b)) return;
@@ -15719,7 +16228,7 @@ Las provisiones (aguinaldo, bono 14, indemnización{{vacProvTxt}}) se calculan c
 - **Asueto trabajado:** 1.5× adicional al salario del día o doble.
 - **Séptimo día sobre las extras y el bono incentivo:** práctica de la boleta actual; es una zona gris.
 - **Feriados catorcenales:** la boleta paga por cada feriado el promedio diario de la semana anterior; la semana de referencia debe confirmarse con Nómina.
-- **Horarios de los puentes T11 y M12:** son supuestos ({{horarioT11}} y {{horarioM12}}); los horarios reales deben confirmarse y registrarse en Parámetros → Turnos.
+- **Horarios de los puentes T11 y M12:** el T11 va de {{horarioT11}} con 1 h de almuerzo sin pago, como lo confirmó la planta; el M12 es un supuesto ({{horarioM12}}) y su horario real debe confirmarse y registrarse en Parámetros → Turnos.
 - **Domingo con dos personas cubriendo un puesto:** las dos trabajan los siete días. Criterio del simulador: {{domingoCriterio}}. Debe confirmarse con el asesor laboral (arts. 126 y 128).
 - **Almuerzo del turno de día de 12 h:** es una hora sin pago; la hora a la que empieza (12:00 o 13:00) solo cambia el dibujo del horario, no las horas pagadas.
 - **Base de indemnización, aguinaldo, bono 14 y vacaciones:** si las extras habituales entran o no.
@@ -15936,7 +16445,7 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
     { rol: 'Ingeniero de datos', hab: 'IndexedDB, migraciones, respaldos, importación robusta', hizo: 'Tres almacenes, copia diaria automática, migración sin borrar y lectura de CSV/Excel con mapeo de columnas. Guardado inmediato en una sola transacción, orden de los empleados y control de revisión entre ventanas, comprobados campo por campo contra la base real. Las catorcenas registradas se guardan como una fila por catorcena en el mismo almacén, sin cambiar la estructura de la base, y entran en el respaldo, la restauración y las copias; un estado guardado por la versión anterior abre sin pérdidas.' },
     { rol: 'Especialista en impresión', hab: 'CSS @page, tamaño carta, saltos de página', hizo: 'Hojas carta vertical y horizontal por vista: 34 modos de impresión generados en PDF y revisados página por página, con totales una sola vez, textos plegados desplegados y boleta suelta. Las boletas se imprimen una persona por hoja carta: la primera catorcena en la mitad superior y la segunda en la inferior, con línea de corte al centro (verificado automáticamente: dos recibos por hoja y ninguno cruza el centro). La Propuesta lleva portada, índice, partes y secciones numeradas, recuadros completos por hoja (verificado automáticamente: solo las secciones más altas que una hoja continúan en la siguiente, entre bloques, sin partir tablas ni dejar un subtítulo solo al pie) y pie con «Página X de Y». El trabajo conjunto de la pestaña Imprimir se comprobó con los 32 documentos a la vez: sus páginas suman lo mismo que cada documento por separado (unas 170 hojas con los datos de prueba), con la orientación de cada hoja respetada, y el cálculo aproximado de la lista coincide con el PDF real en 28 de los 32 documentos (en los demás difiere en una hoja). Lo registrado se comprobó aparte con PDF reales: las hojas que anuncia el cuadro de impresión coinciden con las del PDF en la planilla en tabla, las boletas y el acumulado, con 26, 51 y 126 personas (2, 3 y 6 hojas de tabla; 13, 26 y 63 de boletas).' },
     { rol: 'Auditor interno', hab: 'Control de cambios, trazabilidad, supuestos explícitos', hizo: 'Este registro, la lista de supuestos y los datos de planilla con advertencias.' },
-    { rol: 'Especialista de planta (mantenimiento eléctrico)', hab: 'Relevos, paros programados, cobertura de averías', hizo: 'Horas de cambio editables, puentes T11/M12 marcados como supuesto y mantenimiento mayor en asuetos largos.' },
+    { rol: 'Especialista de planta (mantenimiento eléctrico)', hab: 'Relevos, paros programados, cobertura de averías', hizo: 'Horas de cambio editables, puente M12 marcado como supuesto (el T11 se confirmó en la versión 28: 06:00–18:00 con 1 h de almuerzo) y mantenimiento mayor en asuetos largos.' },
     { rol: 'Especialista en compensaciones y valuación de puestos', hab: 'Escalas salariales, pago por habilidades, equidad interna (Código de Trabajo, art. 89), múltiplos del salario mínimo', hizo: 'Escalera de dominio de 20 peldaños, cada uno con evaluación práctica, permanencia mínima, sueldo base y exigencia de gestión de personas, y dos ramas superiores. La meta de ingreso se expresa en múltiplos del salario mínimo, con el sueldo base necesario para alcanzarla y el costo de la escalera frente al escalafón de seis niveles. Los sueldos son una propuesta que debe validarse con la valuación de puestos.' },
     { rol: 'Especialista en formación y desarrollo de carrera', hab: 'Formación en el puesto (Training Within Industry), matriz de habilidades, metas a corto plazo', hizo: 'Cada peldaño define lo que la persona opera y si además lo enseña; la ruta personal indica los meses de permanencia y las aptitudes de gestión que faltan para el siguiente peldaño, de modo que la persona conoce su próximo paso.' },
     { rol: 'Analista de seguridad social y retiro', hab: 'Pensión por vejez del IGSS, planes de retiro de la empresa', hizo: 'Proyecta la edad y las cuotas mensuales a los 25 y a los 30 años de servicio frente a lo que exige el IGSS; el retiro anterior a esa edad se marca como plan propio de la empresa, cuyo costo no se estima y debe valorar un actuario.' },
@@ -15947,7 +16456,7 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
 
   VAL.limites = [
     'No es asesoría legal ni financiera. Los criterios laborales se contrastaron con fuentes secundarias y con la guía del Ministerio de Trabajo y, para la indemnización, con el texto de los artículos 81 a 84 del Código de Trabajo y de los Decretos 76-78 y 42-92; no se pudo consultar el texto original de los artículos 116 a 130 del Código de Trabajo; por ello deben confirmarse con un asesor laboral.',
-    'Los horarios de los puentes T11 (07:00–18:00) y M12 (18:00–06:00) son supuestos que se ajustan en Parámetros → Turnos.',
+    'El horario del puente M12 (18:00–06:00) es un supuesto que se ajusta en Parámetros → Turnos; el del puente T11 (06:00–18:00, con 1 h de almuerzo sin pago) lo confirmó la planta en la versión 28 (hasta la 27 se había supuesto de 07:00 a 18:00).',
     'El simulador no estima beneficios sin datos: rotación, accidentes y ausentismo valen 0 hasta que se registren datos reales de la planta.',
     'El costo se calcula con un sueldo y un número de personas por turno iguales para toda la planta; la planilla individual solo afecta boletas y liquidaciones.',
     'La revisión de ISR (pestaña ISR) es una proyección a régimen: supone el año completo con el mismo turno y reparte el impuesto a lo largo del año: por omisión, una vez al mes (ISR anual ÷ 12 en el último pago del mes), que es lo que muestran las boletas reales, o en partes iguales entre las 26 catorcenas (24 quincenas en el personal mensual); la empresa lo retiene con su propio método (por lo general mensual, con conciliación en diciembre) y la frecuencia y el día de pago están por confirmar con Planillas; quien ingresa o sale a mitad de año, o cambia de turno, tendría otra retención. No incluye otras rentas, retenciones de otro empleador ni deducciones propias de cada persona; el IVA de gastos personales es un parámetro opcional que aplica el mismo monto a toda la planilla (0 por omisión). La deducción es de Q51,024 en 2026 (Q48,000 más Q3,024, Decreto 13-2026) y, desde 2027, de 12 salarios mínimos con bonificación (Q51,027.36 con el de 2026; debe actualizarse cuando se publique el nuevo). Si la bonificación incentivo y la bonificación de la empresa forman parte de la renta gravada, y cómo y cuándo se descuenta la retención en la boleta, son criterios por confirmar con el contador: las boletas reales de septiembre a diciembre de 2025 no traen línea de ISR y la de la catorcena del 12 al 25 de octubre de 2026 trae una retención de Q126.20 (la estimación con los valores iniciales es de Q82.61 por catorcena), que no se puede deducir de una sola boleta; esa retención real se anota en la catorcena y reemplaza a la estimada. El texto del decreto no se pudo revisar completo; se contrastó con notas de prensa y de firmas de asesoría.',
@@ -17478,15 +17987,15 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     id: 'presDevengado', g: 'presupuesto', t: 'Total devengado del presupuesto',
     c: 'La suma de los ingresos de la boleta de cada persona en todas las catorcenas del año (y en las quincenas del personal mensual).',
     d: [
-      'Se calcula la boleta completa de cada persona en cada catorcena que empieza en el año elegido (26 o 27) con el sueldo que tiene ese día, y se suman: ordinario, adicionales, horas extra, séptimo, feriados, asuetos y bonificaciones. El personal con sueldo mensual cobra por quincena (24 al año).',
-      'Cada catorcena cuenta en el mes donde cae la mayor parte de sus 14 días; la que cruza el fin de año cuenta en el año en que empieza. Con un aumento a mitad de catorcena se paga el promedio de sus días.'
+      'Se calcula la boleta completa de cada persona en cada catorcena del año elegido (26 o 27) con el sueldo que tiene ese día, y se suman: ordinario, adicionales, horas extra, séptimo, feriados, asuetos y bonificaciones. El personal con sueldo mensual cobra por quincena (24 al año).',
+      'Cada catorcena se carga entera a un solo mes y a un solo año, según la regla que se elija en «Qué se presupuesta» (por omisión, donde cae la mayor parte de sus 14 días; ver «A qué mes se carga cada catorcena»). Con un aumento a mitad de catorcena se paga el promedio de sus días.'
     ],
     f: ['Devengado del año = suma, de todas las personas y de todas las catorcenas (o quincenas), del devengado de su boleta'],
     v: (c) => {
       const r = calcular(c); if (!r) return sinDatos();
       return ul(['Presupuesto ' + r.pres.anio + ': <b>' + q0(r.A.dev) + '</b> devengado en ' + r.pres.cal.cats.length + ' catorcenas; después de IGSS, ISR y descuentos, el neto a pagar es ' + q0(r.A.liq) + '.']);
     },
-    u: [['presupuesto', 'Resumen y Boleta global']], rel: ['presCosto', 'presExtras']
+    u: [['presupuesto', 'Resumen y Boleta global']], rel: ['presCosto', 'presExtras', 'presMesCat']
   });
 
   add({
@@ -17527,14 +18036,55 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     d: [
       'Hay tres orígenes: del gobierno (por ejemplo, el ajuste al salario mínimo), de la empresa (general) e individuales (se guardan en la ficha de cada persona). Los generales se aplican a toda la planilla, al personal de turno, al de solo de día o a una cuadrilla. Cada aumento tiene fecha, forma —% sobre el sueldo, Q más al mes o sueldo nuevo—, una nota y la fecha en que se registró.',
       'El mismo día se aplican primero los del gobierno, luego los de la empresa y al final los individuales; los porcentajes se componen (cada uno sobre el sueldo que dejó el anterior). Un «sueldo nuevo» nunca baja el sueldo de quien ya gana más. Un aumento marcado «Ya en el sueldo» no se vuelve a aplicar: sirve para dejar anotado un aumento que la planilla ya incluye.',
-      'La trazabilidad muestra, por persona, el sueldo de hoy, lo que sumó cada origen, el sueldo al 31 de diciembre y cada paso con su fecha, su valor y su nota; y, para la empresa, cuánto suma cada origen al costo del año.'
+      'La trazabilidad muestra, por persona, el sueldo de hoy, lo que sumó cada origen, el sueldo al 31 de diciembre y cada paso con su fecha, su valor y su nota; y, para la empresa, cuánto suma cada origen al costo del año.',
+      'Cuando llega la fecha de un aumento, el botón «Aplicar a la planilla» lo pasa al sueldo real de las fichas (ver «Aplicar los aumentos a la planilla»).'
     ],
     f: ['% sobre el sueldo: sueldo nuevo = sueldo × (1 + % ÷ 100)', 'Q más al mes: sueldo nuevo = sueldo + Q', 'Sueldo nuevo (Q): sueldo nuevo = el mayor entre el sueldo actual y ese valor'],
     v: (c) => {
       const gen = c.S.pres.aumentos.length, ind = SM.EMP.reduce((s, e) => s + ((e.aum || []).length), 0);
       return ul(['Hay <b>' + gen + '</b> ' + (gen === 1 ? 'aumento general' : 'aumentos generales') + ' (gobierno y empresa) y <b>' + ind + '</b> ' + (ind === 1 ? 'aumento individual' : 'aumentos individuales') + ' registrados.']);
     },
-    u: [['presupuesto', 'Aumentos']], rel: ['presPromedio', 'presCosto']
+    u: [['presupuesto', 'Aumentos']], rel: ['presPromedio', 'presCosto', 'presAplicar']
+  });
+
+  add({
+    id: 'presAplicar', g: 'presupuesto', t: 'Aplicar los aumentos a la planilla',
+    c: 'Pasar al sueldo de cada ficha los aumentos cuya fecha ya llegó, para que el presupuesto no los cuente dos veces.',
+    d: [
+      'El presupuesto suma cada aumento registrado al sueldo de la ficha desde su fecha. Cuando esa fecha llega, el sueldo real de la planilla tiene que cambiar. El botón «Aplicar a la planilla» (sección Aumentos) lo hace: calcula el sueldo nuevo de cada persona con la misma cuenta del presupuesto —en orden de fecha, y el mismo día gobierno, empresa e individual; cada aumento sobre el sueldo que dejó el anterior; a centavos—, muestra la vista previa con el sueldo de cada persona antes y después y, al confirmar, cambia el sueldo de las fichas y marca los aumentos «Ya en el sueldo» con la fecha y la hora.',
+      'Como el sueldo nuevo ya está en la ficha y el aumento queda marcado, el costo del año no cambia: lo que antes sumaba el aumento ahora forma parte del sueldo de hoy (por eso baja lo que la tabla «Cuánto suma cada origen» atribuye a ese origen). Las catorcenas que ya se registraron en Boletas → Registro no cambian. Cada aplicación queda en el historial y la última se puede deshacer, mientras nadie vuelva a cambiar esos sueldos.',
+      'Un aumento llega cuando su fecha es hoy o ya pasó y tiene un valor mayor que cero. Los que no tienen fecha o valor, los que todavía no llegan y los marcados «Ya en el sueldo» no se aplican.'
+    ],
+    f: ['% sobre el sueldo: sueldo nuevo = sueldo × (1 + % ÷ 100)', 'Q más al mes: sueldo nuevo = sueldo + Q', 'Sueldo nuevo (Q): el mayor entre el sueldo actual y ese valor', 'Con varios aumentos: se aplican en orden y cada uno sobre el resultado del anterior'],
+    v: (c) => {
+      const hoy = U.todayNum(), pl = E.presPlan(c.S, SM.EMP, { hoy }), px = E.presProximo(c.S, SM.EMP, hoy);
+      const l = [pl.aums.length ? 'Hoy (' + U.fmtDMY(hoy) + ') ya ' + (pl.aums.length === 1 ? 'llegó <b>1</b> aumento' : 'llegaron <b>' + pl.aums.length + '</b> aumentos') + ' por aplicar: ' + pl.cambian + (pl.cambian === 1 ? ' persona subiría' : ' personas subirían') + ' de sueldo (' + (pl.delta >= 0 ? '+' : '−') + q(Math.abs(pl.delta)) + ' al mes en total).' : 'Hoy (' + U.fmtDMY(hoy) + ') ningún aumento está por aplicar.'];
+      if (px) l.push('El próximo llega el <b>' + U.fmtDMY(px.dia) + '</b> (' + (px.dias === 1 ? 'mañana' : 'en ' + px.dias + ' días') + ').');
+      const n = (c.S.pres.apl || []).length; if (n) l.push('Aplicaciones en el historial: <b>' + n + '</b>.');
+      return ul(l);
+    },
+    u: [['presupuesto', 'Aumentos']], rel: ['presAumentos', 'presCosto']
+  });
+
+  add({
+    id: 'presMesCat', g: 'presupuesto', t: 'A qué mes se carga cada catorcena',
+    c: 'Cada catorcena cuenta entera en un solo mes y un solo año; la regla se elige en «Qué se presupuesta».',
+    d: [
+      'Una catorcena dura 14 días y casi siempre cruza dos meses. Para el presupuesto por mes, cada catorcena se carga ENTERA a uno solo, sin partirla por días. Ese mismo mes decide el año: la catorcena que cruza el fin de año va al año de su regla.',
+      'Hay cuatro reglas: la mayor parte de sus días (el mes donde caen más de sus 14 días; con 7 y 7, el mes en que empieza; es la de las versiones anteriores), el mes en que empieza (su primer día, el lunes), el mes en que termina (su último día, el domingo) y el mes en que se paga (su cierre más los días que la planilla tarda en pagar, en Parámetros).',
+      'Cambiar la regla mueve catorcenas de un mes a otro y puede cambiar cuál catorcena abre y cuál cierra el año; el sueldo y la boleta de cada catorcena no cambian. Conviene elegir la que usa la contabilidad de la empresa para registrar la planilla.'
+    ],
+    f: ['Mayor parte de sus días: el mes del séptimo día de la catorcena', 'Empieza: el mes de su primer día · Termina: el mes de su último día', 'Se paga: el mes de su último día + los días de pago de Parámetros'],
+    v: (c) => {
+      const S = c.S, anio = S.pres.anio, A = E.anclaCat(S), P = S.params;
+      // la primera catorcena de este año cuya regla cambia el mes: se muestra en las cuatro reglas
+      let k0 = Math.ceil((U.dayNum(anio, 1, 1) - A) / 14), ej = null;
+      for (let k = k0; k < k0 + 30 && !ej; k++) { const cat = E.catorcena(S, k), ms = E.PRES_REGLAS.map((r) => U.ymd(E.presFechaCat(P, cat, r)).m); if (new Set(ms).size > 1) ej = { cat, ms }; }
+      const nm = (m) => U.MES[m - 1];
+      return ul([ej ? 'La catorcena ' + ej.cat.num + ' (del ' + U.fmtDMY(ej.cat.ini) + ' al ' + U.fmtDMY(ej.cat.fin) + ') se carga a <b>' + nm(ej.ms[0]) + '</b> por la mayor parte de sus días, a ' + nm(ej.ms[1]) + ' si se cuenta el mes en que empieza, a ' + nm(ej.ms[2]) + ' si se cuenta el mes en que termina y a ' + nm(ej.ms[3]) + ' si se cuenta el mes en que se paga.' : 'Con el calendario actual todas las catorcenas caen en el mismo mes con las cuatro reglas.',
+        'Regla elegida ahora: <b>' + (SM.DEF.presReglas.find((r) => r.id === E.presRegla(S)) || SM.DEF.presReglas[0]).l.toLowerCase() + '</b>.']);
+    },
+    u: [['presupuesto', 'Resumen']], rel: ['presDevengado']
   });
 
   add({
@@ -20140,6 +20690,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
    57a-view-presupuesto.js — pestaña «Presupuesto» (versión 27): el costo de toda la planilla en el año siguiente.
    Este archivo trae lo común (controles, encabezado, avisos, CSV) y la sección «Resumen». Las demás secciones están en:
      57a1-presupuesto-aumentos.js   aumentos del gobierno, de la empresa e individuales, con su trazabilidad y los promedios de sueldo
+     57a4-presupuesto-aplicar.js    (versión 28) «Aplicar a la planilla»: pasar a los sueldos de las fichas los aumentos cuya fecha ya llegó, con vista previa, historial y Deshacer
      57a2-presupuesto-boleta.js     horas extra por cuadrilla y la boleta global (por concepto o por persona; catorcena, mes y año)
      57a3-presupuesto-cuentas.js    cuentas contables: partida, acumulado por catorcena, mes y año, indemnización por ley y catálogo
    Todo sale del motor E.pres* (21k-engine-presupuesto.js): las boletas de cada persona en cada catorcena del año son las mismas que calculan las
@@ -20188,7 +20739,9 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   P.hayAumentos = () => SM.S.pres.aumentos.length > 0 || SM.EMP.some((e) => e.aum && e.aum.length);
   /** Nombre del calendario de turnos con el que se calcula. */
   P.turnoTxt = (c) => (c.pres.which === 'act' ? 'situación actual' : 'propuesta') + ' (' + c.turno.corto + ')';
-  P.subt = (c) => 'Año ' + c.pres.anio + ' · ' + P.turnoTxt(c) + ' · ' + c.pres.n + (c.pres.n === 1 ? ' persona' : ' personas');
+  /** La regla con la que se carga cada catorcena a un mes (versión 28), con sus textos de DEF.presReglas. */
+  P.regla = (c) => DEF.presReglas.find((r) => r.id === c.pres.cal.regla) || DEF.presReglas[0];
+  P.subt = (c) => 'Año ' + c.pres.anio + ' · ' + P.turnoTxt(c) + ' · ' + c.pres.n + (c.pres.n === 1 ? ' persona' : ' personas') + ' · ' + P.regla(c).s;
   /** Las etiquetas del período elegido en la boleta global y en la partida: { titulo, sub, cols } (cols: las columnas que se muestran, con su selección). */
   P.periodo = (c, desglosar) => {
     const { pres, pr } = c, cal = pres.cal, ok = pr.desglose && desglosar;
@@ -20206,7 +20759,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     }
     const x = cal.cats[Math.min(pr.cat, cal.cats.length) - 1];
     if (!x) return { titulo: 'Sin catorcenas', sub: '', cols: [{ l: '—', sub: '', sel: { t: 'cat', i: 0 }, tot: true }] };
-    return { titulo: 'Catorcena ' + x.num, sub: 'Del ' + U.fmtDMY(x.ini) + ' al ' + U.fmtDMY(x.fin) + ' · pago el ' + U.fmtDMY(E.pagoCat(c.S.params, x)) + ' · cuenta en ' + U.MES[x.mes - 1], cols: [{ l: 'Catorcena ' + x.num, sub: P.dm(x.ini) + '–' + P.dm(x.fin), sel: { t: 'cat', i: x.i }, tot: true }] };
+    return { titulo: 'Catorcena ' + x.num, sub: 'Del ' + U.fmtDMY(x.ini) + ' al ' + U.fmtDMY(x.fin) + ' · pago el ' + U.fmtDMY(x.pago) + ' · se carga a ' + U.MES[x.mes - 1] + ' de ' + pres.anio, cols: [{ l: 'Catorcena ' + x.num, sub: P.dm(x.ini) + '–' + P.dm(x.fin), sel: { t: 'cat', i: x.i }, tot: true }] };
   };
   /** Controles del período (catorcena, mes o año) que comparten la boleta global y la partida. o.desglose: muestra la casilla del desglose; o.forma: muestra la forma de la boleta. */
   P.ctrlPeriodo = (c, o) => {
@@ -20258,8 +20811,8 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     const incluye = K.details('Qué incluye el presupuesto y qué no',
       '<p><b>Incluye</b>, para cada persona y cada catorcena (o quincena, en el personal mensual): la boleta completa con las horas ordinarias y extra del turno elegido, el séptimo, los feriados, los adicionales, las bonificaciones, el IGSS, el ISR (si la retención está activa en Boletas) y la cafetería y otras deducciones anotadas en la ficha; la parte de la empresa (IGSS patronal ' + U.fmt(S.params.igssPatronal * 100, 2) + ' %, IRTRA ' + U.fmt(S.params.irtra * 100, 0) + ' % e INTECAP ' + U.fmt(S.params.intecap * 100, 0) + ' %); y lo que se acumula en cada pago para indemnización, aguinaldo y bono 14, con los criterios de Parámetros (zona gris legal).</p>' +
       '<p><b>No incluye</b>: el pago del aguinaldo y del bono 14 (se muestra lo que se acumula, no cuándo se paga), los saldos que ya existan al empezar el año, la contratación de personal nuevo, ni el costo de cubrir vacaciones (el sueldo de las vacaciones ya está en la boleta normal; si se cubre con horas extra, anotarlas como horas extra adicionales en la ficha de la persona). Las horas extra de cada persona son las del calendario de turnos elegido más las adicionales anotadas en su ficha.</p>' +
-      '<p>El mes de cada catorcena es el mes donde cae la mayor parte de sus 14 días; la catorcena que cruza el fin del año cuenta en el año en que empieza. Con sueldos distintos dentro de una catorcena (un aumento a mitad de período), se paga el promedio de sus días.</p>', false, 'pres-incluye');
-    return gauges + K.panel('Mes a mes', tabla, { flush: true, foot: 'Cuotas patronales = IGSS patronal + IRTRA + INTECAP. Prestaciones que se acumulan = indemnización + aguinaldo + bono 14 (lo que se provisiona en cada pago; ver Cuentas contables).' }) +
+      '<p>Cada catorcena se carga entera a un solo mes y a un solo año. La regla elegida es «' + esc(P.regla(c).l) + '»: ' + esc(P.regla(c).d) + ' Se cambia en «Qué se presupuesta». Con sueldos distintos dentro de una catorcena (un aumento a mitad de período), se paga el promedio de sus días.</p>', false, 'pres-incluye');
+    return gauges + K.panel('Mes a mes', tabla, { flush: true, foot: 'Cuotas patronales = IGSS patronal + IRTRA + INTECAP. Prestaciones que se acumulan = indemnización + aguinaldo + bono 14 (lo que se provisiona en cada pago; ver Cuentas contables). Catorcenas: ' + esc(P.regla(c).l.charAt(0).toLowerCase() + P.regla(c).l.slice(1)) + ' (cada una cuenta entera en un solo mes).' }) +
       K.panel('Por grupo de personal', grupos, { flush: true }) + incluye;
   };
 
@@ -20306,8 +20859,10 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       const c = P.ctx(), S = c.S, pr = c.pr, vista = P.VISTAS.some((x) => x.v === pr.vista) ? pr.vista : 'resumen';
       const nombre = (P.VISTAS.find((x) => x.v === vista) || P.VISTAS[0]).l, titulo = 'Presupuesto ' + pr.anio + ' · ' + nombre;
       const T = { a: E.resumenTurno(S, 'act'), s: E.resumenTurno(S, 'sel') };
-      const ctrl = '<div class="fgrid noprint">' + K.num('Año del presupuesto', 'pres.anio', { t: 'int', min: 2000, max: 2100, step: 1, dec: 0, hint: 'Se cuentan las catorcenas que empiezan en ese año (' + c.n + ' en ' + pr.anio + ').' }) +
-        K.sel('Calendario de turnos', 'pres.turno', [{ v: 'sel', l: 'Propuesta: ' + T.s.nombre }, { v: 'act', l: 'Situación actual: ' + T.a.nombre }], { wide: true, hint: 'Decide qué cuadrillas existen y cuántas horas extra hace cada una. Los modelos se cambian en Operativo.' }) + '</div>';
+      const R = P.regla(c);
+      const ctrl = '<div class="fgrid noprint">' + K.num('Año del presupuesto', 'pres.anio', { t: 'int', min: 2000, max: 2100, step: 1, dec: 0, hint: 'Se cuentan las catorcenas ' + R.h + ' ese año (' + c.n + ' en ' + pr.anio + ').' }) +
+        K.sel('Calendario de turnos', 'pres.turno', [{ v: 'sel', l: 'Propuesta: ' + T.s.nombre }, { v: 'act', l: 'Situación actual: ' + T.a.nombre }], { wide: true, hint: 'Decide qué cuadrillas existen y cuántas horas extra hace cada una. Los modelos se cambian en Operativo.' }) +
+        K.sel('Mes al que se carga cada catorcena', 'pres.regla', DEF.presReglas.map((r) => ({ v: r.id, l: r.l })), { wide: true, hint: R.d }) + '</div>';
       const orient = vista === 'resumen' || vista === 'aumentos' ? 'port' : 'land';
       const vistaSeg = '<div class="row mid noprint" style="margin:.2rem 0 .9rem"><div class="btns grow">' + K.seg('presVista', P.VISTAS, vista, 'aria-label="Sección del presupuesto"') + '</div><div class="btns">' +
         K.btn('presCsv', 'Descargar CSV', { ico: 'download', title: 'Los datos de esta sección en un archivo que abre Excel' }) + K.printBtn(orient, 'Imprimir', titulo) + '</div></div>';
@@ -20318,7 +20873,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       return '<div class="view" data-view="presupuesto">' + K.phead(titulo, P.subt(c)) +
         '<div class="verdict"><div class="vt"><h1>Presupuesto ' + pr.anio + '</h1><p>El costo de toda la planilla en el año siguiente: la boleta de cada persona en cada catorcena de ' + pr.anio + ', con los aumentos del gobierno, de la empresa y los individuales aplicados desde su fecha, ' +
         'la parte de la empresa (cuotas patronales) y lo que se acumula para indemnización, aguinaldo y bono 14. Calculado con ' + esc(P.turnoTxt(c)) + '.</p></div></div>' +
-        K.ayudas(['presPromedio', 'presAumentos', 'presPartida', 'presProvision', 'indemnizacion']) + vistaSeg + K.panel('Qué se presupuesta', ctrl, { cls: 'noprint' }) + cuerpo + '</div>';
+        K.ayudas((vista === 'aumentos' ? ['presAplicar'] : []).concat(['presPromedio', 'presAumentos', 'presMesCat', 'presPartida', 'presProvision', 'indemnizacion'])) + vistaSeg + K.panel('Qué se presupuesta', ctrl, { cls: 'noprint' }) + cuerpo + '</div>';
     }
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -20331,6 +20886,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
      · individuales: de una persona (se guardan en su ficha, empleado.aum).
    Cada aumento trae fecha, forma (% sobre el sueldo, Q más al mes o sueldo nuevo), nota, si ya está en el sueldo de la planilla y cuándo se anotó.
    Se muestran el efecto de cada uno, el sueldo de cada persona paso a paso, el promedio de la planilla antes y después de los aumentos y lo que suma cada origen al costo del año.
+   Versión 28: cada aumento trae el botón «Aplicar a la planilla» (57a4-presupuesto-aplicar.js) y, una vez aplicado, la fecha y la hora en que se pasó al sueldo.
    Los campos de las tablas guardan por identificador (UI.I.presAum) porque el aumento puede cambiar de lugar en la lista.
    ============================================================ */
 (function (g) {
@@ -20392,7 +20948,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
 
   /** Lo que dice el aumento sobre sí mismo: si ya está en el sueldo, si le falta la fecha, si cae después del año o si no cambia a nadie. */
   const estado = (a, ef, cal) => {
-    if (a.ya) return K.chip('Ya está en el sueldo', 'info');
+    if (a.ya) return a.apl ? K.chip('Aplicado a la planilla el ' + P.fh(a.apl), 'ok') : K.chip('Ya está en el sueldo', 'info');
     if (!a.fecha) return K.chip('Falta la fecha', 'warn');
     if (U.parseISO(a.fecha) > cal.fin) return K.chip('Después del año', 'warn');
     if (!ef || !ef.n) return K.chip('Sin efecto', '');
@@ -20402,7 +20958,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   const detalle = (w, a, ef, cal, ncols, quien) => {
     const x = ef[a.id], e = x || { n: 0, delta: 0, anio: 0 }, est = estado(a, x, cal);
     const efecto = e.n ? '<span><b>' + e.n + '</b> ' + (e.n === 1 ? 'persona' : 'personas') + '</span><span><b>' + P.sg(e.delta) + '</b> más al mes en la planilla</span><span><b>' + K.q0(e.anio) + '</b> en el año</span>' : (est ? '' : '<span>No cambia el sueldo de nadie</span>');
-    return '<tr class="detail"><td colspan="' + ncols + '"><div class="pa-det"><label class="pa-nota"><span class="lb">Nota</span>' + notaH(w, a, 'Nota ' + quien) + '</label><div class="pa-ef">' + est + efecto + '<span class="note pa-reg">Registrado el ' + regTxt(a.reg) + '</span></div></div></td></tr>';
+    return '<tr class="detail"><td colspan="' + ncols + '"><div class="pa-det"><label class="pa-nota"><span class="lb">Nota</span>' + notaH(w, a, 'Nota ' + quien) + '</label><div class="pa-ef">' + est + ' ' + P.ctrlAplicar(w, a) + ' ' + efecto + ' <span class="note pa-reg">Registrado el ' + regTxt(a.reg) + '</span></div></div></td></tr>';
   };
 
   /* ---------- aumentos generales ---------- */
@@ -20497,7 +21053,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   };
 
   /** La sección «Aumentos». */
-  P.aumentos = (c) => P.panelGenerales(c) + P.panelIndividuales(c) + P.panelPromedios(c) + P.panelCostoOrigen(c) + P.panelTraza(c);
+  P.aumentos = (c) => P.panelAplicar(c) + P.panelAplHistorial(c) + P.panelGenerales(c) + P.panelIndividuales(c) + P.panelPromedios(c) + P.panelCostoOrigen(c) + P.panelTraza(c);
 
   /* ---------- CSV: una fila por cada aumento aplicado a cada persona ---------- */
   P.csv.aumentos = (c) => {
@@ -20507,6 +21063,12 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       if (!p.pasos.length) rows.push([p.emp.codigo || '', p.emp.nombre || '', grupo, '', 'Sin aumentos', '', '', '', p.sueldoHoy, p.sueldoHoy, 0, '']);
       p.pasos.forEach((pa) => rows.push([p.emp.codigo || '', p.emp.nombre || '', grupo, U.fmtISO(pa.dia), P.ORIGEN[pa.a.origen] || '', pa.a.via === 'general' ? P.alcanceL(pa.a.alcance) : 'Individual', (P.MODOS.find((m) => m.v === pa.a.modo) || {}).l || '', pa.a.valor, pa.antes, pa.despues, pa.delta, pa.a.nota || '']));
     });
+    // lo que ya se pasó a la planilla (versión 28): una fila por cada aplicación
+    const apl = (c.S.pres.apl || []).slice().reverse();
+    if (apl.length) {
+      rows.push([]); rows.push(['Historial: lo que se pasó a la planilla']); rows.push(['Fecha y hora', 'Aumentos que se aplicaron', 'Personas con sueldo nuevo', 'Q más al mes']);
+      apl.forEach((e) => rows.push([P.fh(e.f), e.aum.map((a) => U.fmtDMY(U.parseISO(a.fecha)) + ' ' + P.valorTxt(a).replace(/\u00a0/g, ' ') + (a.nota ? ' (' + a.nota + ')' : '')).join('; '), e.det.length, r2(e.det.reduce((s, d) => s + d[2] - d[1], 0))]));
+    }
     return { name: 'presupuesto_' + c.pres.anio + '_aumentos', rows };
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -20950,6 +21512,124 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     rows.push(fila('', '', 'TOTAL HABER', '', dh.map((x) => x.h)));
     return { name: 'presupuesto_' + pres.anio + '_cuentas_' + CC.gran + (acum ? '_acumulado' : ''), rows };
   };
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+
+;
+/* ============================================================
+   57a4-presupuesto-aplicar.js — Presupuesto ▸ Aumentos ▸ «Aplicar a la planilla» (versión 28).
+   Cuando llega la fecha de un aumento, el botón lo pasa al sueldo de la ficha de cada persona (Planilla → Sueldo) y lo marca «Ya en el sueldo» con la fecha y la hora,
+   para que el presupuesto no lo cuente dos veces. Antes de tocar nada se muestra la vista previa (cada aumento y el sueldo de cada persona antes y después).
+   Cada aplicación queda en un historial y la última se puede deshacer mientras nadie vuelva a cambiar esos sueldos.
+   Todo el cálculo está en el motor (21l-engine-presupuesto-aplicar.js); aquí solo se dibuja y se confirma.
+   ============================================================ */
+(function (g) {
+  'use strict';
+  const SM = g.SM, U = SM.U, E = SM.E, UI = SM.UI, K = UI.K, esc = U.esc, P = UI.pres, r2 = U.r2;
+  const plural = (n, uno, varios) => n + ' ' + (n === 1 ? uno : varios);
+
+  /** «01/01/2027 09:30» a partir de 'AAAA-MM-DD HH:MM'. */
+  P.fh = (s) => (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s || '') ? s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4) + ' ' + s.slice(11) : '—');
+  /** «5 %», «+ Q 300.00» o «sueldo nuevo Q 5,600.00». */
+  P.valorTxt = (a) => (a.modo === 'pct' ? U.fmt(a.valor, 2) + ' %' : a.modo === 'monto' ? '+ ' + K.q(a.valor) : 'sueldo nuevo ' + K.q(a.valor));
+  /** De quién es un aumento: «Gobierno · Toda la planilla» o «Individual · Nombre». k = clave del aumento (E.presClaveAum); sirve también para el diario, que no guarda el nombre. */
+  const quien = (a, k) => {
+    if (a.origen !== 'individual') return (P.ORIGEN[a.origen] || 'Gobierno') + ' · ' + P.alcanceL(a.alcance);
+    const m = /^i:(.*):[^:]*$/.exec(k || ''), e = m ? SM.empById(m[1]) : null;
+    return 'Individual · ' + (e ? e.nombre || e.codigo || 'sin nombre' : 'persona que ya no está');
+  };
+  const linea = (a, k) => '<b>' + U.fmtDMY(U.parseISO(a.fecha)) + '</b> · ' + esc(quien(a, k)) + ' · ' + esc(P.valorTxt(a));
+
+  /* ---------- el botón en cada aumento ---------- */
+  /** Lo que se dibuja en la fila de un aumento (w: 'g' o la persona): el botón «Aplicar a la planilla» si su fecha ya llegó, el mismo botón apagado con el día en que se activa si todavía no,
+      y nada si el aumento ya está en el sueldo o le falta la fecha o el valor. */
+  P.ctrlAplicar = (w, a) => {
+    const est = E.presEstadoAum(a, U.todayNum()), key = (w === 'g' ? 'g:' : 'i:' + w + ':') + a.id;
+    if (est === 'llego') return K.btn('presAplicar', 'Aplicar a la planilla…', { cls: 'sm pri noprint', ico: 'check', data: 'data-hasta="' + esc(key) + '"', title: 'Pasar este aumento (y los anteriores que ya llegaron) al sueldo de la planilla' });
+    if (est === 'futuro') return K.btn('presAplicar', 'Aplicar a la planilla…', { cls: 'sm noprint', ico: 'check', data: 'disabled aria-disabled="true" data-hasta="' + esc(key) + '"', title: 'Se activa el día en que llega la fecha del aumento' }) +
+      ' <span class="note noprint">Se activa el ' + U.fmtDMY(U.parseISO(a.fecha)) + '</span>';
+    return '';
+  };
+
+  /* ---------- panel «Aplicar a la planilla» ---------- */
+  P.panelAplicar = (c) => {
+    const S = c.S, hoy = U.todayNum(), plan = E.presPlan(S, SM.EMP, { hoy }), prox = E.presProximo(S, SM.EMP, hoy), n = plan.aums.length;
+    let cuerpo;
+    if (n) {
+      const items = plan.aums.map((a) => '<li>' + linea(a, a.k) + ' <span class="note">— ' + (a.n ? plural(a.n, 'persona', 'personas') + ', ' + P.sg(a.delta) + ' más al mes' : 'no cambia el sueldo de nadie') + '</span></li>').join('');
+      cuerpo = '<p class="pa-ap-t"><b>' + (n === 1 ? 'Ya llegó 1 aumento' : 'Ya llegaron ' + n + ' aumentos') + '</b> y ' + (n === 1 ? 'falta pasarlo' : 'falta pasarlos') + ' al sueldo de la planilla. Hoy es ' + U.fmtDMY(hoy) + '.</p><ul class="pa-ap-l">' + items + '</ul>' +
+        '<p>' + (plan.cambian ? '<b>' + (plan.cambian === 1 ? '1 persona sube' : plan.cambian + ' personas suben') + ' de sueldo</b>: ' + P.sg(plan.delta) + ' más al mes en total.' : 'Ningún sueldo cambiaría: los aumentos que llegaron no suben a nadie.') + '</p>' +
+        '<div class="btns noprint">' + K.btn('presAplicar', 'Aplicar a la planilla…', { cls: 'pri', ico: 'check', title: 'Ver cómo quedaría cada sueldo y confirmar' }) + '</div>';
+    } else {
+      cuerpo = '<p class="pa-ap-t">Hoy es <b>' + U.fmtDMY(hoy) + '</b>. Ningún aumento está por aplicar.</p>' +
+        (prox ? '<p>El próximo llega el <b>' + U.fmtDMY(prox.dia) + '</b> (' + (prox.dias === 1 ? 'mañana' : 'en ' + prox.dias + ' días') + '): ' + prox.aums.map((a) => linea(a, a.k)).join('; ') + '.</p>'
+          : '<p>No hay aumentos anotados por llegar. Los aumentos con fecha y valor aparecen aquí cuando su fecha llega.</p>') +
+        '<div class="btns noprint">' + K.btn('presAplicar', 'Aplicar a la planilla…', { ico: 'check', data: 'disabled aria-disabled="true"', title: 'Se activa el día en que llega la fecha de un aumento' }) + '<span class="note">Se activa el día en que llega la fecha de un aumento.</span></div>';
+    }
+    if (plan.sinSueldo.length) cuerpo += '<p class="note">' + plural(plan.sinSueldo.length, 'persona no tiene sueldo', 'personas no tienen sueldo') + ' en la ficha y no se tocan: ' + esc(plan.sinSueldo.slice(0, 8).map((e) => e.nombre || e.codigo || 'sin nombre').join(', ')) + (plan.sinSueldo.length > 8 ? '…' : '') + '.</p>';
+    return K.panel('Aplicar a la planilla', cuerpo, { cls: 'noprint pa-ap', foot: 'Aplicar pasa cada aumento al sueldo de la ficha de cada persona (Planilla → Sueldo) y lo marca «Ya en el sueldo» con la fecha y la hora. Desde entonces las boletas salen con el sueldo nuevo y el presupuesto lo cuenta como parte del sueldo de hoy, no como un aumento aparte. ' +
+      'Las catorcenas que ya se registraron (Boletas → Registro) no cambian. La última aplicación se puede deshacer mientras nadie vuelva a cambiar esos sueldos.' });
+  };
+
+  /* ---------- historial ---------- */
+  P.panelAplHistorial = (c) => {
+    const l = (c.S.pres.apl || []).slice().reverse();
+    if (!l.length) return '';
+    const rv = E.presRevertible(c.S, SM.EMP);
+    const filas = l.map((e, i) => {
+      const delta = r2(e.det.reduce((s, d) => s + d[2] - d[1], 0));
+      const aums = e.aum.map((a) => '<div>' + linea(a, a.k) + (a.nota ? ' <span class="note">· ' + esc(a.nota) + '</span>' : '') + '</div>').join('');
+      const acc = i ? '' : rv.ok ? K.btn('presAplDeshacer', 'Deshacer', { ico: 'reset', cls: 'sm', title: 'Devolver el sueldo anterior a estas personas y dejar estos aumentos por aplicar' })
+        : '<span class="note" title="Para no pisar ese cambio, no se deshace nada. Ajustar los sueldos a mano en Planilla.">No se puede deshacer: cambió el sueldo de ' + plural(rv.cambiaron.length, 'persona', 'personas') + '</span>';
+      return '<tr><td class="ttl" data-l="Fecha y hora">' + P.fh(e.f) + '</td><td class="pa-stp" data-l="Aumentos que se aplicaron">' + aums + '</td><td class="n" data-l="Personas con sueldo nuevo">' + e.det.length + '</td><td class="n" data-l="Q más al mes">' + P.sg(delta) + '</td><td class="acts noprint" data-l="Acciones">' + acc + '</td></tr>';
+    }).join('');
+    const tabla = '<div class="tblwrap"><table class="tbl rsp pa-hist"><caption class="sr">Aplicaciones de aumentos a la planilla, de la más reciente a la más antigua</caption><thead><tr><th scope="col">Fecha y hora</th><th scope="col">Aumentos que se aplicaron</th><th class="n" scope="col">Personas con sueldo nuevo</th><th class="n" scope="col">Q más al mes</th><th scope="col"><span class="sr">Acciones</span></th></tr></thead><tbody>' + filas + '</tbody></table></div>';
+    return K.panel('Historial: lo que se pasó a la planilla', tabla, { flush: true, foot: 'Se guardan las últimas 30 aplicaciones. Cada aumento aplicado queda marcado «Ya en el sueldo» en su lista, con la fecha y la hora en que se aplicó.' });
+  };
+
+  /* ---------- la vista previa ---------- */
+  P.aplVista = (plan) => {
+    const filasA = plan.aums.map((a, i) => '<tr><td class="n" data-l="Orden">' + (i + 1) + '</td><td data-l="Desde">' + U.fmtDMY(a.dia) + '</td><td data-l="Aumento"><span class="pa-ln">' + esc(quien(a, a.k)) + (a.nota ? '<br><span class="note">' + esc(a.nota) + '</span>' : '') + '</span></td><td data-l="Valor">' + esc(P.valorTxt(a)) + '</td>' +
+      '<td class="n" data-l="Personas">' + a.n + '</td><td class="n" data-l="Q más al mes">' + P.sg(a.delta) + '</td></tr>').join('');
+    const tA = '<div class="tblwrap pa-prevw"><table class="tbl rsp pa-prev"><caption class="sr">Aumentos que se aplican, en orden</caption><thead><tr><th class="n" scope="col">Orden</th><th scope="col">Desde</th><th scope="col">Aumento</th><th scope="col">Valor</th><th class="n" scope="col">Personas</th><th class="n" scope="col">Q más al mes</th></tr></thead><tbody>' + filasA + '</tbody></table></div>';
+    const suma = plan.personas.reduce((o, p) => { o.antes += p.antes; o.despues += p.despues; return o; }, { antes: 0, despues: 0 });
+    const filasP = plan.personas.map((p) => '<tr><td class="ttl" data-l="Persona">' + P.persona(p.emp) + '</td><td class="n" data-l="Sueldo actual">' + K.q(p.antes) + '</td><td class="n" data-l="Sueldo nuevo"><b>' + K.q(p.despues) + '</b></td>' +
+      '<td class="n" data-l="Cambio"><span>' + (p.cambia ? P.sg(p.delta) + ' <span class="note">(' + U.fmt(p.delta / p.antes * 100, 2) + ' %)</span>' : '<span class="note">sin cambio</span>') + '</span></td><td class="n" data-l="Aumentos">' + p.pasos.length + '</td></tr>').join('');
+    const tP = '<div class="tblwrap pa-prevw"><table class="tbl rsp pa-prev"><caption class="sr">Sueldo de cada persona antes y después</caption><thead><tr><th scope="col">Persona</th><th class="n" scope="col">Sueldo actual</th><th class="n" scope="col">Sueldo nuevo</th><th class="n" scope="col">Cambio</th><th class="n" scope="col">Aumentos</th></tr></thead><tbody>' + filasP + '</tbody>' +
+      '<tfoot><tr><td class="ttl">Suma de la planilla</td><td class="n">' + K.q(suma.antes) + '</td><td class="n"><b>' + K.q(suma.despues) + '</b></td><td class="n">' + P.sg(r2(suma.despues - suma.antes)) + '</td><td></td></tr></tfoot></table></div>';
+    return '<p>Hoy es <b>' + U.fmtDMY(plan.hoy) + '</b>. Se pasan al sueldo de las fichas estos aumentos, que ya llegaron y todavía no están en la planilla. Se aplican en este orden —fecha, gobierno, empresa, individual—, cada uno sobre el sueldo que dejó el anterior.' +
+      (plan.hasta && plan.aums.length > 1 ? ' Se aplica el aumento elegido y los que van antes; los demás quedan pendientes.' : '') + '</p>' + tA +
+      '<p><b>' + (plan.cambian === 1 ? '1 persona sube' : plan.cambian + ' personas suben') + ' de sueldo</b> (' + P.sg(plan.delta) + ' más al mes en total):</p>' + (plan.personas.length ? tP : '<p class="note">Ningún sueldo cambia.</p>') +
+      (plan.sinSueldo.length ? '<p class="note">' + plural(plan.sinSueldo.length, 'persona sin sueldo', 'personas sin sueldo') + ' en la ficha no se tocan: ' + esc(plan.sinSueldo.slice(0, 8).map((e) => e.nombre || e.codigo || 'sin nombre').join(', ')) + '.</p>' : '') +
+      '<p class="note">Antes de aplicar, confirmar que el sueldo de las fichas todavía no incluye estos aumentos; si ya los incluye, cancelar y marcar «Ya en el sueldo» en cada uno. Las catorcenas ya registradas en Boletas → Registro no cambian. Esta aplicación se podrá deshacer.</p>';
+  };
+
+  /* ---------- acciones ---------- */
+  /** Abre la vista previa y, si se confirma, pasa los aumentos a la planilla. data-hasta (clave de un aumento): solo ese y los que van antes. */
+  UI.A.presAplicar = async (el) => {
+    const S = SM.S, hoy = U.todayNum(), hasta = (el && el.dataset && el.dataset.hasta) || '', plan = E.presPlan(S, SM.EMP, { hoy, hasta }), n = plan.aums.length;
+    if (!n) { UI.toast('Ningún aumento está por aplicar hoy', ''); return; }
+    const r = await UI.dialog({ title: 'Aplicar a la planilla', wide: true, body: P.aplVista(plan), actions: [{ label: 'Cancelar', value: '' }, { label: n === 1 ? 'Aplicar el aumento' : 'Aplicar ' + n + ' aumentos', value: 'ok', kind: 'pri' }] });
+    if (r.v !== 'ok') return;
+    const ent = E.presAplicarPlan(S, SM.EMP, plan, { f: P.ahora(), hoy: U.fmtISO(hoy) }, (emp, patch) => SM.updEmp(emp.id, patch, false));
+    SM.touch();
+    UI.toast('Aplicado a la planilla: ' + (plan.cambian ? plural(plan.cambian, 'persona con sueldo nuevo', 'personas con sueldo nuevo') : 'ningún sueldo cambió'), 'ok', ent ? { label: 'Deshacer', fn: () => P.deshacer(ent.id, false) } : undefined);
+  };
+  /** Deshace la última aplicación. id: la que se quiere deshacer (la del aviso); sin id, la última. confirmar: pide confirmación antes. */
+  P.deshacer = async (id, confirmar) => {
+    const S = SM.S, rv = E.presRevertible(S, SM.EMP);
+    if (!rv.entrada) { UI.toast('No hay nada que deshacer', ''); return; }
+    if (id && rv.entrada.id !== id) { UI.toast('Después hubo otra aplicación: deshacer primero la más reciente, desde el historial', 'bad'); return; }
+    if (!rv.ok) {
+      await UI.dialog({ title: 'No se puede deshacer', body: '<p>Desde que se aplicó, cambió el sueldo de ' + esc(rv.cambiaron.slice(0, 8).map((e) => e.nombre || e.codigo || 'sin nombre').join(', ')) + (rv.cambiaron.length > 8 ? '…' : '') + '. Para no pisar ese cambio no se deshace nada.</p><p class="note">Ajustar los sueldos a mano en Planilla y, si hace falta, quitar la marca «Ya en el sueldo» de los aumentos.</p>', actions: [{ label: 'Entendido', value: 'ok', kind: 'pri' }] });
+      return;
+    }
+    const e = rv.entrada;
+    if (confirmar !== false && !(await UI.confirm('Deshacer la última aplicación', 'Se devuelve el sueldo anterior a ' + plural(e.det.length, 'persona', 'personas') + ' y ' + (e.aum.length === 1 ? 'el aumento vuelve' : 'los ' + e.aum.length + ' aumentos vuelven') + ' a quedar por aplicar.', 'Deshacer', true))) return;
+    E.presRevertirPlan(S, SM.EMP, (emp, patch) => SM.updEmp(emp.id, patch, false));
+    SM.touch();
+    UI.toast('Aplicación deshecha', 'ok');
+  };
+  UI.A.presAplDeshacer = () => P.deshacer('', true);
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
 ;
@@ -23219,7 +23899,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     const ords = E.ordenesTurnos(S3o, 'sel'), buenos = ords.filter((x) => !x.fallas.length && !x.avisos.length).map((x) => x.orden), pegados = ords.filter((x) => x.descansoMin !== null && x.descansoMin < 0.01).map((x) => x.orden);
     // turnos del catálogo que cruzan la medianoche y turnos con almuerzo sin pago
     const cat = c.S.codigos, cruzan = ['N', 'M12', 'N12'].filter((k) => cat[k] && U.hhmm(cat[k].fin) <= U.hhmm(cat[k].ini)).map((k) => k + ' ' + cat[k].ini + '–' + cat[k].fin);
-    const conAlm = ['D12', 'D12x'].filter((k) => cat[k] && E.almuerzoDe(cat[k])).map((k) => E.turnosDe({ variantes: { adelante: { patron: [k] } }, equipos: 1 }, 'adelante', cat)[0].txt);
+    const conAlm = ['D12', 'D12x', 'T11'].filter((k) => cat[k] && E.almuerzoDe(cat[k])).map((k) => E.turnosDe({ variantes: { adelante: { patron: [k] } }, equipos: 1 }, 'adelante', cat)[0].txt);
     return {
       '⟨domingoTxt⟩': domOn
         ? 'Con los parámetros actuales la regla está activa: cubrir las vacaciones de la situación actual suma ≈ ' + K.n(domExtraH, 0) + ' h extra más al mes y cuesta ' + K.sgn(domCosto) + ' al mes frente a la regla anterior' + (dosAct ? '' : ' (hoy no se cubre con dos personas, por eso no hay efecto)') + '.'
@@ -23335,10 +24015,10 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       if (sin.length === 2 && con.length === 1) cargaC = '<br><span class="note">Cambia el reparto de la carga entre las dos personas: sin cambio una hace ' + K.n(sin[0].sem, 0) + ' h por semana y la otra ' + K.n(sin[1].sem, 0) + ' h; con cambio, las dos hacen ' + K.n(con[0].sem, 0) + ' h en promedio.</span>';
     }
     add({ k: 'vacSemCambio', t: 'Quien cubre las vacaciones pasa de día a noche con el traslape del domingo', now: txtC(P.vacSemCambio), alt: txtC(sC), ef: eSC.html + sinDos12 + cargaC, quien: 'Jefe de producción y planillas', dif: eSC.dif });
-    // 7) horarios de los puentes (supuesto de reloj)
+    // 7) horario del puente M12 (supuesto de reloj); el del T11 se confirmó en la versión 28 (06:00–18:00 con 1 h de almuerzo sin pago)
     const cv = c.valAct.checks.find((x) => x.id === 'cobertura'), cod = S.codigos;
     const hh = (k) => (cod[k] ? cod[k].ini + '–' + cod[k].fin : '—');
-    add({ k: 'T11', tab: 'turnos', t: 'Horarios de los puentes T11 y M12', now: 'T11 ' + hh('T11') + ' · M12 ' + hh('M12'), alt: 'los horarios reales de relevo de la planta', ef: 'No cambia el costo; cambia la cobertura de 24 h (modelo actual: ' + (cv ? esc(cv.valor) : '—') + ').', quien: 'Jefe de producción y mantenimiento', dif: null });
+    add({ k: 'M12', tab: 'turnos', t: 'Horario del puente M12 (el del T11 ya está confirmado)', now: 'M12 ' + hh('M12') + ' · T11 ' + hh('T11'), alt: 'el horario real del relevo de noche de la planta', ef: 'No cambia el costo; cambia la cobertura de 24 h (modelo actual: ' + (cv ? esc(cv.valor) : '—') + ').', quien: 'Jefe de producción y mantenimiento', dif: null });
     // 8) ISR de relación de dependencia (Decreto 13-2026): a cuántas personas alcanzaría la retención con cada criterio (proyección anual de cada una, en los dos turnos)
     const anioI = E.isrAnioDe(P, E.catorcena(S, S.ui.catK || 0).fin);
     const isrCon = (patch, anio) => {
@@ -24261,7 +24941,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
 
   PAR.turnos = (c) => {
     const S = c.S, ks = Object.keys(S.codigos);
-    return K.banner('info', '<b>Los horarios de los turnos puente T11 y M12 son supuestos.</b> Deben ajustarse a los relevos reales de la planta: de ellos depende que el modelo actual cubra las 24 horas. Los turnos predefinidos solo pueden editarse o restablecerse; los agregados en esta pantalla pueden eliminarse.') +
+    return K.banner('info', '<b>El turno puente T11 va de 06:00 a 18:00 con una hora de almuerzo sin pago</b> (confirmado por la planta; el almuerzo se ve cortado en el horario de Operativo, a las 12:00 o a la hora que se elija en «Almuerzo desde»). <b>El horario del puente M12 sigue siendo un supuesto:</b> debe ajustarse al relevo real de la planta, porque de él depende que el modelo actual cubra las 24 horas. Los turnos predefinidos solo pueden editarse o restablecerse; los agregados en esta pantalla pueden eliminarse.') +
       K.banner('info', '<b>Turnos de 12 horas (D12, D12x, N12 y N12x).</b> Los usan los cinco modelos de 12 horas: «Día 12 h» de 06:00 a 18:00 (con una hora de almuerzo sin pago, a las 12:00 o a las 13:00 según «Almuerzo desde»; en Operativo se ve cortado en el horario) y «Noche 12 h» de 18:00 a 06:00. De cada turno, las horas ordinarias son las de su jornada y el resto es extra; los turnos «de más» (los que llevan x) se trabajan después de los turnos ordinarios de la semana y son todo extra. Si se cambian sus horas o su horario, cambian la cobertura, el costo y la salud del turno de esos modelos.') +
       cobertura(c) +
       '<div class="btns noprint">' + K.btn('parCodeAdd', 'Agregar un turno', { ico: 'plus', cls: 'pri' }) + K.btn('parCodesReset', 'Restablecer todo el catálogo', { ico: 'reset' }) + '</div>' +
