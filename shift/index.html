@@ -2140,6 +2140,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     factorAsueto: 1.5, asuetosAnuales: 11,
     // Feriados catorcenales (prestación de feriado)
     feriadoActivo: true, feriadoDescuentaOrd: true, feriadoHorasLV: 8, feriadoHorasSab: 4, feriadoLVNoFinSemana: false,
+    // versión 29: qué semana usa la planilla como «semana anterior» al feriado: 'catAnt' = la última semana de la catorcena anterior; 'semAnt' = la semana de lunes a domingo anterior a la del feriado
+    feriadoSemRef: 'catAnt',
     // Bonificaciones
     bonoIncentivoMensual: 250, bonoEmpresaMensual: 310, bonoEmpresaAfectoIGSS: false,
     // Personal con sueldo mensual pagado por quincena («Mensual L–V»): ¿recibe la bonificación extraordinaria de la empresa?
@@ -2203,7 +2205,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     { g: 'Valor hora y jornada', k: 'septimoSobreExtras', l: 'Calcular el séptimo día también sobre las horas extra', t: 'bool', h: 'Criterio de la boleta de referencia: séptimo = (ordinario + horas extra + bono incentivo) ÷ 6. Al desactivarlo, las horas extra no generan séptimo.' },
     { g: 'Valor hora y jornada', k: 'septimoConBonoInc', l: 'El séptimo día incluye el bono incentivo', t: 'bool', h: 'Verificado con 7 boletas reales (6 de sep–dic 2025 y la del 12 al 25 de octubre de 2026): el bono incentivo de la catorcena (Q116.67) forma parte de la base del séptimo; las «Adicionales» y la bonificación extraordinaria no.' },
     { g: 'Valor hora y jornada', k: 'divSeptimo', l: 'Divisor del séptimo día y del feriado', t: 'num', s: 1, h: 'Promedio diario de la semana = pago de la semana ÷ 6 días.' },
-    { g: 'Feriados catorcenales', k: 'feriadoActivo', l: 'Pagar «Feriados catorcenal» cuando la catorcena trae feriados', t: 'bool', h: 'En la boleta de referencia figura como «FERIADOS CATORCENAL» con cantidad 1.00 (uno o dos por catorcena). Cada feriado se paga con el promedio diario de la semana anterior: (ordinario + horas extra de esa semana) ÷ 6. Verificado con las boletas del 15-sep, 20-oct y 1-nov-2025 y la del 20-oct-2026: la fórmula reproduce el importe al centavo al indicar las horas extra de la semana anterior.' },
+    { g: 'Feriados catorcenales', k: 'feriadoActivo', l: 'Pagar «Feriados catorcenal» cuando la catorcena trae feriados', t: 'bool', h: 'En la boleta de referencia figura como «FERIADOS CATORCENAL» con cantidad 1.00 (uno o dos por catorcena). Cada feriado se paga con el promedio diario de la semana de referencia: (ordinario + horas extra de esa semana) ÷ 6. Verificado con las boletas del 15-sep, 20-oct y 1-nov-2025 y la del 20-oct-2026: la fórmula reproduce el importe al centavo al indicar las horas extra de esa semana (cuál es, ver el parámetro siguiente).' },
+    { g: 'Feriados catorcenales', k: 'feriadoSemRef', l: 'Semana de referencia del feriado (la «semana anterior»)', t: 'sel', o: [['catAnt', 'La última semana de la catorcena anterior'], ['semAnt', 'La semana de lunes a domingo anterior a la del feriado']], h: 'Qué semana usa la planilla para el promedio diario del feriado. Con la primera, siempre es la semana (7 días) que cierra la catorcena anterior; con la segunda, la semana de lunes a domingo anterior a la del feriado (si el feriado cae en la primera semana de su catorcena, las dos coinciden; si cae en la segunda, la segunda opción toma la primera semana de la misma catorcena). Las boletas de 2025 y la del 20-oct-2026 cuadran mejor con la primera, pero no se pudo comprobar semana por semana: lo seguro es escribir en Boletas → Ajustes el importe de «Feriados catorcenal» de la boleta real.' },
     { g: 'Feriados catorcenales', k: 'feriadoDescuentaOrd', l: 'Descontar del «Ordinario» las horas del día feriado', t: 'bool', h: 'Criterio de la boleta de referencia: la catorcena con feriado registra menos horas de Ordinario (80 h si cae de lunes a viernes; 84 h si cae en sábado), porque ese día se paga en la línea de feriados.' },
     { g: 'Feriados catorcenales', k: 'feriadoHorasLV', l: 'Horas ordinarias de un feriado de lunes a viernes', t: 'num', s: 1, h: 'Jornada diaria de la semana de 44 h: 8 h (personal rotativo). El personal Diurno L–V usa las horas ordinarias de su día según el horario de Planta (p. ej. 9 h de lunes a jueves y 8 h el viernes).' },
     { g: 'Feriados catorcenales', k: 'feriadoHorasSab', l: 'Horas ordinarias de un feriado en sábado', t: 'num', s: 1, h: 'El sábado de la semana de 44 h tiene 4 h ordinarias (personal rotativo). Un feriado en domingo no descuenta horas; para el personal Diurno L–V el sábado y el domingo tampoco.' },
@@ -3907,6 +3910,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   const esNum = (x) => x !== undefined && x !== null && x !== '' && Number.isFinite(+x);
 
   E.valorHora = (S, P) => num(S) / P.diasMes / P.divHora;
+  /** Importe (con decimales completos) de «Feriados catorcenal»: por cada feriado, fracción × (ordinario de una semana + horas extra de la semana de referencia × hora extra) ÷ divisor del séptimo.
+      fer = [{ fr, extRef }]; vh y vhx = valor de la hora ordinaria y de la extra. */
+  E.feriadoX = (vh, vhx, P, fer) => { const ordSem = num(P.horasOrdCat) / 2 * vh; return (fer || []).reduce((a, f) => a + num(f.fr) * (ordSem + num(f.extRef) * vhx) / divSep(P), 0); };
 
   /* ---------- ISR de relación de dependencia (Ley de Actualización Tributaria, arts. 70 a 76; Decreto 13-2026) ----------
      Renta imponible anual = renta bruta − deducción de gastos personales sin comprobar − cuotas laborales del IGSS (no menos de cero).
@@ -3952,6 +3958,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
        h.isrCat (opcional): retención de ISR de la catorcena, que se descuenta solo con el parámetro «isrActivo».
        h.isrReal (opcional): ISR que de verdad retuvo la planilla en esa catorcena (se anota desde la boleta real): se descuenta siempre y reemplaza al estimado.
        h.cafeteria (opcional): la cafetería que descontó esa boleta (se anota a mano; 0 = nada): reemplaza al monto fijo de la persona.
+       h.ferReal (opcional, versión 29): el importe de «Feriados catorcenal» que de verdad pagó esa boleta (se anota a mano): reemplaza al calculado con las horas extra de la semana de referencia; sin feriados en la catorcena no hace nada.
        h.hOrd (opcional, versión 26): las horas ordinarias que de verdad pagó esa boleta (se anotan a mano; 0 = ninguna): reemplazan a las del parámetro «horasOrdCat» (menos las del feriado);
        el séptimo se calcula sobre ellas, igual que sobre las horas extra. */
   E.boleta = (emp, P, h) => {
@@ -3966,8 +3973,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const septX = (ordX + (P.septimoSobreExtras ? extX : 0) + (P.septimoConBonoInc ? bonoIncX : 0)) / div;
     // el séptimo separado por origen (lo que paga el salario ordinario y lo que generan las horas extra): sirve para la base de las prestaciones
     const septOrdX = (ordX + (P.septimoConBonoInc ? bonoIncX : 0)) / div, septExtX = (P.septimoSobreExtras ? extX : 0) / div;
-    const ordSem = num(P.horasOrdCat) / 2 * vh; // ordinario de una semana completa (44 h)
-    const ferX = fer.reduce((a, f) => a + num(f.fr) * (ordSem + num(f.extRef) * vhx) / div, 0);
+    // «Feriados catorcenal»: lo que calcula el modelo con las horas extra de la semana de referencia, o (versión 29) el importe que de verdad pagó la boleta (h.ferReal)
+    const ferCalcX = E.feriadoX(vh, vhx, P, fer), realFer = fer.length > 0 && esNum(h.ferReal), ferX = realFer ? Math.max(0, +h.ferReal) : ferCalcX;
     const asuX = num(h.feriados) * (S / P.diasMes) * P.factorAsueto; // asueto TRABAJADO (aparte del feriado)
     const afectoX = ordX + extX + septX + ferX + adicX + asuX + (P.bonoEmpresaAfectoIGSS ? bonoEmpX : 0);
     const igssX = afectoX * P.igssLaboral;
@@ -3979,7 +3986,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const dedX = igssX + isrX + cafX + otrasX;
     return {
       vh, vhx, hExt, horasOrd, ordCal, ordReal, horasAdic, nFer, septHoras: 2 * P.divHora, bonoDias: 14,
-      ordinario: r2(ordX), extras: r2(extX), septimo: r2(septX), feriado: r2(ferX), adicionales: r2(adicX), asueto: r2(asuX),
+      ordinario: r2(ordX), extras: r2(extX), septimo: r2(septX), feriado: r2(ferX), feriadoCalc: r2(ferCalcX), ferReal: realFer, adicionales: r2(adicX), asueto: r2(asuX),
       bonoEmp: r2(bonoEmpX), bonoInc: r2(bonoIncX), afecto: r2(afectoX), igss: r2(igssX), isr: r2(isrX), isrReal: realISR,
       cafeteria: r2(cafX), cafReal: realCaf, otras: r2(otrasX), devengado: r2(devX), deducciones: r2(dedX), liquido: r2(devX - dedX),
       // valores con decimales completos (sin redondear): los usa la liquidación para armar el promedio salarial
@@ -4444,6 +4451,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
    cada feriado de la catorcena paga el promedio diario de la semana anterior
    = (ordinario + horas extra de esa semana) ÷ 6, y esa catorcena trae menos
    horas «Ordinario» (el día feriado ya no se paga como ordinario).
+   Qué semana es la «anterior» no se puede comprobar con una sola boleta (versión 29): la boleta del 12 al 25 de octubre de 2026 pagó 11.5 h extra
+   y el calendario de la cuadrilla da 16 h en la semana de lunes a domingo anterior a la del feriado (12 al 18) y 11 h en la última semana de la
+   catorcena anterior (5 al 11). Por eso es un parámetro (feriadoSemRef): por omisión, la última semana de la catorcena anterior; y lo seguro es anotar
+   en la boleta el importe real del feriado (aj.fer), que reemplaza al calculado.
    ============================================================ */
 (function (g) {
   'use strict';
@@ -4499,22 +4510,44 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     return out;
   };
 
+  /** Semana de referencia (7 días) del feriado `f` de la catorcena `cat`, según el parámetro «feriadoSemRef»:
+      'catAnt' (por omisión) = la semana que cierra la catorcena anterior (de cat.ini − 7 a cat.ini − 1);
+      'semAnt' = la semana de lunes a domingo anterior a la del feriado.
+      Devuelve { ini, fin, regla, prev }: prev = la semana cae entera en la catorcena anterior (sus extras adicionales son las de aquella catorcena). */
+  E.feriadoSemRef = (st, cat, f) => {
+    const regla = st.params && st.params.feriadoSemRef === 'semAnt' ? 'semAnt' : 'catAnt';
+    const ini = regla === 'semAnt' ? f.f - ((f.dow + 6) % 7) - 7 : cat.ini - 7;
+    return { ini, fin: ini + 6, regla, prev: ini + 6 < cat.ini };
+  };
+
+  /** Horas extra de la semana de referencia que equivalen al importe de «Feriados catorcenal» de una boleta real (la fórmula al revés), para mostrar qué horas usó la planilla:
+      importe = Σ fracción × (ordinario de una semana + horas × hora extra) ÷ divisor. Se redondea a la media hora si el importe lo permite (la planilla cuenta
+      las horas extra en bloques de 30 minutos); puede salir negativa si el importe es menor que el de una semana sin extras. null si no hay feriados o no hay valor de la hora. */
+  E.feriadoRefDeImporte = (importe, emp, P, fer) => {
+    const vh = E.valorHora(num(emp && emp.sueldo), P), vhx = vh * P.factorExtra, div = num(P.divSeptimo) > 0 ? num(P.divSeptimo) : 6;
+    const nFr = (fer || []).reduce((a, f) => a + num(f.fr), 0);
+    if (!(nFr > 0) || !(vhx > 0) || !Number.isFinite(+importe)) return null;
+    const h = (+importe * div / nFr - num(P.horasOrdCat) / 2 * vh) / vhx, med = Math.round(h * 2) / 2;
+    return Math.abs(h - med) < 0.02 ? med : Math.round(h * 100) / 100;
+  };
+
   /** Feriados que paga la boleta de una cuadrilla en la catorcena `cat`: fracción, horas ordinarias del día y
-      horas extra de la semana de referencia (la semana de lunes a domingo anterior a la del feriado), sacadas del calendario de turnos. */
+      horas extra de la semana de referencia (E.feriadoSemRef: por omisión la última semana de la catorcena anterior), sacadas del calendario de turnos
+      o escritas a mano por fecha (Parámetros → Calendario de feriados). */
   E.feriadosCat = (st, crew, cat, R) => {
     const P = st.params, fijo = crew === E.LV; R = R || E.ctx(st, 'sel');
     // horario fijo de lunes a viernes: la semana de referencia tiene siempre las mismas horas extra (las fijas de Planta) y,
     // si el parámetro lo indica, el feriado que cae en sábado o domingo (sus días de descanso) no se paga
     const noFinSemana = fijo && !!P.feriadoLVNoFinSemana, hf = fijo ? E.horarioFijo(st) : null;
     return E.feriadosEn(st, cat.ini, cat.fin).filter((f) => f.paga && f.fr > 0 && !(noFinSemana && (f.dow === 0 || f.dow === 6))).map((f) => {
-      const refIni = f.f - ((f.dow + 6) % 7) - 7;
+      const sem = E.feriadoSemRef(st, cat, f), refIni = sem.ini;
       let extRef = f.ref, auto = false;
       if (extRef === null) { auto = true; extRef = fijo ? E.extFijoCat(st) / 2 : E.sumSeq(E.roster(R, 7, refIni - R.start)[crew] || [], R.cod).ext; }
       // horas ordinarias que el día feriado deja de trabajarse: las de la jornada del día (rotación: 8 h entre semana y 4 h el sábado);
       // en el horario fijo de lunes a viernes, las del horario de Planta (p. ej. 9 h de lunes a jueves y 8 h el viernes) y ninguna en sábado o domingo
       const horasOrd = fijo && hf.trabDia > 0 ? (f.dow >= 1 && f.dow <= 5 ? hf.dias[f.dow - 1].ord : 0)
         : f.dow === 0 ? 0 : f.dow === 6 ? (fijo ? 0 : num(P.feriadoHorasSab)) : num(P.feriadoHorasLV);
-      return { f: f.f, iso: f.iso, n: f.n, fr: f.fr, dow: f.dow, horasOrd, extRef, auto, refIni };
+      return { f: f.f, iso: f.iso, n: f.n, fr: f.fr, dow: f.dow, horasOrd, extRef, auto, refIni, refFin: sem.fin, refPrev: sem.prev, regla: sem.regla };
     });
   };
 })(typeof globalThis !== 'undefined' ? globalThis : window);
@@ -4549,12 +4582,19 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     const a = E.ajDe(emp, cat.ini);
     // horas extra de la rotación: las del calendario del turno (L–V: las del horario de Planta) salvo que se haya anotado lo que de verdad se hizo
     const rotCal = fijo ? E.extFijoCat(st) : ((o.crews && o.crews[emp.cuadrilla]) || E.extRotCatorcena(st, emp.cuadrilla, k, which)).ext;
-    const rot = dato(a, 'rot'), adic = dato(a, 'adic'), asu = dato(a, 'asu'), isr = dato(a, 'isr'), caf = dato(a, 'caf'), ord = dato(a, 'ord');
+    const rot = dato(a, 'rot'), adic = dato(a, 'adic'), asu = dato(a, 'asu'), isr = dato(a, 'isr'), caf = dato(a, 'caf'), ord = dato(a, 'ord'), ferR = dato(a, 'fer');
     const hExtRot = rot === null ? rotCal : rot, hExtAdic = adic === null ? num(emp.extrasAdic) : adic, feriados = asu === null ? num(emp.feriados) : asu;
-    // las horas extra adicionales se reparten por igual en las dos semanas; elevan las de la semana de referencia de cada feriado
-    const mitad = hExtAdic / 2, fer = (o.fer || E.feriadosCat(st, emp.cuadrilla, cat, R)).map((f) => (f.auto ? Object.assign({}, f, { extRef: f.extRef + mitad }) : f));
-    const b = E.boleta(emp, P, { hExtRot, hExtAdic, feriados, fer, isrCat: o.isrCat, isrReal: isr, cafeteria: caf, hOrd: ord });
-    return { b, cat, aj: a, rotCal, hExtRot, hExtAdic, feriados, isrReal: isr, cafReal: caf, ordReal: ord, fer };
+    // las horas extra adicionales se reparten por igual en las dos semanas de su catorcena; elevan las de la semana de referencia de cada feriado: las de la catorcena
+    // del feriado si la semana de referencia está en ella y las de la catorcena anterior si está en esa (versión 29)
+    const fer0 = o.fer || E.feriadosCat(st, emp.cuadrilla, cat, R), adicAnt = dato(E.ajDe(emp, cat.ini - 14), 'adic');
+    const mitad = hExtAdic / 2, mitadAnt = (adicAnt === null ? num(emp.extrasAdic) : adicAnt) / 2;
+    const ferAdj = fer0.map((f) => (f.auto ? Object.assign({}, f, { extRef: f.extRef + (f.refPrev ? mitadAnt : mitad) }) : f));
+    // lo anotado del feriado de la boleta real: 0 = esa boleta no pagó feriado; un importe reemplaza al calculado (E.boleta lo usa tal cual)
+    const fer = ferR === 0 ? [] : ferAdj, vh = E.valorHora(num(emp.sueldo), P);
+    const b = E.boleta(emp, P, { hExtRot, hExtAdic, feriados, fer, isrCat: o.isrCat, isrReal: isr, cafeteria: caf, hOrd: ord, ferReal: ferR !== null && ferR > 0 ? ferR : null });
+    // ferN: feriados que trae el calendario en la catorcena (0 si el pago de feriados está apagado); ferCalc: lo que calcula el modelo (sin el importe anotado); ferReal: el importe anotado
+    return { b, cat, aj: a, rotCal, hExtRot, hExtAdic, feriados, isrReal: isr, cafReal: caf, ordReal: ord, fer, ferN: P.feriadoActivo ? fer0.length : 0, ferReal: ferR,
+      ferCalc: P.feriadoActivo ? U.r2(E.feriadoX(vh, vh * P.factorExtra, P, ferAdj.filter((f) => num(f.fr) > 0))) : 0 };
   };
 
   /** Boleta de una quincena del personal con sueldo mensual con lo anotado de la persona: las horas extra del mes y los asuetos trabajados se anotan en la
@@ -4896,7 +4936,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
   /** Campos de la boleta que se conservan: los que imprime el recibo y los que suman el acumulado. */
   E.REG_B_NUM = ['vh', 'vhx', 'hExt', 'horasOrd', 'horasAdic', 'nFer', 'septHoras', 'bonoDias', 'diasQ', 'dAsuetos', 'sueldo', 'ordinario', 'extras', 'septimo', 'feriado', 'adicionales', 'asueto', 'bonoEmp', 'bonoInc', 'igss', 'isr', 'cafeteria', 'otras', 'devengado', 'deducciones', 'liquido'];
-  E.REG_B_BOOL = ['quincena', 'cierre', 'isrReal', 'cafReal'];
+  E.REG_B_BOOL = ['quincena', 'cierre', 'isrReal', 'cafReal', 'ferReal'];
   /** Boleta completa (todos los campos, en cero si no se guardaron) lista para dibujarse con la misma función del recibo. */
   E.regB = (raw) => {
     const r = isObj(raw) ? raw : {}, b = {};
@@ -4916,7 +4956,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   const ajCompacto = (a) => {
     const o = {};
     if (isObj(a)) {
-      ['rot', 'adic', 'asu', 'isr', 'caf', 'ord'].forEach((k) => { if (a[k] !== undefined && a[k] !== null && a[k] !== '' && Number.isFinite(+a[k])) o[k] = Math.min(100000, Math.max(0, red(a[k]))); });
+      ['rot', 'adic', 'asu', 'isr', 'caf', 'ord', 'fer'].forEach((k) => { if (a[k] !== undefined && a[k] !== null && a[k] !== '' && Number.isFinite(+a[k])) o[k] = Math.min(100000, Math.max(0, red(a[k]))); });
       const mar = E.marcNormalizar ? E.marcNormalizar(a.mar) : null; if (mar) o.mar = mar;
     }
     return Object.keys(o).length ? o : undefined;
@@ -5013,7 +5053,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   /** Los números de la catorcena: personas, horas y montos. El devengado, la cafetería, el IGSS, el ISR, las otras deducciones y el neto suman las boletas catorcenales y las quincenas
       del personal mensual que cierran en la catorcena; las horas, solo las de las catorcenales. */
   E.regTotales = (rec) => {
-    const t = { nCat: rec.filas.length, nQ: rec.quin.length, nSin: rec.sin.length, hOrd: 0, hExt: 0, ordinario: 0, extras: 0, septimo: 0, otros: 0, bonos: 0, devengado: 0, cafeteria: 0, igss: 0, isr: 0, otras: 0, liquido: 0, qDev: 0, qLiq: 0, nHorasAnot: 0, nCafAnot: 0, nCalendario: 0, nMarc: 0 };
+    const t = { nCat: rec.filas.length, nQ: rec.quin.length, nSin: rec.sin.length, hOrd: 0, hExt: 0, ordinario: 0, extras: 0, septimo: 0, otros: 0, bonos: 0, devengado: 0, cafeteria: 0, igss: 0, isr: 0, otras: 0, liquido: 0, qDev: 0, qLiq: 0, nHorasAnot: 0, nCafAnot: 0, nCalendario: 0, nMarc: 0, nFer: 0, nFerAnot: 0 };
     const suma = (b) => {
       t.ordinario += b.ordinario; t.extras += b.extras; t.septimo += b.septimo; t.otros += b.feriado + b.adicionales + b.asueto; t.bonos += b.bonoEmp + b.bonoInc;
       t.devengado += b.devengado; t.cafeteria += b.cafeteria; t.igss += b.igss; t.isr += b.isr; t.otras += b.otras; t.liquido += b.liquido;
@@ -5023,6 +5063,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       t.hOrd += b.horasOrd; t.hExt += b.hExt; suma(b);
       const horas = a.rot !== undefined || a.adic !== undefined || a.ord !== undefined, caf = a.caf !== undefined;
       if (horas) t.nHorasAnot++; if (caf) t.nCafAnot++; if (!horas) t.nCalendario++; if (a.mar) t.nMarc++;
+      if (b.nFer > 0) { t.nFer++; if (b.ferReal) t.nFerAnot++; } // versión 29: quién trae feriado y a quién se le anotó el importe de la boleta real
     });
     rec.quin.forEach((f) => { const b = E.regB(f.b); suma(b); t.qDev += b.devengado; t.qLiq += b.liquido; });
     Object.keys(t).forEach((k) => { if (!/^n[A-Z]/.test(k)) t[k] = U.r2(t[k]); });
@@ -7168,15 +7209,28 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     eq(isos.filter((x) => x === '2025-08-15').length, 1); eq(isos.filter((x) => x === '2025-09-15').length, 1); eq(isos.length, 13);
     s.feriados.local = { mes: 12, dia: 8, nombre: 'Concepción' }; ok(E.feriadosAnio(s, 2025).some((x) => x.iso === '2025-12-08' && x.origen === 'local'), 'feria local');
   });
-  T('Feriados', 'Semana de referencia = semana lunes–domingo anterior a la del feriado (lunes, sábado y domingo)', () => {
-    const s = mk(), R = E.ctx(s, 'sel'), d = U.parseISO;
+  T('Feriados', 'Semana de referencia: por omisión la última semana de la catorcena anterior; con «semAnt», la de lunes a domingo anterior a la del feriado (lunes, sábado y domingo)', () => {
+    const s = mk(), d = U.parseISO;
+    s.catorcenaAncla = '2025-09-15'; // la 19 de la planilla real empezó el lunes 15-sep-2025
     s.feriados.extra = [{ f: '2025-03-09', n: 'Domingo de prueba', fr: 1 }]; // 9-mar-2025 cae domingo
-    const R2 = E.ctx(s, 'sel'), get = (iso) => E.feriadosCat(s, 'A', { ini: d(iso), fin: d(iso) }, R2)[0];
-    const lun = get('2025-09-15'), sab = get('2025-11-01'), dom = get('2025-03-09');
-    eq(lun.dow, 1); eq(lun.horasOrd, 8); eq(U.fmtISO(lun.refIni), '2025-09-08');
+    const R = E.ctx(s, 'sel');
+    const get = (iso, regla) => { s.params.feriadoSemRef = regla; return E.feriadosCat(s, 'A', E.catorcena(s, E.catorcenaIdx(s, d(iso))), R).find((f) => f.iso === iso); };
+    // por omisión: la semana que cierra la catorcena anterior (los 7 días antes del inicio de la catorcena del feriado)
+    eq(s.params.feriadoSemRef, 'catAnt');
+    const lun = get('2025-09-15', 'catAnt'), l2 = get('2025-10-20', 'catAnt'), sab = get('2025-11-01', 'catAnt'), dom = get('2025-03-09', 'catAnt');
+    eq(lun.dow, 1); eq(lun.horasOrd, 8); eq(U.fmtISO(lun.refIni), '2025-09-08'); eq(U.fmtISO(lun.refFin), '2025-09-14');
+    eq(l2.dow, 1); eq(U.fmtISO(l2.refIni), '2025-10-06', 'el 20-oct-2025 cae en la segunda semana de su catorcena (13 al 26): la referencia es la última de la anterior (6 al 12)');
     eq(sab.dow, 6); eq(sab.horasOrd, 4); eq(U.fmtISO(sab.refIni), '2025-10-20');
     eq(dom.dow, 0); eq(dom.horasOrd, 0); eq(U.fmtISO(dom.refIni), '2025-02-24');
-    eq(lun.auto, true); eq(lun.extRef, E.sumSeq(E.roster(R, 7, lun.refIni - R.start).A, R.cod).ext, 'horas extra de esa semana en el calendario de turnos');
+    [lun, l2, sab, dom].forEach((f) => { eq(f.regla, 'catAnt'); eq(f.refPrev, true, 'la semana de referencia cae en la catorcena anterior'); eq(f.auto, true); eq(f.refFin - f.refIni, 6); });
+    eq(lun.extRef, E.sumSeq(E.roster(R, 7, lun.refIni - R.start).A, R.cod).ext, 'horas extra de esa semana en el calendario de turnos');
+    // la otra regla: la semana de lunes a domingo anterior a la del feriado
+    const lun2 = get('2025-09-15', 'semAnt'), l22 = get('2025-10-20', 'semAnt'), sab2 = get('2025-11-01', 'semAnt'), dom2 = get('2025-03-09', 'semAnt');
+    eq(U.fmtISO(lun2.refIni), '2025-09-08'); eq(U.fmtISO(l22.refIni), '2025-10-13', 'con «semAnt» el 20-oct-2025 toma la primera semana de su propia catorcena'); eq(U.fmtISO(sab2.refIni), '2025-10-20'); eq(U.fmtISO(dom2.refIni), '2025-02-24');
+    eq(l22.refPrev, false); eq(lun2.refPrev, true); eq(l22.regla, 'semAnt');
+    eq(l22.extRef, E.sumSeq(E.roster(R, 7, l22.refIni - R.start).A, R.cod).ext);
+    // un valor que no es ninguna de las dos reglas vuelve a la de fábrica
+    eq(SM.normalizeState({ params: { feriadoSemRef: 'otra' } }).params.feriadoSemRef, 'catAnt'); eq(SM.normalizeState({ params: { feriadoSemRef: 'semAnt' } }).params.feriadoSemRef, 'semAnt'); eq(SM.normalizeState({}).params.feriadoSemRef, 'catAnt');
   });
   T('Feriados', 'Ajustes por fecha: horas extra de la semana anterior registradas manualmente, medio día y «no se paga»', () => {
     const s = mk(), c = { ini: U.parseISO('2025-09-15'), fin: U.parseISO('2025-09-28') };
@@ -8725,9 +8779,13 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     // la catorcena siguiente no tiene dato: usa el calendario y las extras adicionales de la persona
     const rn = E.boletaCat(e2, s, 'sel', 1); eq(rn.hExtRot, rn.rotCal); eq(rn.hExtAdic, 2); eq(rn.aj, null);
     eq(E.ajDe(e2, c.ini).rot, 5); eq(E.ajDe(e2, k1.ini), null);
-    // las extras adicionales anotadas elevan la semana de referencia del feriado del 20 de octubre
-    const fe = E.feriadosCat(s, 'A', c)[0], f6 = E.boletaCat(emp({ aj: { [iso(c.ini)]: { adic: 6 } } }), s, 'sel', 0).fer[0];
-    eq(f6.extRef, fe.extRef + 3);
+    // las extras adicionales anotadas elevan la semana de referencia del feriado del 20 de octubre: la mitad de las de la catorcena donde cae esa semana
+    // (por omisión la anterior, versión 29; con la regla «semAnt», la del propio feriado)
+    const fe = E.feriadosCat(s, 'A', c)[0], f6 = E.boletaCat(emp({ aj: { [iso(c.ini - 14)]: { adic: 6 } } }), s, 'sel', 0).fer[0];
+    eq(f6.extRef, fe.extRef + 3); eq(fe.refPrev, true);
+    eq(E.boletaCat(emp({ aj: { [iso(c.ini)]: { adic: 6 } } }), s, 'sel', 0).fer[0].extRef, fe.extRef, 'las de la catorcena del feriado no cuentan: su semana de referencia está en la anterior');
+    const s2 = mk((x) => { x.catorcenaAncla = '2026-10-12'; x.params.feriadoSemRef = 'semAnt'; }), fe2 = E.feriadosCat(s2, 'A', c)[0];
+    eq(fe2.refPrev, false); eq(E.boletaCat(emp({ aj: { [iso(c.ini)]: { adic: 6 } } }), s2, 'sel', 0).fer[0].extRef, fe2.extRef + 3);
   });
   T('Boleta real (v12)', 'El ISR anotado de la boleta real se descuenta siempre (aunque el cálculo estimado esté apagado) y reemplaza al estimado; los asuetos anotados pagan su recargo', () => {
     const s = mk((x) => { x.catorcenaAncla = '2026-10-12'; }), c = E.catorcena(s, 0);
@@ -11987,6 +12045,141 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
 
 ;
 /* ============================================================
+   22s-selftests-v29.js — autopruebas de la versión 29: el feriado de la boleta real.
+   La boleta del 12 al 25 de octubre de 2026 pagó «Feriados catorcenal» Q212.74 (11.5 h extra en la semana de referencia) y el simulador daba Q236.19 (16 h):
+   (1) la semana de referencia: por omisión la última de la catorcena anterior (parámetro «feriadoSemRef»), con la otra regla el valor de la versión 28;
+   (2) el importe real de la boleta (Ajustes → «Feriado de la boleta (Q)», aj.fer) reemplaza al calculado y la boleta del 12 al 25 de octubre sale al centavo;
+   (3) del importe a las horas extra que lo explican, el aviso del origen y lo que guarda el registro de catorcenas.
+   La pantalla y la persistencia en IndexedDB se prueban en el navegador (tests/e2e_v29.js).
+   Se ejecutan en Node (tests/engine.test.js) y dentro del simulador (Validación → «Ejecutar autopruebas»).
+   ============================================================ */
+(function (g) {
+  'use strict';
+  const SM = g.SM, U = SM.U, E = SM.E, DEF = SM.DEF;
+  const tests = SM.tests;
+  const G = 'Feriado de la boleta real (v29)';
+  const T = (nombre, fn) => tests.push({ grupo: G, nombre, fn });
+  const eq = (a, b, msg) => { if (a !== b) throw new Error((msg || 'eq') + ': esperado ' + JSON.stringify(b) + ' y se obtuvo ' + JSON.stringify(a)); };
+  const ok = (c, msg) => { if (!c) throw new Error(msg || 'condición falsa'); };
+  const near = (a, b, tol, msg) => { if (!(Math.abs(a - b) <= tol)) throw new Error((msg || 'near') + ': esperado ≈' + b + ' y se obtuvo ' + a); };
+  const iso = U.fmtISO;
+  const mk = (f) => { const s = SM.normalizeState({ fechaInicio: '2026-10-12', catorcenaAncla: '2026-10-12' }); if (f) f(s); SM.normalizeParams(s.params); return s; };
+  /** La persona de la boleta real (sueldo Q5,001.60, cafetería Q385) en la cuadrilla C: con el calendario real, la del 12 al 18 de octubre trae 16 h y la del 5 al 11, 11 h. */
+  const persona = (o) => SM.normalizeEmp(Object.assign({ id: 'p1', codigo: '1', nombre: 'Uno', cargo: 'Electricista', cuadrilla: 'C', sueldo: 5001.6, cafeteria: 385 }, o || {}));
+  // Lo impreso en la boleta real del 12 al 25 de octubre de 2026 (sin datos personales)
+  const REAL26 = { horasOrd: 80, ordinario: 1667.20, extras: 1109.73, septimo: 482.27, feriado: 212.74, adicionales: 166.72, bonoEmp: 144.67, bonoInc: 116.67, devengado: 3899.99, cafeteria: 385, igss: 175.75, isr: 126.20, deducciones: 686.95, liquido: 3213.04 };
+  const comparar = (b, id) => Object.keys(REAL26).forEach((k) => near(b[k], REAL26[k], 0.0051, id + ' · ' + k));
+  const AJ = { rot: 35.5, isr: 126.2 };
+
+  /* ---------- 1. La semana de referencia ---------- */
+  T('La causa: con la regla de la versión 28 el calendario de la cuadrilla C da 16 h en el 12 al 18 de octubre (Q236.19); la planilla pagó 11.5 h (Q212.74)', () => {
+    const s = mk((x) => { x.params.feriadoSemRef = 'semAnt'; }), R = E.ctx(s, 'act'), cat = E.catorcena(s, 0);
+    const f = E.feriadosCat(s, 'C', cat, R)[0];
+    eq(f.iso, '2026-10-20'); eq(iso(f.refIni), '2026-10-12'); eq(iso(f.refFin), '2026-10-18'); eq(f.extRef, 16); eq(f.regla, 'semAnt');
+    const b = E.boletaCat(persona({ aj: { '2026-10-12': AJ } }), s, 'act', 0).b;
+    near(b.feriado, 236.19, 0.0051, 'lo que mostraba la versión 28'); near(b.devengado, 3923.44, 0.0051); near(b.igss, 176.88, 0.0051); near(b.liquido, 3235.36, 0.0051);
+  });
+  T('Por omisión la semana de referencia es la última de la catorcena anterior: el 5 al 11 de octubre trae 11 h y el feriado sale Q210.14, a Q2.60 de la boleta real por media hora no programada', () => {
+    const s = mk(), R = E.ctx(s, 'act'), cat = E.catorcena(s, 0);
+    eq(s.params.feriadoSemRef, 'catAnt'); eq(DEF.params.feriadoSemRef, 'catAnt');
+    const f = E.feriadosCat(s, 'C', cat, R)[0];
+    eq(iso(f.refIni), '2026-10-05'); eq(iso(f.refFin), '2026-10-11'); eq(f.extRef, 11); eq(f.refPrev, true); eq(f.auto, true); eq(f.regla, 'catAnt');
+    const r = E.boletaCat(persona({ aj: { '2026-10-12': AJ } }), s, 'act', 0), b = r.b;
+    near(b.feriado, 210.14, 0.0051); near(REAL26.feriado - b.feriado, 2.6, 0.0051, 'diferencia con la boleta real'); eq(b.ferReal, false); eq(r.ferReal, null); eq(r.ferN, 1); near(r.ferCalc, 210.14, 0.0051); eq(b.horasOrd, 80);
+    // las otras dos cuadrillas con ese calendario: A usa el 5 al 11 (16 h) y B (18 h)
+    eq(E.feriadosCat(s, 'A', cat, R)[0].extRef, 16); eq(E.feriadosCat(s, 'B', cat, R)[0].extRef, 18);
+  });
+  T('Una semana de referencia a mano para la fecha (Parámetros → Calendario de feriados) sigue mandando sobre el calendario: 11.5 h dan la boleta real al centavo', () => {
+    const s = mk((x) => { x.feriados.mod['2026-10-20'] = { ref: 11.5 }; });
+    const r = E.boletaCat(persona({ aj: { '2026-10-12': AJ } }), s, 'act', 0);
+    eq(r.fer.length, 1); eq(r.fer[0].extRef, 11.5); eq(r.fer[0].auto, false); eq(r.b.ferReal, false); comparar(r.b, 'con 11.5 h en Parámetros');
+  });
+
+  /* ---------- 2. El importe de la boleta real ---------- */
+  T('Anotar el feriado de la boleta real (Q212.74) reproduce al centavo la boleta del 12 al 25 de octubre de 2026: cada línea, IGSS, ISR, cafetería y neto', () => {
+    const s = mk();
+    const r = E.boletaCat(persona({ aj: { '2026-10-12': Object.assign({ fer: 212.74 }, AJ) } }), s, 'act', 0), b = r.b;
+    eq(b.ferReal, true); eq(r.ferReal, 212.74); eq(b.nFer, 1); eq(b.feriado, 212.74); comparar(b, 'importe anotado');
+    near(b.feriadoCalc, 210.14, 0.0051, 'el modelo sigue calculando su valor (para mostrarlo en el aviso)'); near(r.ferCalc, 210.14, 0.0051);
+    eq(b.x.fer, 212.74, 'el importe anotado es el que entra al IGSS, al devengado y al neto');
+    // la misma boleta con la otra regla y con el calendario: el importe anotado manda sobre ambas
+    const s2 = mk((x) => { x.params.feriadoSemRef = 'semAnt'; });
+    comparar(E.boletaCat(persona({ aj: { '2026-10-12': Object.assign({ fer: 212.74 }, AJ) } }), s2, 'act', 0).b, 'importe anotado con la otra regla');
+  });
+  T('El importe anotado manda sobre las horas escritas en Parámetros, sobre las del calendario y sobre las extras adicionales; sin dato, todo igual que antes', () => {
+    const s = mk((x) => { x.feriados.mod['2026-10-20'] = { ref: 30 }; });
+    const sinDato = E.boletaCat(persona({ aj: { '2026-10-12': AJ } }), s, 'act', 0).b, con = E.boletaCat(persona({ extrasAdic: 6, aj: { '2026-10-12': Object.assign({ fer: 212.74 }, AJ) } }), s, 'act', 0).b;
+    ok(sinDato.feriado > 300, 'con 30 h a mano el modelo paga más de Q300'); eq(con.feriado, 212.74);
+    const vhx = E.valorHora(5001.6, s.params) * s.params.factorExtra;
+    near(con.extras, U.r2((35.5 + 6) * vhx), 0.0051, 'las demás líneas siguen su camino: las 6 h adicionales se pagan como extras');
+    // vaciar el dato (o no tenerlo) vuelve al cálculo del modelo
+    const s2 = mk(), a = E.boletaCat(persona({ aj: { '2026-10-12': AJ } }), s2, 'act', 0).b, c = E.boletaCat(persona({ aj: { '2026-10-12': Object.assign({ fer: '' }, AJ) } }), s2, 'act', 0).b;
+    eq(c.feriado, a.feriado); eq(c.ferReal, false);
+  });
+  T('Feriado anotado en 0: esa boleta no pagó feriado (sin línea de feriados y con las 88 h de Ordinario); una catorcena sin feriados, o el pago de feriados apagado, ignora el dato', () => {
+    const s = mk(), r = E.boletaCat(persona({ aj: { '2026-10-12': Object.assign({ fer: 0 }, AJ) } }), s, 'act', 0);
+    eq(r.b.nFer, 0); eq(r.b.feriado, 0); eq(r.b.horasOrd, 88); eq(r.b.ferReal, false); eq(r.ferN, 1, 'el calendario sí trae el feriado: el campo sigue visible para poder borrar el 0'); eq(r.ferReal, 0);
+    const c2 = E.catorcena(s, 2); eq(E.feriadosEn(s, c2.ini, c2.fin).length, 0, 'la catorcena del 9 al 22 de noviembre no trae feriados');
+    const r2 = E.boletaCat(persona({ aj: { [iso(c2.ini)]: { fer: 500 } } }), s, 'act', 2);
+    eq(r2.b.feriado, 0); eq(r2.b.nFer, 0); eq(r2.b.ferReal, false); eq(r2.ferN, 0);
+    const s3 = mk((x) => { x.params.feriadoActivo = false; }), r3 = E.boletaCat(persona({ aj: { '2026-10-12': { fer: 212.74 } } }), s3, 'act', 0);
+    eq(r3.b.feriado, 0); eq(r3.b.ferReal, false); eq(r3.ferN, 0, 'con el pago de feriados apagado no hay casilla');
+  });
+  T('Varios feriados en la catorcena (24, 25 y 31 de diciembre y 1 de enero): el importe anotado es el total de la línea y la cantidad no cambia', () => {
+    const s = mk((x) => { x.catorcenaAncla = '2026-12-21'; x.fechaInicio = '2026-12-21'; });
+    const cat = E.catorcena(s, 0), fs = E.feriadosEn(s, cat.ini, cat.fin).filter((f) => f.paga && f.fr > 0);
+    ok(fs.length >= 3, 'la catorcena del 21-dic-2026 al 3-ene-2027 trae el 24 (medio día), el 25, el 31 (medio día) y el 1-ene');
+    const r0 = E.boletaCat(persona({}), s, 'act', 0), nFr = fs.reduce((a, f) => a + f.fr, 0); near(r0.b.nFer, nFr, 1e-9); // 3 días: 0.5 + 1 + 0.5 + 1
+    const r = E.boletaCat(persona({ aj: { '2026-12-21': { fer: 700 } } }), s, 'act', 0);
+    eq(r.b.feriado, 700); near(r.b.nFer, nFr, 1e-9, 'la cantidad no cambia'); ok(r.b.devengado > r0.b.devengado, 'sube el devengado');
+    const h = E.feriadoRefDeImporte(700, persona({}), s.params, r.fer); near(E.feriadoX(E.valorHora(5001.6, s.params), E.valorHora(5001.6, s.params) * 1.5, s.params, r.fer.map((f) => Object.assign({}, f, { extRef: h }))), 700, 0.05, 'con esas horas el modelo da el importe escrito');
+  });
+
+  /* ---------- 3. Del importe a las horas ---------- */
+  T('E.feriadoRefDeImporte: Q212.74 son 11.5 h, Q236.19 son 16 h y Q210.14 son 11 h; a la media hora más cercana si el importe lo permite, y a centésimas si no', () => {
+    const P = mk().params, e = persona({}), uno = [{ fr: 1 }];
+    eq(E.feriadoRefDeImporte(212.74, e, P, uno), 11.5); eq(E.feriadoRefDeImporte(236.19, e, P, uno), 16); eq(E.feriadoRefDeImporte(210.14, e, P, uno), 11);
+    eq(E.feriadoRefDeImporte(220, e, P, uno), 12.89, 'sin media hora exacta: dos decimales');
+    // con el sueldo de la boleta real, el caso de 25 h extra en la semana de referencia vale Q283.08; con otro sueldo cambian la hora y el importe, no las horas
+    eq(E.feriadoRefDeImporte(283.08, e, P, uno), 25);
+    const e2 = persona({ sueldo: 3816.9 }), vh2 = E.valorHora(3816.9, P); eq(E.feriadoRefDeImporte(U.r2((44 * vh2 + 18 * vh2 * 1.5) / 6), e2, P, uno), 18);
+    // dos feriados: el importe es la suma y las horas son las de cada uno
+    eq(E.feriadoRefDeImporte(2 * 212.74, e, P, [{ fr: 1 }, { fr: 1 }]), 11.5); eq(E.feriadoRefDeImporte(106.37, e, P, [{ fr: 0.5 }]), 11.5, 'un feriado de medio día: la mitad del importe');
+    // sin feriados, sin sueldo o con un importe que no es número: no hay equivalencia
+    eq(E.feriadoRefDeImporte(212.74, e, P, []), null); eq(E.feriadoRefDeImporte(212.74, persona({ sueldo: 0 }), P, uno), null); eq(E.feriadoRefDeImporte('x', e, P, uno), null);
+    ok(E.feriadoRefDeImporte(100, e, P, uno) < 0, 'un importe menor que el de una semana sin extras sale con horas negativas (el aviso no las muestra)');
+  });
+  T('E.feriadoX es la misma fórmula de la boleta: Σ fracción × (ordinario de una semana + horas extra de referencia × hora extra) ÷ divisor del séptimo', () => {
+    const P = mk().params, vh = E.valorHora(5001.6, P), vhx = vh * P.factorExtra;
+    near(E.feriadoX(vh, vhx, P, [{ fr: 1, extRef: 11.5 }]), (44 * vh + 11.5 * vhx) / 6, 1e-9); near(E.feriadoX(vh, vhx, P, [{ fr: 0.5, extRef: 0 }, { fr: 1, extRef: 20 }]), 0.5 * 44 * vh / 6 + (44 * vh + 20 * vhx) / 6, 1e-9);
+    eq(E.feriadoX(vh, vhx, P, []), 0); eq(E.feriadoX(vh, vhx, P, undefined), 0);
+    const P7 = Object.assign({}, P, { divSeptimo: 7 }); near(E.feriadoX(vh, vhx, P7, [{ fr: 1, extRef: 0 }]), 44 * vh / 7, 1e-9, 'el divisor del séptimo también es el del feriado');
+  });
+
+  /* ---------- 4. Lo guardado ---------- */
+  T('Estado: «feriadoSemRef» solo admite las dos reglas, el catálogo de Parámetros la ofrece con las dos y un estado sin ella abre con la de fábrica; lo anotado conserva «fer» sin signo negativo', () => {
+    const m = DEF.paramMeta.find((x) => x.k === 'feriadoSemRef');
+    ok(m && m.t === 'sel' && m.g === 'Feriados catorcenales', 'catálogo'); eq(m.o.map((x) => x[0]).join(), 'catAnt,semAnt'); ok(m.h.length > 60, 'con su ayuda');
+    eq(SM.normalizeState({ params: { feriadoSemRef: 'semAnt' } }).params.feriadoSemRef, 'semAnt'); eq(SM.normalizeState({ params: { feriadoSemRef: 'x' } }).params.feriadoSemRef, 'catAnt'); eq(SM.normalizeState({}).params.feriadoSemRef, 'catAnt');
+    eq(SM.normalizeState(SM.normalizeState({ params: { feriadoSemRef: 'semAnt' } })).params.feriadoSemRef, 'semAnt', 'idempotente');
+    const e = SM.normalizeEmp({ nombre: 'Uno', cuadrilla: 'C', aj: { '2026-10-12': { fer: 212.74, rot: 35.5 }, '2026-10-26': { fer: -5 }, '2026-11-09': { fer: 'abc' }, '2026-11-23': { fer: '' } } });
+    eq(e.aj['2026-10-12'].fer, 212.74); eq(e.aj['2026-10-12'].rot, 35.5); eq(e.aj['2026-10-26'].fer, 0, 'un importe negativo queda en 0 (la boleta no pagó feriado)'); ok(!e.aj['2026-11-09'] && !e.aj['2026-11-23'], 'un texto o un vacío no es un dato');
+    eq(JSON.stringify(SM.normalizeEmp(JSON.parse(JSON.stringify(e))).aj), JSON.stringify(e.aj), 'el respaldo JSON lo devuelve igual');
+  });
+  T('Registro de catorcenas: guarda el importe anotado (aj.fer y la marca ferReal) y cuenta quién trae feriado y a quién se le anotó; la catorcena registrada ya no sigue la regla', () => {
+    const s = mk(), con = persona({ id: 'a', aj: { '2026-10-12': Object.assign({ fer: 212.74 }, AJ) } }), sin = persona({ id: 'b', cuadrilla: 'A', aj: { '2026-10-12': AJ } });
+    const rec = E.regCrear(s, [con, sin], 'act', 0, { ahora: '2026-11-09 02:00' }), t = E.regTotales(rec);
+    eq(rec.filas.length, 2); const f1 = rec.filas.find((f) => f.id === 'a'), f2 = rec.filas.find((f) => f.id === 'b');
+    eq(f1.aj.fer, 212.74); eq(E.regB(f1.b).ferReal, true); eq(E.regB(f1.b).feriado, 212.74); eq(f2.aj.fer, undefined); eq(E.regB(f2.b).ferReal, false); near(E.regB(f2.b).feriado, 236.19, 0.0051, 'la cuadrilla A, sin importe anotado, usa sus 16 h del 5 al 11 de octubre');
+    eq(t.nFer, 2); eq(t.nFerAnot, 1);
+    // ida y vuelta por la normalización del registro (lo que lee IndexedDB y el respaldo)
+    const rec2 = E.regNormalizar(JSON.parse(JSON.stringify(rec))), t2 = E.regTotales(rec2);
+    eq(t2.nFer, 2); eq(t2.nFerAnot, 1); eq(E.regB(rec2.filas.find((f) => f.id === 'a').b).ferReal, true); eq(rec2.filas.find((f) => f.id === 'a').aj.fer, 212.74);
+  });
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+
+;
+/* ============================================================
    23-engine-alerts.js — alertas sobre el calendario REAL mostrado
    (incluye ajustes manuales): rachas sin descanso, noches seguidas
    y relevos con menos de 11 h entre turnos.
@@ -13256,6 +13449,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     P.horasOrdCat = Math.max(0, P.horasOrdCat); P.factorExtra = Math.max(1, P.factorExtra);
     P.horasAdicCat = Math.max(0, P.horasAdicCat); P.divSeptimo = Math.max(1, P.divSeptimo); P.pruebaMeses = U.clamp(Math.round(P.pruebaMeses), 0, 12);
     P.feriadoHorasLV = Math.max(0, P.feriadoHorasLV); P.feriadoHorasSab = Math.max(0, P.feriadoHorasSab);
+    // versión 29: la semana de referencia del feriado solo puede ser una de las dos reglas; si no, la de fábrica
+    P.feriadoSemRef = ['catAnt', 'semAnt'].indexOf(P.feriadoSemRef) >= 0 ? P.feriadoSemRef : DEF.params.feriadoSemRef;
     // ISR: montos sin signo negativo y el ejercicio fiscal forzado (0 = el de cada boleta) dentro de un rango razonable
     P.isrExento = Math.max(0, P.isrExento); P.isrExtra = Math.max(0, P.isrExtra); P.isrSalMin = Math.max(0, P.isrSalMin); P.isrIva = U.clamp(P.isrIva, 0, 12000); P.isrLimite = Math.max(1, P.isrLimite);
     P.isrTasa1 = U.clamp(P.isrTasa1, 0, 1); P.isrTasa2 = U.clamp(P.isrTasa2, 0, 1); P.isrAnio = P.isrAnio >= 2000 ? U.clamp(Math.round(P.isrAnio), 2000, 2100) : 0;
@@ -13425,7 +13620,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     if (!isObj(S.bmc)) S.bmc = {};
     return S;
   };
-  /** Lo anotado por período de pago (fecha de inicio → { rot, adic, asu, isr, caf, ord, mar }): solo fechas válidas, números sin signo negativo y, si las horas vienen de las entradas y salidas
+  /** Lo anotado por período de pago (fecha de inicio → { rot, adic, asu, isr, caf, ord, fer, mar }): solo fechas válidas, números sin signo negativo y, si las horas vienen de las entradas y salidas
       importadas (versión 22), las marcaciones que las originaron (mar); el período sin ningún dato se descarta. */
   const normAj = (aj) => {
     const out = {};
@@ -13433,7 +13628,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     Object.keys(aj).slice(0, 600).forEach((iso) => {
       const a = aj[iso]; if (!Number.isFinite(U.parseISO(iso)) || !isObj(a)) return;
       const o = {};
-      ['rot', 'adic', 'asu', 'isr', 'caf', 'ord'].forEach((k) => { if (a[k] !== undefined && a[k] !== null && a[k] !== '' && Number.isFinite(+a[k])) o[k] = Math.min(100000, Math.max(0, +a[k])); });
+      ['rot', 'adic', 'asu', 'isr', 'caf', 'ord', 'fer'].forEach((k) => { if (a[k] !== undefined && a[k] !== null && a[k] !== '' && Number.isFinite(+a[k])) o[k] = Math.min(100000, Math.max(0, +a[k])); });
       const mar = E.marcNormalizar(a.mar); if (mar) o.mar = mar;
       if (Object.keys(o).length) out[iso] = o;
     });
@@ -15924,7 +16119,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       ['Horas por día para el valor de la hora', n1(P.divHora), 'Parámetros → Valor hora y jornada'],
       ['Factor de hora extra', n1(P.factorExtra) + '×', 'Parámetros → Valor hora y jornada'],
       ['Séptimo día también sobre las extras y el bono incentivo', sino(P.septimoSobreExtras) + ' / ' + sino(P.septimoConBonoInc), 'Parámetros → Valor hora y jornada'],
-      ['«Feriados catorcenal» en la boleta (promedio diario de la semana anterior)', sino(P.feriadoActivo), 'Parámetros → Feriados catorcenales'],
+      ['«Feriados catorcenal» en la boleta (promedio diario de la semana de referencia)', sino(P.feriadoActivo), 'Parámetros → Feriados catorcenales'],
       ['Personal de lunes a viernes (Diurno L–V): feriados que caen en sábado o domingo', P.feriadoLVNoFinSemana ? 'No se pagan' : 'Se pagan igual que al resto del personal', 'Parámetros → Feriados catorcenales'],
       ['Personal Diurno L–V (pago por catorcena): horario y horas extra por catorcena', S.planta.diurno.ini + ' a ' + S.planta.diurno.fin + ', almuerzo de ' + n0(E.horarioFijo(S).almuerzo * 60) + ' min: ' + n1(E.horarioFijo(S).extCat) + ' h extra (viernes de 16 a 17)', 'Planta → Resumen → Dimensiones de la planta'],
       ['Personal mensual de lunes a viernes (pago quincenal): recibe la bonificación extraordinaria de la empresa', sino(P.mensualBonoEmpresa), 'Parámetros → Bonificaciones'],
@@ -16227,7 +16422,7 @@ Las provisiones (aguinaldo, bono 14, indemnización{{vacProvTxt}}) se calculan c
 - **Divisor de la hora:** ÷8 supone jornada diurna; con otra jornada cambia el valor de la hora.
 - **Asueto trabajado:** 1.5× adicional al salario del día o doble.
 - **Séptimo día sobre las extras y el bono incentivo:** práctica de la boleta actual; es una zona gris.
-- **Feriados catorcenales:** la boleta paga por cada feriado el promedio diario de la semana anterior; la semana de referencia debe confirmarse con Nómina.
+- **Feriados catorcenales:** la boleta paga por cada feriado el promedio diario de la semana de referencia (por omisión, la última semana de la catorcena anterior); la semana exacta debe confirmarse con Nómina y, mientras tanto, se anota el importe de cada boleta real.
 - **Horarios de los puentes T11 y M12:** el T11 va de {{horarioT11}} con 1 h de almuerzo sin pago, como lo confirmó la planta; el M12 es un supuesto ({{horarioM12}}) y su horario real debe confirmarse y registrarse en Parámetros → Turnos.
 - **Domingo con dos personas cubriendo un puesto:** las dos trabajan los siete días. Criterio del simulador: {{domingoCriterio}}. Debe confirmarse con el asesor laboral (arts. 126 y 128).
 - **Almuerzo del turno de día de 12 h:** es una hora sin pago; la hora a la que empieza (12:00 o 13:00) solo cambia el dibujo del horario, no las horas pagadas.
@@ -16393,7 +16588,7 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
     { id: 'imprimir', area: 'Impresión', que: 'En la versión inicial, la prueba de impresión con Chromium generó un PDF sin contenido (0 caracteres de texto).', efecto: 'Los botones «Imprimir» no entregaban un documento utilizable.', arreglo: 'Cada vista tiene su hoja carta: Operativo y Planilla en horizontal, Boletas con 3 empleados por hoja vertical, Liquidación y Comparar en vertical, y la Propuesta con lienzo horizontal en una hoja y documento vertical con portada, índice, secciones numeradas, recuadros completos por hoja y pie con numeración de páginas. Las pestañas Planta, Carrera y Programas imprimen cada sección en hoja carta (horizontal las tablas anchas; vertical Metas y Certificación), con los recuadros completos y, en las tablas largas, sin filas partidas entre hojas. La pestaña Imprimir reúne los 32 documentos en una lista con casillas, con las hojas aproximadas de cada uno, su orientación y las veces que se ha impreso, con la fecha y la hora de cada impresión. Permite imprimir un solo documento, lo marcado o todo en un trabajo único con hojas verticales y horizontales. Las boletas y la planilla de pagos de una catorcena, que ocupan más hojas que el resto, preguntan antes cuántas personas incluir (todas, las primeras, un grupo, una boleta de ejemplo) o pueden quedar fuera del trabajo para imprimirse por aparte. El registro de catorcenas (Boletas → Registro de catorcenas) se imprime desde su propia pantalla, aparte de «Imprimir todo»: la planilla de pagos registrada en tabla, las boletas registradas (dos por hoja) y el acumulado por persona, con el mismo cuadro de confirmación y con la advertencia de revisar las horas de entrada y salida y los descuentos de cafetería.' },
     { id: 'fechas', area: 'Fechas', que: 'Las fechas de las boletas salían un día antes en Guatemala (UTC−6) porque «AAAA-MM-DD» se interpretaba como UTC.', efecto: 'Períodos catorcenales con fechas equivocadas (p. ej. 26/10 se mostraba como 25/10).', arreglo: 'Las fechas son números de día UTC, sin horas; hay pruebas de «sin desfase de zona horaria».' },
     { id: 'horas96', area: 'Boleta', que: 'La boleta pagaba solo 88 h ordinarias por catorcena (44 × 2) y no tenía la línea «Adicionales» (las 8 h que completan 44 → 48) que sí trae el recibo de pago real; el séptimo se calculaba sobre una base distinta a la de la planilla.', efecto: 'Con sueldo de Q5,001.60 faltaban Q166.72 de adicionales y su parte del séptimo en cada catorcena.', arreglo: 'La boleta lleva Ordinario 88 h + Adicionales 8 h y el séptimo como en las boletas reales: (ordinario + extras + bono incentivo) ÷ 6. Verificado al centavo contra 6 boletas reales (sep–dic 2025).' },
-    { id: 'feriados', area: 'Boleta', que: 'No existía la prestación «Feriados catorcenal» que sí figura en las boletas reales de las catorcenas con feriado (15-sep, 20-oct y 1-nov-2025). Solo había un recargo manual por asueto trabajado.', efecto: 'En las tres boletas de 2025 con feriado la línea paga de Q247 a Q283; descontando las horas de Ordinario que esa catorcena ya no paga, el devengado queda de Q52 a Q160 por encima de una catorcena sin feriado con las mismas horas extra.', arreglo: 'Calendario de feriados editable (art. 127) y línea «Feriados catorcenal» automática: (ordinario + extras de la semana anterior) ÷ 6 por feriado, con las horas de Ordinario reducidas esa catorcena (80 h o 84 h), como en las boletas reales.' },
+    { id: 'feriados', area: 'Boleta', que: 'No existía la prestación «Feriados catorcenal» que sí figura en las boletas reales de las catorcenas con feriado (15-sep, 20-oct y 1-nov-2025). Solo había un recargo manual por asueto trabajado.', efecto: 'En las tres boletas de 2025 con feriado la línea paga de Q247 a Q283; descontando las horas de Ordinario que esa catorcena ya no paga, el devengado queda de Q52 a Q160 por encima de una catorcena sin feriado con las mismas horas extra.', arreglo: 'Calendario de feriados editable (art. 127) y línea «Feriados catorcenal» automática: (ordinario + extras de la semana de referencia) ÷ 6 por feriado, con las horas de Ordinario reducidas esa catorcena (80 h o 84 h), como en las boletas reales.' },
     { id: 'redondeo', area: 'Boleta', que: 'Cada línea se redondeaba y luego se sumaba; la planilla real calcula con decimales completos y redondea solo lo que imprime.', efecto: 'El devengado y el neto diferían hasta Q0.02 del recibo real.', arreglo: 'Los totales y el neto se calculan a partir de los montos sin redondear, igual que el recibo real; una línea y el total pueden diferir un centavo, como en el recibo impreso.' },
     { id: 'nit', area: 'Boleta', que: 'Un mismo NIT y un mismo código «Sup.» salían en todas las boletas como si fueran de la empresa; en el recibo real son datos de cada empleado y el NIT de la empresa es otro (67322-6).', efecto: 'Todas las boletas llevaban el NIT y el código Sup. de una sola persona.', arreglo: 'NIT de la empresa en el encabezado (Parámetros) y NIT y Sup. propios de cada empleado (Planilla → Más datos), guardados en IndexedDB y en la importación y exportación.' },
     { id: 'pasivo', area: 'Prestaciones', que: 'Un porcentaje fijo de «41.83 %» para el pasivo, sin cálculo detrás.', efecto: '⟨inflaTxt⟩', arreglo: 'El efecto de las extras sobre la base de prestaciones se calcula con la rotación elegida y con los interruptores de zona gris.' },
@@ -16466,7 +16661,7 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
     'El horario de cada cuadrilla en las fechas evaluadas se alinea a mano (desfase del ciclo y cambios día por día en la cuadrícula de Boletas): el simulador no lee la programación real de la planta. Si la cuadrícula no coincide con lo que de verdad se trabajó, las horas extra de la boleta tampoco. Lo anotado por persona en Ajustes (extras del turno, extras adicionales, asuetos, ISR retenido y cafetería) se guarda en IndexedDB y en el respaldo JSON, pero no sale en la exportación de la planilla a Excel.',
     'El personal de lunes a viernes con horario de 7:00 a 17:00 y 1 h de almuerzo no trabajado labora 9 h por día: de lunes a jueves son ordinarias; el viernes, 8 h son ordinarias (el tope diurno es de 44 h por semana) y la hora de 16:00 a 17:00 es extra, lo que da 2 h extra por catorcena. El sábado y el domingo trabajados son extras y se registran por persona (horas por catorcena) o para toda el área diurna en Planta. Este personal cobra por catorcena (Diurno L–V). El personal de lunes a viernes con sueldo mensual (Mensual L–V) cobra cada quincena, no lleva horas extra fijas y, si las hace, se le pagan al cerrar el mes. Deben confirmarse con Planillas o con el asesor laboral la forma de computar la jornada, si los feriados que caen en sábado o domingo se pagan a este personal (Parámetros → Cálculo → Feriados catorcenales) y si el personal mensual recibe la bonificación extraordinaria de la empresa.',
     'La liquidación se calcula con el promedio de lo devengado en los últimos 6 meses (indemnización × 14/12 × días ÷ 365) y en los últimos 12 meses (aguinaldo, bono 14 y vacaciones), a partir de las boletas modeladas; mientras no se ingresen los promedios reales de la persona, es una estimación. Qué conceptos forman el promedio (horas extra, asuetos, bonificación incentivo, bonificación de la empresa) son criterios por confirmar con Recursos Humanos y el asesor laboral; la pestaña Liquidación incluye la conciliación con el cálculo de Recursos Humanos. El factor 14/12 tiene respaldo en los Decretos 76-78 (art. 9) y 42-92 (art. 4) y en la Guía del Ministerio de Trabajo, pero algunos resúmenes en línea expresan la indemnización como «promedio × años» (sin el factor) o fijan tres meses de servicio como mínimo; el Código de Trabajo fija dos meses de período de prueba (art. 81). Si la liquidación de Recursos Humanos coincide con la cifra sin factor, la conciliación lo muestra y el factor se desactiva en la pestaña Liquidación.',
-    'La semana de referencia de «Feriados catorcenal» (la semana de lunes a domingo anterior a la del feriado) se dedujo de cuatro boletas (las de 2025 coinciden con horas extra enteras; la de octubre de 2026, con 11.5 h), pero no pudo comprobarse semana por semana. Si Nómina aplica otra semana, se pueden registrar esas horas extra en el calendario de feriados (Parámetros → Cálculo).',
+    'La semana de referencia de «Feriados catorcenal» (la «semana anterior» de la planilla) se dedujo de cuatro boletas (las de 2025 coinciden con horas extra enteras; la de octubre de 2026, con 11.5 h), pero no pudo comprobarse semana por semana. En la boleta del 12 al 25 de octubre de 2026 el calendario da 16 h en la semana de lunes a domingo anterior a la del feriado (12 al 18) y 11 h en la última semana de la catorcena anterior (5 al 11): la planilla pagó 11.5 h, así que desde la versión 29 la semana por omisión es la última de la catorcena anterior (Parámetros → Cálculo → Feriados catorcenales; la otra opción sigue disponible). Como el calendario no ve las horas extra que no estaban programadas, lo seguro es escribir el importe de «Feriados catorcenal» de cada boleta real en Boletas → Ajustes: el simulador lo usa tal cual y dice a cuántas horas extra equivale.',
     'El costo de la planta (Operativo y Comparar) no incluye el ajuste de «Feriados catorcenal»: es pequeño frente al costo total y la boleta sí lo calcula.',
     'La primera catorcena de una persona que entra a mitad de periodo (como la boleta del 1 al 14 de septiembre, con 52 h ordinarias) no se prorratea: el simulador supone catorcenas completas.',
     'La escalera de dominio (peldaños, sueldos base, permanencias mínimas, plazas de las ramas superiores y ritmo de avance) es una propuesta de diseño y no una escala vigente: debe validarse con la valuación de puestos, una encuesta salarial y los procedimientos de cada puesto, que definen qué es «una tarea» en cada área. Los importes están en quetzales constantes, expresados en múltiplos del salario mínimo vigente.',
@@ -17696,10 +17891,10 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     id: 'feriado', g: 'boleta', t: 'Feriado catorcenal',
     c: 'Prestación que la planilla real paga en las catorcenas que incluyen un feriado.',
     d: [
-      'Cuando una catorcena incluye un feriado, la planilla real paga aparte una prestación: el ordinario de una semana más las horas extra de la semana anterior, entre 6. Con la opción de descontar las horas del feriado, esas horas dejan de pagarse como ordinarias para no pagarlas dos veces.',
+      'Cuando una catorcena incluye un feriado, la planilla real paga aparte una prestación: el ordinario de una semana más las horas extra de la semana de referencia, entre 6; por omisión la semana de referencia es la última de la catorcena anterior (se cambia en Parámetros) y, si se conoce el importe de la boleta real, se escribe en Boletas → Ajustes y el simulador lo usa tal cual. Con la opción de descontar las horas del feriado, esas horas dejan de pagarse como ordinarias para no pagarlas dos veces.',
       'Si el feriado se trabaja, se paga además el asueto trabajado. Los feriados del calendario (y cuáles se pagan) se ajustan en Parámetros → Feriados catorcenales.'
     ],
-    f: ['Feriado = Σ fracción del feriado × (ordinario de una semana + extras de la semana anterior) ÷ 6', 'Ordinario de una semana = la mitad de las horas ordinarias de la catorcena × valor de la hora'],
+    f: ['Feriado = Σ fracción del feriado × (ordinario de una semana + extras de la semana de referencia) ÷ 6', 'Ordinario de una semana = la mitad de las horas ordinarias de la catorcena × valor de la hora'],
     r: 'Arts. 127 y 128 del Código de Trabajo (días de asueto).',
     u: [['boletas', 'Línea «Feriados»'], ['parametros', 'Feriados catorcenales']], rel: ['asueto', 'septimo']
   });
@@ -18225,6 +18420,23 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       (E.marcIntactas(a) ? '' : ' <b>Se cambiaron a mano después</b>: lo que se ve en la boleta es lo escrito aquí, no lo de las marcaciones.') + ' «Volver al calendario» quita las horas y las marcaciones.</p>';
   }
   const chipMar = (a) => (a && a.mar ? K.chip(a.mar.e ? 'Marcaciones de ejemplo' : 'Con marcaciones', a.mar.e ? 'warn' : 'info') + (E.marcIntactas(a) ? '' : K.chip('Horas cambiadas a mano', 'warn')) : '');
+  /** De dónde sale «Feriados catorcenal» de una boleta (versión 29): el importe anotado de la boleta real, las horas extra que se escribieron para esa fecha en Parámetros o las del calendario de
+      turnos en la semana de referencia. i = resultado de UI.boletaInfo; devuelve un texto corto por feriado, o '' si la boleta no tiene feriados. */
+  const hh2 = (x) => U.fmt(x, Math.abs(x - Math.round(x)) < 0.005 ? 0 : Math.abs(x * 2 - Math.round(x * 2)) < 0.005 ? 1 : 2);
+  function ferOrigen(e, i, S) {
+    const b = i.b, lista = i.fer || [];
+    if (!b.nFer) return '';
+    if (b.ferReal) {
+      const h = E.feriadoRefDeImporte(b.feriado, e, S.params, lista);
+      return lista.map((f) => U.fmtDMY(f.f).slice(0, 5) + ' ' + f.n).join(', ') + ': ' + K.q(b.feriado) + ' de la boleta real' + (h !== null && h >= 0 ? ', equivale a ' + hh2(h) + ' h extra en la semana de referencia' : '');
+    }
+    return lista.map((f) => {
+      const dias = U.fmtDMY(f.f).slice(0, 5) + ' ' + f.n;
+      if (!f.auto) return dias + ': ' + hh2(f.extRef) + ' h extra anotadas en Parámetros';
+      if (E.esFijo(e)) return dias + ': ' + hh2(f.extRef) + ' h extra del horario fijo';
+      return dias + ': ' + hh2(f.extRef) + ' h extra de la semana del ' + U.fmtDMY(f.refIni).slice(0, 5) + ' al ' + U.fmtDMY(f.refFin).slice(0, 5) + ' (calendario)';
+    }).join('; ');
+  }
   /** Datos anotados de una catorcena (rotación o L–V): i = resultado de UI.boletaInfo. */
   function ajCat(e, i, cat) {
     const ini = U.fmtISO(cat.ini), a = i.aj || {}, fijo = E.esFijo(e);
@@ -18233,6 +18445,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       campo(e, ini, 'rot', fijo ? 'Extras del horario (h)' : 'Extras del turno (h)', a, hh(i.rotCal), 'Calendario: ' + hh(i.rotCal) + ' h (el calendario cuenta horas enteras). Escribir las de la boleta real, con media hora si la trae (35.5); 0 si no hizo extras normales del turno.') +
       campo(e, ini, 'adic', 'Extras adicionales (h)', a, hh(U.num(e.extrasAdic)), 'Después de las normales. Registrado en Planilla: ' + hh(U.num(e.extrasAdic)) + ' h.') +
       campo(e, ini, 'asu', 'Asuetos trabajados (días)', a, hh(U.num(e.feriados)), 'Registrado en Planilla: ' + hh(U.num(e.feriados)) + '.') +
+      (i.ferN > 0 || (a && a.fer !== undefined) ? campo(e, ini, 'fer', 'Feriado de la boleta (Q)', a, q2(i.ferCalc), 'El importe de «Feriados catorcenal» de la boleta real. Vacío: lo calcula el simulador, ' + K.q(i.ferCalc) + (i.ferReal === null && i.b.nFer ? ' (' + ferOrigen(e, i, SM.S) + ')' : '') + '. Con el importe escrito, la boleta usa ese; 0 si esa boleta no pagó feriado.') : '') +
       campo(e, ini, 'isr', 'ISR retenido (Q)', a, 'sin dato', 'Lo que descontó la boleta real, si trae ISR (la retención es mensual: solo una boleta del mes la trae).') +
       campo(e, ini, 'caf', 'Cafetería (Q)', a, q2(U.num(e.cafeteria)), 'Lo que descontó la cafetería en esta boleta. Vacío: el monto fijo de Planilla (' + K.q(U.num(e.cafeteria)) + '); 0 si no hubo.') +
       '</div><div class="btns">' + btnAj('ajSinExtras', 'Sin extras del turno', e, ini, { title: 'Anota 0 horas extra del turno en esta catorcena' }) + (i.aj ? btnAj('ajQuitar', 'Volver al calendario', e, ini, { cls: 'sm ghost', ico: 'reset', title: 'Quita todo lo anotado de esta catorcena' }) : '') + '</div></div>';
@@ -18254,7 +18467,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       return '<div class="bcard off noprint"><div class="bch"><span class="pill-crew">' + esc(e.cuadrilla || '?') + '</span><b>' + esc(e.nombre || '(sin nombre)') + '</b><span class="note">' + (e.cuadrilla ? 'La cuadrilla ' + esc(e.cuadrilla) + ' no existe en ' + (pc.which === 'act' ? 'la situación actual' : 'el modelo propuesto') + ', no genera boleta.' : 'Sin cuadrilla asignada: no genera boleta.') + '</span></div></div>';
     }
     const S = pc.S, which = pc.which, abierto = !!(UI.q.bolAj && UI.q.bolAj[e.id]);
-    const togAj = (n) => K.btn('togAj', 'Ajustes' + (n ? ' (' + n + ')' : ''), { cls: 'sm', ico: 'edit', data: 'data-id="' + esc(e.id) + '" aria-expanded="' + (abierto ? 'true' : 'false') + '"', title: 'Horas ordinarias, extras del turno, extras adicionales, asuetos, ISR retenido y cafetería de estas fechas' });
+    const togAj = (n) => K.btn('togAj', 'Ajustes' + (n ? ' (' + n + ')' : ''), { cls: 'sm', ico: 'edit', data: 'data-id="' + esc(e.id) + '" aria-expanded="' + (abierto ? 'true' : 'false') + '"', title: 'Horas ordinarias, extras del turno, extras adicionales, asuetos, feriado de la boleta real, ISR retenido y cafetería de estas fechas' });
     if (mens) { // sueldo mensual: las dos quincenas del mes elegido, la primera arriba y la segunda (con las horas extra del mes) abajo
       const x = UI.boletasQ(e, S, UI.mesQ(S, pc.k), which), nota = (r) => 'Quincena ' + r.per.q + ' (' + U.fmtDMY(r.per.ini).slice(0, 5) + ' al ' + U.fmtDMY(r.per.fin).slice(0, 5) + '): neto ' + K.q(r.b.liquido) + (r.b.hExt ? ' · ' + U.fmt(r.b.hExt, 1) + ' h extra' : '') + (r.aj ? (r.aj.mar ? ' (con marcaciones)' : ' (anotado)') : '');
       return '<div class="bcard" data-id="' + e.id + '"><div class="bch noprint"><span class="pill-crew fijo" title="Sueldo mensual, pago quincenal">' + esc(UI.rotuloCuadrilla(e)) + '</span><b class="grow">' + esc(e.nombre || '(sin nombre)') + '</b>' + chipISR(e, pc) + '<span class="note">' + esc(nota(x[0]) + ' | ' + nota(x[1])) + '</span>' +
@@ -18263,8 +18476,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
         '<div class="bpair">' + bol(e, x[0].b, x[0].per, S, { which, anotado: !!x[0].aj }) + bol(e, x[1].b, x[1].per, S, { which, anotado: !!x[1].aj }) + '</div></div>';
     }
     const i2 = UI.boletaInfo(e, pc2) || i1;
-    const fer = (p) => UI.feriadosDe(e.cuadrilla, p).map((f) => U.fmtDMY(f.f).slice(0, 5) + ' ' + f.n).join(', ');
-    const nota = (i, p) => 'Cat. ' + p.cat.num + ': ' + hh(i.b.hExt) + ' h extra' + (i.aj ? (i.aj.mar ? ' (con marcaciones)' : ' (anotado)') : '') + (i.b.nFer ? ' · feriado ' + U.fmt(i.b.nFer, i.b.nFer % 1 ? 1 : 0) + ' (' + fer(p) + ')' : '');
+    const nota = (i, p) => 'Cat. ' + p.cat.num + ': ' + hh(i.b.hExt) + ' h extra' + (i.aj ? (i.aj.mar ? ' (con marcaciones)' : ' (anotado)') : '') + (i.b.nFer ? ' · feriado ' + U.fmt(i.b.nFer, i.b.nFer % 1 ? 1 : 0) + ' (' + ferOrigen(e, i, S) + ')' : '');
     return '<div class="bcard" data-id="' + e.id + '"><div class="bch noprint"><span class="pill-crew' + (E.esFijo(e) ? ' fijo' : '') + '"' + (E.esFijo(e) ? ' title="Diurno de lunes a viernes, sin rotación"' : '') + '>' + esc(UI.rotuloCuadrilla(e)) + '</span><b class="grow">' + esc(e.nombre || '(sin nombre)') + '</b>' + chipISR(e, pc) + '<span class="note">' + esc(nota(i1, pc) + ' | ' + nota(i2, pc2)) + '</span>' +
       togAj((i1.aj ? 1 : 0) + (i2.aj ? 1 : 0)) + K.btn('printOne', 'Imprimir solo esta', { cls: 'sm', ico: 'print', data: 'data-id="' + e.id + '"' }) + '</div>' +
       (abierto ? '<div class="ajrow noprint">' + ajCat(e, i1, pc.cat) + ajCat(e, i2, pc2.cat) + '</div>' : '') +
@@ -18273,8 +18485,9 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
 
   /** Línea con los feriados de las dos catorcenas mostradas (o la aclaración de que no hay). */
   function resumenFeriados(S, pc, pc2) {
-    const una = (p) => { const l = E.feriadosEn(S, p.cat.ini, p.cat.fin).filter((f) => f.paga && f.fr > 0); return 'Catorcena ' + p.cat.num + ' (' + U.fmtDMY(p.cat.ini).slice(0, 5) + ' al ' + U.fmtDMY(p.cat.fin).slice(0, 5) + '): ' + (l.length ? l.map((f) => U.fmtDMY(f.f).slice(0, 5) + ' ' + U.DOW[f.dow].toLowerCase() + ' ' + f.n + (f.fr !== 1 ? ' (' + U.fmt(f.fr, 1) + ')' : '')).join('; ') : 'sin feriados'); };
-    return '<p class="note" style="margin-top:.6rem"><b>Feriados en estas boletas.</b> ' + esc(una(pc)) + '. ' + esc(una(pc2)) + '. ' + (S.params.feriadoActivo ? '' : 'El pago de feriados está apagado en Parámetros. ') + K.btn('verFeriados', 'Editar calendario de feriados', { cls: 'sm ghost' }) + '</p>';
+    const lista = (p) => E.feriadosEn(S, p.cat.ini, p.cat.fin).filter((f) => f.paga && f.fr > 0), hay = lista(pc).length + lista(pc2).length > 0;
+    const una = (p) => { const l = lista(p); return 'Catorcena ' + p.cat.num + ' (' + U.fmtDMY(p.cat.ini).slice(0, 5) + ' al ' + U.fmtDMY(p.cat.fin).slice(0, 5) + '): ' + (l.length ? l.map((f) => U.fmtDMY(f.f).slice(0, 5) + ' ' + U.DOW[f.dow].toLowerCase() + ' ' + f.n + (f.fr !== 1 ? ' (' + U.fmt(f.fr, 1) + ')' : '')).join('; ') : 'sin feriados'); };
+    return '<p class="note" style="margin-top:.6rem"><b>Feriados en estas boletas.</b> ' + esc(una(pc)) + '. ' + esc(una(pc2)) + '. ' + (!S.params.feriadoActivo ? 'El pago de feriados está apagado en Parámetros. ' : hay ? 'Cada feriado se paga con el promedio diario de ' + (S.params.feriadoSemRef === 'semAnt' ? 'la semana de lunes a domingo anterior a la del feriado' : 'la última semana de la catorcena anterior') + ': la tarjeta de cada persona dice las horas extra que usó y, si la boleta real trae otro importe, se escribe en Ajustes → «Feriado de la boleta (Q)». ' : '') + K.btn('verFeriados', 'Editar calendario de feriados', { cls: 'sm ghost' }) + '</p>';
   }
 
   /* ---------- fecha y horario trabajado ---------- */
@@ -18364,7 +18577,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
         (vista === 'boletas' ? K.btn('printBol', 'Imprimir todas (' + nHojas + (nHojas === 1 ? ' hoja' : ' hojas') + ')', { cls: 'pri', ico: 'print', title: 'Una persona por hoja carta: la primera catorcena arriba y la segunda abajo' }) : vista === 'acumulado' ? K.printBtn('land', 'Imprimir el acumulado', 'Acumulado del año · ISR') : '') + '</div></div>';
       const base = '<div class="banner info noprint">' + K.ico('info') + '<div><b>Metodología de cálculo (conforme a las boletas reales).</b> Ordinario = ' + P.horasOrdCat + ' h × valor hora (sueldo ÷ ' + P.diasMes + ' ÷ ' + P.divHora + '). Horas extras × ' + P.factorExtra + '. ' +
         'Séptimo día = (ordinario' + (P.septimoSobreExtras ? ' + extras' : '') + (P.septimoConBonoInc ? ' + bono incentivo' : '') + ') ÷ ' + P.divSeptimo + '. Adicionales = ' + P.horasAdicCat + ' h × valor hora (44 h se pagan como 48). ' +
-        (P.feriadoActivo ? 'Feriados catorcenal = por cada feriado de la catorcena, (ordinario + horas extra de la semana anterior) ÷ ' + P.divSeptimo + (P.feriadoDescuentaOrd ? '; esa catorcena lleva menos horas de Ordinario (el día feriado ya no se paga como ordinario)' : '') + '. ' : '') +
+        (P.feriadoActivo ? 'Feriados catorcenal = por cada feriado de la catorcena, (ordinario + horas extra de la semana de referencia) ÷ ' + P.divSeptimo + (P.feriadoSemRef === 'semAnt' ? ', con la semana de lunes a domingo anterior a la del feriado' : ', con la última semana de la catorcena anterior') + ' (se cambia en Parámetros)' + (P.feriadoDescuentaOrd ? '; esa catorcena lleva menos horas de Ordinario (el día feriado ya no se paga como ordinario)' : '') + '. Cada tarjeta dice de dónde salen las horas; si la boleta real trae otro importe, se escribe en «Ajustes» → «Feriado de la boleta (Q)» y la boleta usa ese. ' : '') +
         'IGSS ' + U.fmt(P.igssLaboral * 100, 2) + ' % sobre ordinario, extras, séptimo, feriados y adicionales; las bonificaciones no cotizan. Los totales se calculan con decimales completos y se redondean al imprimir, así que una línea y el total pueden diferir en un centavo, como en el recibo real. ' +
         'Las horas extra de cada cuadrilla provienen del turno que se evalúa, día por día (incluye los cambios hechos a mano en la cuadrícula de arriba o en Operativo). Si una persona hizo más o menos extras que las del turno, se anotan en «Ajustes» de su tarjeta: sustituyen a las del calendario en esa catorcena; lo mismo vale para las horas ordinarias, si hizo menos de las de Parámetros (el séptimo se ajusta). El calendario cuenta horas enteras; las boletas reales traen medias horas (35.50 h), que se anotan con decimales. El personal Diurno L–V no rota: sus horas extra son las del horario de Planta (la hora del viernes de 16 a 17 con 7:00–17:00 y 1 h de almuerzo), las adicionales de Planta y las de cada persona (sábado y domingo). ' +
         'El personal mensual (quincenal) cobra sueldo ÷ 2 por quincena, sin séptimo, adicionales ni feriados (el sueldo mensual ya paga los 30 días); bono incentivo ' + K.q(P.bonoIncentivoMensual / 2) + ' por quincena; IGSS sobre sueldo, extras y asuetos; las horas extra del mes (valor hora × ' + P.factorExtra + ') y los asuetos trabajados se pagan al cerrar el mes, en la quincena 2. ' +
@@ -18471,9 +18684,9 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   };
 
   /* ---------- datos anotados por persona ---------- */
-  /** Anota (o borra, si el texto está vacío) un dato de una persona para el período que empieza en `ini`. f: rot | adic | asu | isr | caf | ord (horas ordinarias, versión 26). */
+  /** Anota (o borra, si el texto está vacío) un dato de una persona para el período que empieza en `ini`. f: rot | adic | asu | isr | caf | ord (horas ordinarias, versión 26) | fer (importe de «Feriados catorcenal» de la boleta real, versión 29). */
   UI.setAj = (id, ini, f, raw) => {
-    const e = SM.empById(id); if (!e || !/^\d{4}-\d{2}-\d{2}$/.test(ini) || ['rot', 'adic', 'asu', 'isr', 'caf', 'ord'].indexOf(f) < 0) return;
+    const e = SM.empById(id); if (!e || !/^\d{4}-\d{2}-\d{2}$/.test(ini) || ['rot', 'adic', 'asu', 'isr', 'caf', 'ord', 'fer'].indexOf(f) < 0) return;
     const aj = U.clone(e.aj || {}), cur = Object.assign({}, aj[ini] || {}), txt = String(raw === undefined || raw === null ? '' : raw).trim();
     if (txt === '') delete cur[f];
     else {
@@ -19322,6 +19535,12 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   /** La hora local de ahora como la guarda el registro: AAAA-MM-DD HH:MM. */
   const ahora = () => { const d = new Date(); return d.getFullYear() + '-' + U.pad2(d.getMonth() + 1) + '-' + U.pad2(d.getDate()) + ' ' + U.pad2(d.getHours()) + ':' + U.pad2(d.getMinutes()); };
   const pl = (n, uno, varios) => n + ' ' + (n === 1 ? uno : varios);
+  /** Frase sobre «Feriados catorcenal» de la catorcena (versión 29): quién lo trae, a quién se le anotó el importe de la boleta real y con qué semana se calcula el de los demás. */
+  const ferFrase = (t) => {
+    if (!t.nFer) return '';
+    const P = SM.S.params, sem = P.feriadoSemRef === 'semAnt' ? 'la semana de lunes a domingo anterior a la del feriado' : 'la última semana de la catorcena anterior', calc = t.nFer - t.nFerAnot;
+    return ' Feriado: ' + (t.nFer === 1 ? '1 persona lo trae' : t.nFer + ' personas lo traen') + '; ' + t.nFerAnot + (t.nFerAnot === 1 ? ' tiene' : ' tienen') + ' el importe de la boleta real anotado' + (calc ? ' y ' + calc + (calc === 1 ? ' lo calcula' : ' lo calculan') + ' con las horas extra de ' + sem + ' según el calendario del turno' : '') + '.';
+  };
   const turnoTxt = (t) => (t === 'act' ? 'situación actual' : 'modelo propuesto');
   const turnoArt = (t) => (t === 'act' ? 'la situación actual' : 'el modelo propuesto');
   const grupo = (c) => (c === E.LV ? 'L–V' : c === E.MQ ? 'Mensual' : c || '?');
@@ -19448,8 +19667,8 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     // lo que hay en la planilla y qué revisar antes de registrar
     const aviso = K.banner(total > S.params.impLimitePersonas ? 'warn' : 'info', '<b>La planilla tiene ' + pl(total, 'persona registrada', 'personas registradas') + '</b>: ' + t.nCat + ' con pago catorcenal, ' + nMens + ' con sueldo mensual (pago quincenal) y ' + t.nSin + ' sin plaza en el turno que se evalúa. ' +
       '<b>Revisar bien antes de registrar:</b> las horas de entrada y salida de cada persona (de ellas salen las horas ordinarias y extra) y los descuentos de cafetería. ' +
-      (t.nCat ? 'De las ' + t.nCat + ' personas con pago catorcenal, ' + t.nHorasAnot + (t.nHorasAnot === 1 ? ' usa horas anotadas' : ' usan horas anotadas') + (t.nMarc ? ' (' + t.nMarc + ' de ellas con las marcaciones del reloj)' : '') + ' y ' + t.nCalendario + (t.nCalendario === 1 ? ' usa' : ' usan') + ' las horas del calendario del turno; ' + t.nCafAnot + (t.nCafAnot === 1 ? ' tiene' : ' tienen') + ' cafetería anotada y las demás el monto fijo de Planilla. ' : '') +
-      'Las horas y la cafetería de cada persona se anotan en Boletas → Ajustes de su tarjeta.');
+      (t.nCat ? 'De las ' + t.nCat + ' personas con pago catorcenal, ' + t.nHorasAnot + (t.nHorasAnot === 1 ? ' usa horas anotadas' : ' usan horas anotadas') + (t.nMarc ? ' (' + t.nMarc + ' de ellas con las marcaciones del reloj)' : '') + ' y ' + t.nCalendario + (t.nCalendario === 1 ? ' usa' : ' usan') + ' las horas del calendario del turno; ' + t.nCafAnot + (t.nCafAnot === 1 ? ' tiene' : ' tienen') + ' cafetería anotada y las demás el monto fijo de Planilla.' + ferFrase(t) + ' ' : '') +
+      'Las horas, el feriado y la cafetería de cada persona se anotan en Boletas → Ajustes de su tarjeta.');
     const estado = reg
       ? '<div class="row mid" style="gap:.4rem .8rem;margin-top:.8rem">' + K.chip('Registrada', 'ok') + '<span>Registrada el ' + esc(fts(reg.ts)) + (editado(reg) ? ' · actualizada el ' + esc(fts(reg.upd)) : '') + ' · ' + esc(turnoTxt(reg.turno)) + ' · ' + pl(reg.filas.length, 'persona', 'personas') + (reg.quin.length ? ' y ' + pl(reg.quin.length, 'quincena mensual', 'quincenas mensuales') : '') + ' · neto ' + K.q(E.regTotales(reg).liquido) + '</span></div>' +
         (reg.turno !== pc.which ? '<p class="note" style="margin:.4rem 0 0">El registro usa ' + esc(turnoArt(reg.turno)) + ' y el turno elegido es ' + esc(turnoArt(pc.which)) + ': al actualizar, el registro pasará al turno elegido.</p>' : '')
@@ -19566,7 +19785,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     const fila = (a, b) => '<dt>' + a + '</dt><dd>' + b + '</dd>';
     const resumen = '<dl class="kv">' + fila('Personas con pago catorcenal', t.nCat) + (t.nQ ? fila('Quincenas del personal mensual que cierran en la catorcena', t.nQ) : '') + (t.nSin ? fila('Sin plaza en el turno (no entran)', t.nSin) : '') +
       fila('Horas ordinarias · horas extra', hh(t.hOrd) + ' · ' + hh(t.hExt)) + fila('Devengado', K.q(t.devengado)) + fila('Cafetería', K.q(t.cafeteria)) + fila('IGSS', K.q(t.igss)) + fila('ISR', K.q(t.isr)) + fila('Neto a pagar', '<b>' + K.q(t.liquido) + '</b>') + '</dl>';
-    const avisos = (t.nCat ? K.banner(t.nCalendario ? 'warn' : 'info', (t.nCalendario ? '<b>' + pl(t.nCalendario, 'persona usa', 'personas usan') + ' las horas del calendario del turno</b> y ' : '') + pl(t.nHorasAnot, 'persona tiene', 'personas tienen') + ' horas anotadas' + (t.nMarc ? ' (' + t.nMarc + ' con las marcaciones del reloj)' : '') + '; ' + pl(t.nCafAnot, 'tiene', 'tienen') + ' cafetería anotada y las demás el monto fijo de Planilla. Las horas y la cafetería reales se anotan en Boletas → Ajustes.') : '') +
+    const avisos = (t.nCat ? K.banner(t.nCalendario ? 'warn' : 'info', (t.nCalendario ? '<b>' + pl(t.nCalendario, 'persona usa', 'personas usan') + ' las horas del calendario del turno</b> y ' : '') + pl(t.nHorasAnot, 'persona tiene', 'personas tienen') + ' horas anotadas' + (t.nMarc ? ' (' + t.nMarc + ' con las marcaciones del reloj)' : '') + '; ' + pl(t.nCafAnot, 'tiene', 'tienen') + ' cafetería anotada y las demás el monto fijo de Planilla.' + ferFrase(t) + ' Las horas, el feriado y la cafetería reales se anotan en Boletas → Ajustes.') : '') +
       (cat.fin >= hoy ? K.banner('warn', '<b>La catorcena ' + cat.num + ' termina el ' + dmy(cat.fin) + '.</b> Lo que se registre ahora usa las horas del calendario del turno para los días que faltan.') : '');
     const anterior = prev ? K.banner(dif.igual ? 'ok' : 'warn', '<b>Esta catorcena ya está registrada</b> (registrada el ' + esc(fts(prev.ts)) + ', ' + esc(turnoTxt(prev.turno)) + '). Al actualizar se reemplazan los valores guardados por los de hoy' + (prev.turno !== vivo.turno ? ' y el registro pasa al turno «' + esc(turnoTxt(vivo.turno)) + '»' : '') + '; la bitácora conserva el historial. ' +
       (dif.igual ? 'No hay diferencias con lo registrado.' : 'Cambios: ' + [dif.nCambiadas ? pl(dif.nCambiadas, 'persona con otros montos', 'personas con otros montos') : '', dif.nFaltan ? pl(dif.nFaltan, 'persona que sale', 'personas que salen') : '', dif.nNuevas ? pl(dif.nNuevas, 'persona nueva', 'personas nuevas') : ''].filter(Boolean).join(', ') + '; diferencia del neto total ' + signo(dif.difNeto) + '.')) : '';
@@ -21098,7 +21317,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
   P.cel = cel; P.hor = hor; P.hor1 = hor1; P.plural = plural; P.anioDe = anioDe; // los usa también 57a3 (cuentas)
   P.grupoCsv = P.grupoCsv || ((p) => (p.tipo === 'rot' ? p.crew : p.tipo === 'LV' ? 'L–V' : 'Mensual'));
   /** Aviso de los centavos: la planilla real calcula con todos los decimales y redondea al imprimir cada renglón (ver «Boleta de octubre de 2026 validada»). */
-  const CENTAVOS = 'Como en la planilla real, cada renglón se redondea al centavo y los totales se calculan con todos los decimales: la suma de los renglones de una persona puede diferir del total devengado en un centavo.';
+  const CENTAVOS = 'Como en la planilla real, cada renglón se redondea al centavo y los totales se calculan con todos los decimales: la suma de los renglones de una persona puede diferir del total devengado en uno o dos centavos por boleta.';
   /** Un identificador corto del período elegido, para el nombre de los archivos. */
   P.periodoCod = (c) => (c.pr.per === 'cat' ? 'catorcena' + U.pad2(c.pr.cat) : c.pr.per === 'mes' ? 'mes' + U.pad2(c.pr.mes) : 'anual');
 
@@ -23949,7 +24168,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     // 4c) feriados catorcenales
     const b2 = E.boleta(emp, P, { fer: [{ fr: 1, horasOrd: P.feriadoHorasLV, extRef: 0 }] }), b3 = E.boleta(emp, Object.assign({}, P, { feriadoActivo: !P.feriadoActivo }), { fer: [{ fr: 1, horasOrd: P.feriadoHorasLV, extRef: 0 }] });
     add({ k: 'feriadoActivo', t: 'Pago de «Feriados catorcenal»', now: P.feriadoActivo ? 'se paga' : 'no se paga', alt: P.feriadoActivo ? 'no se paga' : 'se paga', ef: 'En una catorcena con un feriado (sin horas extra en la semana anterior), la boleta pasa de ' + K.q(b2.liquido) + ' a ' + K.q(b3.liquido) + ' netos<br><span class="note">Con horas extra en la semana anterior el pago sube: cada hora extra suma ' + K.q(E.valorHora(S.sueldoGlobal, P) * P.factorExtra / (P.divSeptimo || 6)) + ' al feriado.</span>', quien: 'Verificado con las boletas del 15-sep, 20-oct y 1-nov-2025', dif: null });
-    add({ k: 'calFeriados', t: 'Semana de referencia del feriado = la semana anterior a la del feriado', now: 'semana de lunes a domingo anterior', alt: 'otra semana (p. ej. la última de la catorcena anterior)', ef: 'El importe de las cuatro boletas con feriado equivale a (44 h ordinarias + N h extra) × valor hora ÷ 6, con N de 25 h (15-sep-2025), 18 h (20-oct-2025), 20 h (1-nov-2025) y 11.5 h (20-oct-2026, con media hora). Las 25 h caben en las 40 h extra de la boleta del 1 al 14 de septiembre; las otras semanas no pueden separarse con los datos de la boleta, por lo que la semana exacta no está comprobada. Si Nómina aplica otra semana, se registran las horas extra correspondientes en el calendario de feriados.', quien: 'Nómina: confirmar con una boleta de feriado cuyas horas extra semanales sean conocidas', dif: null });
+    add({ k: 'calFeriados', t: 'Semana de referencia del feriado (la «semana anterior» de la planilla)', now: P.feriadoSemRef === 'semAnt' ? 'la semana de lunes a domingo anterior a la del feriado' : 'la última semana de la catorcena anterior', alt: P.feriadoSemRef === 'semAnt' ? 'la última semana de la catorcena anterior' : 'la semana de lunes a domingo anterior a la del feriado', ef: 'El importe de las cuatro boletas con feriado equivale a (44 h ordinarias + N h extra) × valor hora ÷ 6, con N de 25 h (15-sep-2025), 18 h (20-oct-2025), 20 h (1-nov-2025) y 11.5 h (20-oct-2026, con media hora). La de octubre de 2026 es la que decide: el calendario de la cuadrilla da 16 h en la semana del 12 al 18 (lunes a domingo anterior a la del feriado) y 11 h en la del 5 al 11 (la última de la catorcena anterior), y la planilla pagó 11.5 h. Con las boletas de 2025 pasa lo mismo: la regla de la semana de lunes a domingo anterior no cuadra con los totales de horas extra de la catorcena del 13 al 26 de octubre (51 h contra 18 h + 20 h). Aun así la semana exacta no está comprobada, y el calendario no ve las horas extra no programadas: para una boleta pagada se escribe su importe en Boletas → Ajustes.', quien: 'Nómina: confirmar con una boleta de feriado cuyas horas extra semanales sean conocidas', dif: null });
     // 4d) personal de lunes a viernes (horario fijo): feriados en sábado o domingo y horas extra de la jornada de 7:00 a 17:00
     const fSin = E.boleta(emp, P, {}), fDom = E.boleta(emp, P, { fer: [{ fr: 1, horasOrd: 0, extRef: 0 }] });
     add({ k: 'feriadoLVNoFinSemana', t: 'Personal de lunes a viernes (Diurno L–V): feriado que cae en sábado o domingo', now: P.feriadoLVNoFinSemana ? 'no se paga' : 'se paga igual que al resto del personal', alt: P.feriadoLVNoFinSemana ? 'se paga igual que al resto del personal' : 'no se paga (son sus días de descanso)',
@@ -24820,12 +25039,12 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
         td('Fecha', U.fmtDMY(r.f) + '<br><span class="note">' + DOWL[r.dow] + '</span>') +
         td('Feriado', esc(r.n) + (r.origen !== 'ley' ? '<br><span class="note">' + (r.origen === 'local' ? 'feria local' : 'agregado manualmente') + '</span>' : '')) +
         td('Cuenta (días)', '<input class="in n" type="number" step="0.5" min="0" max="2" value="' + (+r.fr.toFixed(2)) + '" data-onchange="ferFr" data-iso="' + r.iso + '" data-def="' + r0.fr + '" data-fk="fer:fr:' + r.iso + '" aria-label="Días que cuenta el feriado del ' + U.fmtDMY(r.f) + '">', 'n') +
-        td('Horas extra de la semana anterior', '<input class="in n" type="number" step="0.5" min="0" value="' + (m.ref !== undefined ? m.ref : '') + '" placeholder="del calendario" data-onchange="ferRef" data-iso="' + r.iso + '" data-fk="fer:ref:' + r.iso + '" aria-label="Horas extra de la semana anterior al ' + U.fmtDMY(r.f) + ' (sin dato = tomado del calendario de turnos)">', 'n') +
+        td('Horas extra de la semana de referencia', '<input class="in n" type="number" step="0.5" min="0" value="' + (m.ref !== undefined ? m.ref : '') + '" placeholder="del calendario" data-onchange="ferRef" data-iso="' + r.iso + '" data-fk="fer:ref:' + r.iso + '" aria-label="Horas extra de la semana de referencia del ' + U.fmtDMY(r.f) + ' (sin dato = tomado del calendario de turnos)">', 'n') +
         '<td class="nolabel acts noprint">' + (i >= 0 ? K.btn('ferDel', '', { cls: 'icon sm ghost danger', ico: 'trash', data: 'data-i="' + i + '"', title: 'Quitar este feriado', label: 'Quitar el feriado ' + esc(r.n) + ' del ' + U.fmtDMY(r.f) }) : '') + '</td></tr>';
     }));
-    const tabla = filas ? '<div class="tblwrap"><table class="tbl edit rsp"><thead><tr><th>Se paga</th><th>Fecha</th><th>Feriado</th><th class="n">Cuenta</th><th class="n">Extras sem. anterior</th><th class="noprint"><span class="sr">Acciones</span></th></tr></thead><tbody>' + filas + '</tbody></table></div>' : K.empty('No hay feriados activos', 'Activar alguno de los feriados anteriores o agregar una fecha.');
-    const ayuda = K.banner('info', '<b>Criterio de pago.</b> La boleta paga «Feriados catorcenal» cuando la catorcena incluye uno o dos feriados: por cada uno, el promedio diario de la <b>semana anterior</b> = (ordinario + horas extra de esa semana) ÷ ' + S.params.divSeptimo + '. «Cuenta» indica cuántos días equivale cada feriado (el 24 y el 31 de diciembre corresponden a medio día por ley; se modifica a 1 si la empresa los paga completos). ' +
-      'Si las horas extra de la semana anterior se dejan vacías, se toman del calendario de turnos de cada cuadrilla (más las extras adicionales de la persona); si se registra un número, ese valor se aplica a todos. Al desmarcar «Se paga», el feriado no genera pago (por ejemplo, si la empresa no paga el que cae en domingo: ese día la boleta no descuenta horas de Ordinario).');
+    const tabla = filas ? '<div class="tblwrap"><table class="tbl edit rsp"><thead><tr><th>Se paga</th><th>Fecha</th><th>Feriado</th><th class="n">Cuenta</th><th class="n">Extras sem. de referencia</th><th class="noprint"><span class="sr">Acciones</span></th></tr></thead><tbody>' + filas + '</tbody></table></div>' : K.empty('No hay feriados activos', 'Activar alguno de los feriados anteriores o agregar una fecha.');
+    const ayuda = K.banner('info', '<b>Criterio de pago.</b> La boleta paga «Feriados catorcenal» cuando la catorcena incluye uno o dos feriados: por cada uno, el promedio diario de la <b>semana de referencia</b> = (ordinario + horas extra de esa semana) ÷ ' + S.params.divSeptimo + '. La semana de referencia es ' + (S.params.feriadoSemRef === 'semAnt' ? '<b>la semana de lunes a domingo anterior a la del feriado</b>' : '<b>la última semana de la catorcena anterior</b>') + ' (se cambia en «Feriados catorcenales», más abajo). «Cuenta» indica cuántos días equivale cada feriado (el 24 y el 31 de diciembre corresponden a medio día por ley; se modifica a 1 si la empresa los paga completos). ' +
+      'Si las horas extra de la semana de referencia se dejan vacías, se toman del calendario de turnos de cada cuadrilla (más las extras adicionales de la persona); si se registra un número, ese valor se aplica a todos. Para una boleta ya pagada lo más seguro es escribir su importe en Boletas → Ajustes → «Feriado de la boleta (Q)». Al desmarcar «Se paga», el feriado no genera pago (por ejemplo, si la empresa no paga el que cae en domingo: ese día la boleta no descuenta horas de Ordinario).');
     return K.panel('Calendario de feriados', ayuda + '<h3 style="margin:1rem 0 .4rem;font-size:15px">Feriados que se aplican (art. 127 del Código de Trabajo)</h3>' + reglas + local +
       '<h3 style="margin:1.2rem 0 .4rem;font-size:15px">Fechas de ' + Array.from(anios).sort().join(' y ') + '</h3>' + tabla +
       '<div class="btns noprint" style="margin-top:.75rem">' + K.btn('ferAdd', 'Agregar otro feriado', { ico: 'plus' }) + K.btn('ferReset', 'Restablecer calendario', { ico: 'reset', cls: 'ghost' }) + '</div>', { id: 'cal-feriados' });
