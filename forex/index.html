@@ -1,0 +1,1083 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mesa de decisión EURUSD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a dealer board. One sticky verdict display on top; under it the desks
+   flow in newspaper columns that use the whole screen width (one column on a phone).
+   Keys latch like turret buttons: pressed stays pressed until pressed again. */
+:root{
+  --bg:#e6eaef; --panel:#f6f8fa; --key:#ffffff;
+  --ink:#111923; --ink-2:#475466; --ink-3:#6c7989; --line:#cdd5de; --edge:#b1bcc9;
+  --buy:#1c5fd1; --buy-wash:#dce8fc; --on-buy:#ffffff;
+  --sell:#c93226; --sell-wash:#fbe2de; --on-sell:#ffffff;
+  --ok:#0a8f7d; --ok-wash:#d5f1ec;
+  --hold:#b98900; --hold-wash:#f8ecc8;
+  --tip-bg:#111923; --tip-fg:#f2f5f8; --shadow:rgb(10 20 35 / .24);
+  --f-text:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-cond:"IBM Plex Sans Condensed","Roboto Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --gap:.75rem;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1218; --panel:#151c26; --key:#1d2632;
+    --ink:#e9eef4; --ink-2:#aab5c3; --ink-3:#8793a2; --line:#2a3542; --edge:#3d4a5a;
+    --buy:#5c9dff; --buy-wash:#162f5c; --on-buy:#06142c;
+    --sell:#ff6f61; --sell-wash:#54201b; --on-sell:#2b0905;
+    --ok:#2cc7a8; --ok-wash:#113b35;
+    --hold:#e8bd3a; --hold-wash:#453a12;
+    --tip-bg:#e9eef4; --tip-fg:#111923; --shadow:rgb(0 0 0 / .5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1218; --panel:#151c26; --key:#1d2632;
+  --ink:#e9eef4; --ink-2:#aab5c3; --ink-3:#8793a2; --line:#2a3542; --edge:#3d4a5a;
+  --buy:#5c9dff; --buy-wash:#162f5c; --on-buy:#06142c;
+  --sell:#ff6f61; --sell-wash:#54201b; --on-sell:#2b0905;
+  --ok:#2cc7a8; --ok-wash:#113b35;
+  --hold:#e8bd3a; --hold-wash:#453a12;
+  --tip-bg:#e9eef4; --tip-fg:#111923; --shadow:rgb(0 0 0 / .5);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 .9375rem/1.45 var(--f-text);-webkit-text-size-adjust:100%;
+  --band-bg:var(--panel);--band-fg:var(--ink);--verdict:var(--ink)}
+body[data-v="seek"][data-d="1"]{--verdict:var(--buy)}
+body[data-v="seek"][data-d="-1"]{--verdict:var(--sell)}
+body[data-v="go"][data-d="1"]{--band-bg:var(--buy);--band-fg:var(--on-buy);--verdict:var(--on-buy)}
+body[data-v="go"][data-d="-1"]{--band-bg:var(--sell);--band-fg:var(--on-sell);--verdict:var(--on-sell)}
+body[data-v="no"]{--band-bg:var(--hold-wash)}
+body[data-v="exit"],body[data-v="trim"]{--band-bg:var(--ink);--band-fg:var(--bg);--verdict:var(--bg)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--band-bg)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* ---------- verdict tape ---------- */
+.tape{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--band-bg);color:var(--band-fg);
+  border-bottom:1px solid var(--line);transition:background-color .15s ease,color .15s ease}
+.tape :focus-visible{outline-color:currentColor}
+.tape-in{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"eyebrow clear" "verdict lamps" "why why";
+  align-items:center;column-gap:.75rem;row-gap:.2rem;padding-block:.5rem .625rem}
+.eyebrow{grid-area:eyebrow;margin:0;font:600 .6875rem/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;opacity:.78}
+.verdict{grid-area:verdict;font:600 1.75rem/1.02 var(--f-cond);letter-spacing:.01em;color:var(--verdict);min-width:0;cursor:help;justify-self:start}
+.why{grid-area:why;margin:0;font-size:.8125rem;line-height:1.3;min-width:0;min-height:1.3em}
+.why .px{font-family:var(--f-mono);font-weight:600}
+.lamps{grid-area:lamps;appearance:none;background:transparent;border:0;padding:.35rem 0;display:flex;align-items:center;gap:.5rem;cursor:help;
+  -webkit-tap-highlight-color:transparent}
+.lamp{display:inline-flex;align-items:center;gap:.3rem;font:500 .6875rem/1 var(--f-cond);letter-spacing:.05em;text-transform:uppercase}
+.lamp>span{display:none}
+.lamp i{display:block;width:.72rem;height:.72rem;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor;opacity:.4}
+.lamp[data-s="up"] i{opacity:1;box-shadow:none;border-radius:0;background:var(--lamp-up,var(--buy));clip-path:polygon(50% 6%,100% 94%,0 94%)}
+.lamp[data-s="down"] i{opacity:1;box-shadow:none;border-radius:0;background:var(--lamp-down,var(--sell));clip-path:polygon(0 6%,100% 6%,50% 94%)}
+.lamp[data-s="mix"] i{opacity:1;box-shadow:none;background:var(--hold)}
+body[data-v="go"] .lamp i,body[data-v="exit"] .lamp i,body[data-v="trim"] .lamp i{--lamp-up:currentColor;--lamp-down:currentColor}
+.cnt{font:600 .75rem/1 var(--f-mono);padding-left:.15rem}
+.cnt small{font:500 .6875rem/1 var(--f-cond);letter-spacing:.05em;text-transform:uppercase;display:none;margin-left:.3rem}
+.clear{grid-area:clear;appearance:none;background:transparent;border:1px solid currentColor;border-radius:4px;
+  font:600 .6875rem/1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;padding:.4rem .6rem;cursor:pointer;opacity:.85}
+.clear:hover{opacity:1}
+@media (min-width:56rem){
+  .tape-in{grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-areas:"eyebrow eyebrow eyebrow eyebrow" "verdict why lamps clear";column-gap:1.25rem}
+  .lamp>span,.cnt small{display:inline}
+  .why{font-size:.875rem}
+}
+
+/* ---------- board ---------- */
+.hint{margin:0;padding-block:.625rem 0;color:var(--ink-2);font-size:.8125rem;line-height:1.4}
+.board{columns:20.5rem auto;column-gap:var(--gap);padding-block:.625rem .25rem}
+.desk{break-inside:avoid;background:var(--panel);border:1px solid var(--line);border-radius:6px;margin:0 0 var(--gap);padding:.75rem;display:grid;grid-template-columns:minmax(0,1fr);gap:.625rem}
+.desk>header{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap}
+.n{font:600 .8125rem/1 var(--f-mono);color:var(--ink-3)}
+h2{margin:0;font:600 1.0625rem/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;text-wrap:balance}
+.role{margin-left:auto;font:500 .75rem/1.2 var(--f-cond);color:var(--ink-2);white-space:nowrap;border-bottom:2px solid transparent}
+.desk.lit .role{color:var(--ink);border-bottom-color:var(--hold)}
+.q{margin:0;color:var(--ink-2);font-size:.875rem;line-height:1.35}
+.lbl{font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin:0 0 .2rem}
+.keys{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.375rem}
+.keys:not(.three):not(.four)>.key:last-child:nth-child(odd){grid-column:1/-1}
+.keys.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.keys.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.chips{display:flex;flex-wrap:wrap;gap:.375rem}
+
+/* ---------- latching keys ---------- */
+.key{--hue:var(--ink);--wash:var(--bg);
+  appearance:none;display:flex;align-items:center;gap:.5rem;min-width:0;min-height:2.75rem;padding:.4rem .625rem;
+  font:600 .875rem/1.15 var(--f-cond);letter-spacing:.01em;color:var(--ink);text-align:left;
+  background:var(--key);border:1px solid var(--line);border-radius:5px;box-shadow:0 2px 0 var(--edge);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  transition:transform .07s ease,box-shadow .07s ease,background-color .12s ease,border-color .12s ease}
+.key::before{content:"";flex:none;width:.6rem;height:.6rem;border-radius:50%;background:var(--edge);transition:background-color .12s ease}
+.key.up::before{width:.72rem;height:.66rem;border-radius:0;clip-path:polygon(50% 4%,100% 96%,0 96%)}
+.key.down::before{width:.72rem;height:.66rem;border-radius:0;clip-path:polygon(0 4%,100% 4%,50% 96%)}
+.key.exit::before{border-radius:1px}
+.key:hover{border-color:var(--edge)}
+.key[aria-pressed="true"]{transform:translateY(2px);box-shadow:0 0 0 var(--edge);background:var(--wash);border-color:var(--hue)}
+.key[aria-pressed="true"]::before{background:var(--hue)}
+.key.up{--hue:var(--buy);--wash:var(--buy-wash)}
+.key.down{--hue:var(--sell);--wash:var(--sell-wash)}
+.key.gate{--hue:var(--ok);--wash:var(--ok-wash)}
+.key.exit{--hue:var(--hold);--wash:var(--hold-wash)}
+.key.pick{flex-direction:column;justify-content:center;gap:.1rem;text-align:center;padding-inline:.25rem;font:600 .8125rem/1.15 var(--f-mono)}
+.key.pick::before{display:none}
+.key.pick small{font:500 .6875rem/1.1 var(--f-cond);letter-spacing:.03em;opacity:.75}
+.key.pick[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.key.chip{min-height:2.375rem;padding:.3rem .7rem .3rem .6rem;font-weight:500;border-radius:99px;box-shadow:0 1px 0 var(--edge)}
+.key.chip::before{width:.45rem;height:.45rem}
+.key.chip[aria-pressed="true"]{transform:translateY(1px);background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.key.chip[aria-pressed="true"]::before{background:var(--bg)}
+.key.chip.rel{background:var(--hold-wash);border-color:var(--hold)}
+.key.chip.rel::before{background:var(--hold)}
+.key.flat{min-height:2.25rem;justify-content:center;box-shadow:0 1px 0 var(--edge);font-weight:500}
+.key.flat::before{display:none}
+.key.flat[aria-pressed="true"]{transform:translateY(1px);background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* ---------- fields ---------- */
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.field{display:grid;grid-template-columns:minmax(0,1fr);gap:.375rem;min-width:0;align-content:end}
+.field label{font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+input.num{width:100%;min-width:0;min-height:2.75rem;font:600 1rem/1.2 var(--f-mono);color:var(--ink);background:var(--key);
+  border:1px solid var(--line);border-radius:5px;padding:.5rem .625rem;font-variant-numeric:tabular-nums}
+input.num:focus-visible{outline-offset:0;border-color:var(--ink)}
+.keys.four input.num{text-align:center;padding-inline:.25rem}
+.note{margin:0;font-size:.75rem;line-height:1.35;color:var(--ink-2)}
+.now{margin:0;font:500 .8125rem/1.35 var(--f-cond);letter-spacing:.01em;color:var(--ink-2);display:flex;gap:.4rem;align-items:baseline}
+.now b{font:600 .8125rem/1.2 var(--f-mono);color:var(--ink)}
+
+/* ---------- ticket ---------- */
+.tk{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.375rem}
+.side{--hue:var(--ink);--wash:var(--key);border:1px solid var(--line);border-radius:5px;background:var(--key);padding:.5rem .625rem;min-width:0;
+  transition:opacity .12s ease,background-color .12s ease,border-color .12s ease}
+.side.buy{--hue:var(--buy);--wash:var(--buy-wash)}
+.side.sell{--hue:var(--sell);--wash:var(--sell-wash)}
+.side h3{margin:0 0 .3rem;font:600 .75rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;display:flex;align-items:center;gap:.35rem}
+.side h3::before{content:"";width:.66rem;height:.6rem;background:var(--hue)}
+.side.buy h3::before{clip-path:polygon(50% 4%,100% 96%,0 96%)}
+.side.sell h3::before{clip-path:polygon(0 4%,100% 4%,50% 96%)}
+.side dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:.2rem .5rem;align-items:baseline}
+.side dt{font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.side dd{margin:0;text-align:right;font:500 .9375rem/1.2 var(--f-mono);font-variant-numeric:tabular-nums}
+.px{font-family:var(--f-mono)}
+.px b{font-weight:600;font-size:1.14em}
+.px sup{font-size:.72em;vertical-align:.45em;line-height:0}
+.side.on{background:var(--wash);border-color:var(--hue);box-shadow:inset 0 0 0 1px var(--hue)}
+.side.off{opacity:.5}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.375rem}
+.tile{appearance:none;display:grid;gap:.15rem;align-content:start;min-width:0;text-align:left;background:var(--key);border:1px solid var(--line);
+  border-radius:5px;padding:.5rem .625rem;cursor:help;-webkit-tap-highlight-color:transparent}
+.tile>b{font:600 1.25rem/1.1 var(--f-mono)}
+.tile>span{font:500 .75rem/1.25 var(--f-cond);letter-spacing:.01em;color:var(--ink-2)}
+.warn{margin:0;font-size:.8125rem;line-height:1.35;padding:.45rem .6rem;border-radius:5px;background:var(--hold-wash);border:1px solid var(--hold)}
+.slip{margin:0;font:600 .8125rem/1.4 var(--f-mono);padding:.5rem .625rem;border:1px dashed var(--edge);border-radius:5px;overflow-wrap:anywhere}
+.slip.none{font:400 .8125rem/1.4 var(--f-text);color:var(--ink-2)}
+
+/* ---------- hourly chart ---------- */
+.fig{display:grid;gap:.35rem}
+.fig h3{margin:0;font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.plotbox{position:relative;padding-left:1.9rem;padding-top:.9rem}
+.yt{position:absolute;left:0;width:1.6rem;text-align:right;font:500 .6875rem/1 var(--f-mono);color:var(--ink-3);transform:translateY(50%)}
+.plot{position:relative;height:6.75rem;display:grid;grid-template-columns:repeat(24,minmax(0,1fr));column-gap:2px;align-items:end;border-bottom:1px solid var(--edge)}
+.plot .gl{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--line);pointer-events:none}
+.hb{appearance:none;position:relative;z-index:1;height:100%;min-width:0;padding:0;border:0;background:transparent;display:flex;align-items:flex-end;justify-content:center;cursor:help;
+  -webkit-tap-highlight-color:transparent}
+.hb i{display:block;width:100%;max-width:24px;height:var(--h);background:var(--edge);border-radius:4px 4px 0 0}
+.hb.liq i{background:var(--ink)}
+.hb:hover i,.hb:focus-visible i,.hb.sel i{background:var(--hold)}
+.hb:focus-visible{outline:none}
+.hb em{position:absolute;left:50%;bottom:calc(var(--h) + 3px);transform:translateX(-50%);font:600 .6875rem/1 var(--f-mono);font-style:normal;color:var(--ink)}
+.hb.now::after{content:"";position:absolute;left:50%;top:100%;margin-top:3px;transform:translateX(-50%);border:.28rem solid transparent;border-top:0;border-bottom:.4rem solid var(--hold)}
+.axis{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));column-gap:2px;margin-left:1.9rem;padding-top:.75rem;font:500 .6875rem/1 var(--f-mono);color:var(--ink-3)}
+.axis span{grid-column:span 3;white-space:nowrap}
+.legend{margin:0;display:flex;flex-wrap:wrap;gap:.2rem .8rem;font:500 .75rem/1.3 var(--f-cond);color:var(--ink-2)}
+.legend i{display:inline-block;width:.6rem;height:.6rem;margin-right:.3rem;background:var(--edge);border-radius:1px}
+.legend i.l1{background:var(--ink)}
+.legend i.l2{width:0;height:0;background:transparent;border:.28rem solid transparent;border-top:0;border-bottom:.42rem solid var(--hold);border-radius:0}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font:500 .6875rem/1.35 var(--f-mono);font-variant-numeric:tabular-nums}
+th,td{padding:.25rem .22rem;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.02em;text-transform:uppercase;color:var(--ink-3)}
+th:first-child,td:first-child{text-align:left}
+tr.liq td:first-child{font-weight:600}
+
+.fields.three{grid-template-columns:repeat(3,minmax(0,1fr));gap:.375rem}
+.fields.three input.num{padding-inline:.35rem}
+.status{margin:0;font-size:.8125rem;line-height:1.4;padding:.5rem .625rem;border-radius:5px;border:1px solid var(--line);background:var(--key);
+  display:flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:center}
+.status.alert{background:var(--hold-wash);border-color:var(--hold)}
+.status b{font-weight:600}
+.act{appearance:none;background:transparent;border:1px solid currentColor;border-radius:4px;padding:.4rem .6rem;cursor:pointer;
+  font:600 .6875rem/1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase}
+
+/* ---------- market clock ---------- */
+.clockwrap{padding-block:.625rem 0}
+.clock{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:.625rem .75rem .5rem;display:grid;gap:.35rem}
+.clock>header{display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .75rem}
+.clock h2{font-size:.9375rem}
+.ck-now{margin:0;font:500 .8125rem/1.3 var(--f-cond);color:var(--ink-2)}
+.ck-now b{font:600 .8125rem/1.2 var(--f-mono);color:var(--ink)}
+.ck{position:relative;height:7.3rem;margin-top:1rem}
+.ck-band,.ck-close{position:absolute;top:-1rem;bottom:0;appearance:none;border:0;padding:0;cursor:help;-webkit-tap-highlight-color:transparent}
+.ck-band{background:var(--ok-wash);box-shadow:inset 1px 0 0 var(--ok),inset -1px 0 0 var(--ok)}
+.ck-close{background:repeating-linear-gradient(135deg,var(--sell-wash) 0 4px,var(--panel) 4px 8px)}
+.ck-band b,.ck-close b{position:absolute;top:.12rem;left:.3rem;font:500 .625rem/1 var(--f-cond);letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+.ckb{position:absolute;z-index:1;height:1.4rem;appearance:none;border:0;border-radius:3px;padding:0 .35rem;min-width:0;overflow:hidden;white-space:nowrap;text-align:left;
+  background:var(--edge);color:var(--ink);font:600 .6875rem/1.4rem var(--f-cond);letter-spacing:.03em;cursor:help;-webkit-tap-highlight-color:transparent}
+.ckb.liq{background:var(--ink);color:var(--bg)}
+.ckb.open{box-shadow:0 0 0 2px var(--hold)}
+.ckn{position:absolute;z-index:2;top:6.5rem;width:.62rem;height:.62rem;margin-left:-.31rem;transform:rotate(45deg);appearance:none;border:0;padding:0;background:var(--sell);cursor:help}
+.ckn::before{content:"";position:absolute;inset:-.5rem}
+.ckn.past{background:var(--edge)}
+.ck-needle{position:absolute;z-index:3;top:-1rem;bottom:-.15rem;width:2px;margin-left:-1px;background:var(--hold);pointer-events:none}
+.ck-needle::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);border:.3rem solid transparent;border-bottom:0;border-top:.42rem solid var(--hold)}
+.ck-axis{display:flex;justify-content:space-between;font:500 .6875rem/1 var(--f-mono);color:var(--ink-3);padding-top:.3rem}
+
+/* ---------- rule inside a key, help marks, links ---------- */
+.kt{display:grid;gap:.14rem;min-width:0}
+.kt small{font:500 .6875rem/1.15 var(--f-cond);letter-spacing:.01em;color:var(--ink-2)}
+.fl{display:flex;align-items:center;justify-content:space-between;gap:.35rem;min-height:1.875rem}
+.fl label{min-width:0;cursor:default}
+.help{position:relative;z-index:2;flex:none;appearance:none;display:grid;place-items:center;width:1.875rem;height:1.875rem;padding:0;border:1px solid var(--edge);border-radius:50%;
+  background:var(--key);color:var(--ink-2);font:600 .875rem/1 var(--f-cond);cursor:help;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.help::before{content:"";position:absolute;inset:-.45rem}
+.help:hover,.lblbtn:hover i{border-color:var(--ink-2);color:var(--ink)}
+.lblbtn{appearance:none;display:inline-flex;align-items:center;gap:.5rem;min-height:2.125rem;max-width:100%;padding:0;border:0;background:transparent;text-align:left;cursor:help;
+  font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.lblbtn i{flex:none;display:grid;place-items:center;width:1.625rem;height:1.625rem;border:1px solid var(--edge);border-radius:50%;background:var(--key);
+  font:600 .8125rem/1 var(--f-cond);font-style:normal;letter-spacing:0;color:var(--ink-2)}
+.calrow{display:flex;align-items:center;gap:.5rem}
+.calrow .filebtn{flex:1;min-width:0}
+.links{margin:0;font-size:.8125rem;line-height:1.4;color:var(--ink-2)}
+.links a,.note a{color:inherit;text-underline-offset:2px}
+
+/* ---------- calendar ---------- */
+.cal{display:grid;gap:.4rem}
+.filebtn{display:flex;align-items:center;justify-content:center;min-height:2.5rem;padding:.4rem .625rem;border:1px dashed var(--edge);border-radius:5px;background:var(--key);
+  font:600 .875rem/1.15 var(--f-cond);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.filebtn:hover{border-color:var(--ink-2)}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip-path:inset(50%)}
+.vh:focus-visible{outline:none}
+.evt{appearance:none;display:inline-flex;align-items:center;gap:.45rem;min-height:2.125rem;padding:.25rem .6rem;border:1px solid var(--line);border-radius:5px;background:var(--key);
+  font:500 .8125rem/1.2 var(--f-cond);text-align:left;cursor:help;-webkit-tap-highlight-color:transparent}
+.evt::before{content:"";flex:none;width:.5rem;height:.5rem;transform:rotate(45deg);background:var(--sell)}
+.evt.past{color:var(--ink-3)}
+.evt.past::before{background:var(--edge)}
+.evt.near{border-color:var(--sell);background:var(--sell-wash)}
+
+/* ---------- tooltip ---------- */
+.tooltiptext{display:none}
+#tip{position:absolute;z-index:20;left:0;top:0;width:max-content;max-width:min(21rem,calc(100vw - 24px));background:var(--tip-bg);color:var(--tip-fg);
+  font:400 .8125rem/1.42 var(--f-text);padding:.6rem .75rem;border-radius:6px;box-shadow:0 8px 22px var(--shadow)}
+#tip::after{content:"";position:absolute;left:var(--ax,50%);bottom:-.3rem;width:.62rem;height:.62rem;background:inherit;transform:translateX(-50%) rotate(45deg)}
+#tip.below::after{bottom:auto;top:-.3rem}
+#tip b{font-weight:600}
+#tip .p{display:block}
+#tip .p+.p{margin-top:.4rem}
+#tip i{font-style:normal;opacity:.75}
+
+/* ---------- foot ---------- */
+.foot{padding-block:.25rem 1.5rem;display:grid;gap:.4rem;color:var(--ink-2);font-size:.8125rem;line-height:1.45}
+.foot p{margin:0;max-width:65rem}
+.foot strong{color:var(--ink);font-weight:600}
+.foot a{color:inherit;text-underline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="tape" id="tape">
+  <div class="wrap tape-in">
+    <h1 class="eyebrow">Mesa de decisión · EURUSD</h1>
+    <strong class="verdict tooltip" tabindex="0"><span id="verdict" aria-live="polite">ESPERAR</span><span class="tooltiptext"><span class="p"><b>Qué dice cada veredicto.</b></span><span class="p"><b>ESPERAR:</b> falta el sesgo macro o la tendencia, o el macro está dividido.</span><span class="p"><b>NO OPERAR:</b> macro y tendencia apuntan a lados opuestos.</span><span class="p"><b>BUSCAR COMPRA o VENTA:</b> hay dirección; falta el nivel, el gatillo o algún permiso.</span><span class="p"><b>COMPRAR o VENDER:</b> las cuatro luces apuntan al mismo lado y están los 7 permisos.</span><span class="p"><b>SALIR o REDUCIR:</b> marcaste una condición del paso 6.</span></span></strong>
+    <p class="why" id="why">Empieza por el sesgo macro y la tendencia.</p>
+    <button type="button" class="lamps tooltip" id="lamps" aria-label="Resumen de la lista">
+      <span class="lamp" data-l="macro"><i></i><span>Macro</span></span>
+      <span class="lamp" data-l="trend"><i></i><span>Tendencia</span></span>
+      <span class="lamp" data-l="level"><i></i><span>Nivel</span></span>
+      <span class="lamp" data-l="trig"><i></i><span>Gatillo</span></span>
+      <span class="cnt"><span id="gcount">0/7</span><small>permisos</small></span>
+      <span class="tooltiptext"><span class="p"><b>Resumen.</b> Cuatro luces de dirección: macro, tendencia, nivel y gatillo. Triángulo hacia arriba: a favor de comprar. Hacia abajo: a favor de vender. Círculo lleno: macro dividido.</span><span class="p">El contador son los permisos de los pasos 3 y 4. Solo dice COMPRAR o VENDER cuando las cuatro luces apuntan al mismo lado y están los 7 permisos.</span></span>
+    </button>
+    <button type="button" class="clear tooltip" id="clear">Limpiar<span class="tooltiptext">Suelta todos los botones de los pasos 1 a 6. Tu capital, riesgo y precios se conservan. La lista también se limpia sola a las 8 horas, para no decidir con condiciones de ayer.</span></button>
+  </div>
+</header>
+
+<section class="wrap clockwrap" aria-labelledby="ck-t">
+  <div class="clock">
+    <header><h2 id="ck-t">Reloj del mercado, en tu hora</h2><p class="ck-now" id="ck-now">—</p></header>
+    <div class="ck" id="ck"></div>
+    <div class="ck-axis" aria-hidden="true"><span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span><span>24</span></div>
+  </div>
+</section>
+
+<p class="wrap hint">Toca lo que se cumpla; queda marcado hasta que lo toques otra vez. Cada botón trae su regla en pequeño; son reglas prácticas, no garantías. Mantén presionado un botón, o toca su «?», para ver cómo comprobarla paso a paso.</p>
+
+<main class="wrap board" id="board">
+
+  <section class="desk" data-roles="macro research">
+    <header><span class="n">1</span><h2>Sesgo macro</h2><span class="role">Estratega macro</span></header>
+    <p class="q">¿Hacia dónde empuja el dinero grande? Es lo único que no sale de tu MT5.</p>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Tipos de interés<i aria-hidden="true">?</i><span class="tooltiptext">El dinero grande se mueve hacia la moneda que paga más interés. Por eso lo primero que mira una mesa es qué banco central va más duro: la Fed, que maneja el dólar, o el BCE, que maneja el euro. Marca uno de los dos botones, o ninguno si van parejos.</span></button></p>
+      <div class="keys">
+        <button type="button" class="key up tooltip" data-dir="m1" data-v="1" aria-pressed="false"><span class="kt">BCE más duro<small>diferencia a 2 años baja</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El mercado espera tipos relativamente más altos en Europa que en EE. UU. Eso empuja al euro hacia arriba.</span><span class="p"><b>Cómo saberlo.</b> En TradingView, que es gratis, busca US02Y y DE02Y: son los rendimientos a 2 años de EE. UU. y de Alemania. Resta el alemán al de EE. UU. Haz la misma resta con los valores de hace un mes.</span><span class="p"><b>Márcalo si</b> la diferencia bajó más de 0.10 en el mes. Ejemplo: hoy 3.60 − 2.10 = 1.50 y hace un mes era 1.70. Bajó 0.20: BCE más duro. Si cambió menos de 0.10, no marques ninguno.</span></span></button>
+        <button type="button" class="key down tooltip" data-dir="m1" data-v="-1" aria-pressed="false"><span class="kt">Fed más dura<small>diferencia a 2 años sube</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El mercado espera tipos relativamente más altos en EE. UU. que en Europa. El dinero va al dólar y el EURUSD baja.</span><span class="p"><b>Cómo saberlo.</b> En TradingView busca US02Y y DE02Y: los rendimientos a 2 años de EE. UU. y de Alemania. Resta el alemán al de EE. UU. Haz la misma resta con los valores de hace un mes. Segunda opinión: la herramienta FedWatch de CME muestra qué espera el mercado de la Fed.</span><span class="p"><b>Márcalo si</b> la diferencia subió más de 0.10 en el mes. Ejemplo: hoy 1.70 y hace un mes 1.50. Si cambió menos de 0.10, no marques ninguno.</span></span></button>
+      </div>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Datos económicos<i aria-hidden="true">?</i><span class="tooltiptext">Empleo, inflación y actividad. No importa si el dato es bueno o malo, sino si salió mejor o peor de lo que se esperaba. Lo esperado ya está en el precio; la sorpresa es lo que lo mueve.</span></button></p>
+      <div class="keys">
+        <button type="button" class="key up tooltip" data-dir="m2" data-v="1" aria-pressed="false"><span class="kt">Sorprende Europa<small>más verdes en EUR</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Los datos de la eurozona salen mejor de lo esperado, o los de EE. UU. peor.</span><span class="p"><b>Cómo saberlo.</b> En el calendario de Forex Factory revisa los datos de carpeta roja de los últimos 7 días. El número de la columna Actual sale en verde si fue mejor de lo previsto para esa moneda, y en rojo si fue peor.</span><span class="p"><b>Márcalo si</b> EUR tiene más verdes que rojos y USD no. Si es USD el que tiene más verdes, marca el otro botón. Si están parejos, ninguno.</span></span></button>
+        <button type="button" class="key down tooltip" data-dir="m2" data-v="-1" aria-pressed="false"><span class="kt">Sorprende EE.&nbsp;UU.<small>más verdes en USD</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Los datos de EE. UU., como empleo, ISM o inflación, salen mejor de lo esperado, o los europeos peor.</span><span class="p"><b>Cómo saberlo.</b> En el calendario de Forex Factory revisa los datos de carpeta roja de los últimos 7 días. El número de la columna Actual sale en verde si fue mejor de lo previsto para esa moneda, y en rojo si fue peor.</span><span class="p"><b>Márcalo si</b> USD tiene más verdes que rojos y EUR no. Si es EUR el que tiene más verdes, marca el otro botón. Si están parejos, ninguno.</span></span></button>
+      </div>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Ánimo del mercado<i aria-hidden="true">?</i><span class="tooltiptext">Cuando hay miedo, el mundo compra dólares como refugio; cuando hay confianza, los suelta. Se mide con la bolsa de EE. UU. (S&amp;P 500) y con el VIX, al que llaman el índice del miedo.</span></button></p>
+      <div class="keys">
+        <button type="button" class="key up tooltip" data-dir="m3" data-v="1" aria-pressed="false"><span class="kt">Apetito de riesgo<small>bolsa sube, VIX bajo 20</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Los inversores están confiados y sueltan el dólar que tenían como refugio. Suele ayudar al EURUSD a subir.</span><span class="p"><b>Cómo saberlo.</b> En TradingView, Investing o Yahoo Finanzas busca dos cosas: SPX, que es el S&amp;P 500, y VIX.</span><span class="p"><b>Márcalo si</b> el S&amp;P 500 va subiendo en la semana y el VIX está por debajo de 20. Por debajo de 20 se considera un mercado en calma.</span></span></button>
+        <button type="button" class="key down tooltip" data-dir="m3" data-v="-1" aria-pressed="false"><span class="kt">Miedo y refugio<small>bolsa cae, VIX sobre 20</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> En los sustos globales el dinero corre al dólar y el EURUSD suele caer.</span><span class="p"><b>Cómo saberlo.</b> En TradingView, Investing o Yahoo Finanzas busca SPX, que es el S&amp;P 500, y VIX.</span><span class="p"><b>Márcalo si</b> el S&amp;P 500 va cayendo en la semana y el VIX está por encima de 20 y subiendo. Por encima de 30 es miedo claro.</span><span class="p"><b>Excepción.</b> Si el susto nace en EE. UU., el dólar puede caer en vez de subir. En ese caso no marques ninguno.</span></span></button>
+      </div>
+    </div>
+    <p class="links">Dónde mirar: <a href="https://www.tradingview.com/symbols/TVC-US02Y/" target="_blank" rel="noopener">US02Y</a> · <a href="https://www.tradingview.com/symbols/TVC-DE02Y/" target="_blank" rel="noopener">DE02Y</a> · <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener">calendario de Forex Factory</a></p>
+  </section>
+
+  <section class="desk" data-roles="tech">
+    <header><span class="n">2</span><h2>Estructura y nivel</h2><span class="role">Analista técnico</span></header>
+    <p class="q">¿Dónde sale barato probar la idea? Todo esto se ve en tu gráfico de MT5.</p>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Tendencia en D1<i aria-hidden="true">?</i><span class="tooltiptext">La dirección de fondo. Se mira en el gráfico diario (D1) con dos medias móviles, la de 50 y la de 200 días. Operar a favor de ella es la regla base; si contradice al paso 1, el panel dice NO OPERAR.</span></button></p>
+      <div class="keys">
+        <button type="button" class="key up tooltip" data-dir="t1" data-v="1" aria-pressed="false"><span class="kt">Alcista<small>sobre las medias 50 y 200</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> La dirección de fondo del precio es hacia arriba.</span><span class="p"><b>Cómo saberlo.</b> En MT5 abre el EURUSD en D1 y añade dos veces el indicador Moving Average, del grupo Tendencia: una de 50 periodos y otra de 200, método Simple, aplicada a Close.</span><span class="p"><b>Márcalo si</b> el precio está por encima de las dos medias y la de 50 está por encima de la de 200. Si el precio está entre las dos, no hay tendencia clara: no marques ninguno.</span><span class="p"><b>Confirmación.</b> En H4, los últimos mínimos son cada vez más altos.</span></span></button>
+        <button type="button" class="key down tooltip" data-dir="t1" data-v="-1" aria-pressed="false"><span class="kt">Bajista<small>bajo las medias 50 y 200</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> La dirección de fondo del precio es hacia abajo.</span><span class="p"><b>Cómo saberlo.</b> En MT5 abre el EURUSD en D1 y añade dos veces el indicador Moving Average, del grupo Tendencia: una de 50 periodos y otra de 200, método Simple, aplicada a Close.</span><span class="p"><b>Márcalo si</b> el precio está por debajo de las dos medias y la de 50 está por debajo de la de 200. Si el precio está entre las dos, no hay tendencia clara: no marques ninguno.</span><span class="p"><b>Confirmación.</b> En H4, los últimos máximos son cada vez más bajos.</span></span></button>
+      </div>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Dónde está el precio<i aria-hidden="true">?</i><span class="tooltiptext">No se compra en cualquier parte. Se espera a que el precio llegue a un nivel donde ya reaccionó antes: ahí el stop queda cerca y arriesgas poco. Los niveles que más se miran son el máximo y el mínimo de ayer y de la semana pasada, y los números redondos.</span></button></p>
+      <div class="keys">
+        <button type="button" class="key up tooltip" data-dir="t2" data-v="1" aria-pressed="false"><span class="kt">En soporte<small>a 15 pips sobre un nivel</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio bajó hasta una zona donde antes se frenó. Es donde tiene sentido comprar.</span><span class="p"><b>Cómo saberlo.</b> Dibuja cuatro líneas horizontales en MT5: el máximo y el mínimo de ayer, que es la vela D1 anterior, y los de la semana pasada, la vela W1 anterior. Cuenta también los números redondos, como 1.1700 y 1.1750.</span><span class="p"><b>Márcalo si</b> el precio viene bajando y está a menos de 15 pips por encima de una de esas líneas. Quince pips es un quinto de lo que recorre en un día.</span></span></button>
+        <button type="button" class="key down tooltip" data-dir="t2" data-v="-1" aria-pressed="false"><span class="kt">En resistencia<small>a 15 pips bajo un nivel</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio subió hasta una zona donde antes fue rechazado. Es donde tiene sentido vender.</span><span class="p"><b>Cómo saberlo.</b> Dibuja cuatro líneas horizontales en MT5: el máximo y el mínimo de ayer, que es la vela D1 anterior, y los de la semana pasada, la vela W1 anterior. Cuenta también los números redondos, como 1.1700 y 1.1750.</span><span class="p"><b>Márcalo si</b> el precio viene subiendo y está a menos de 15 pips por debajo de una de esas líneas.</span></span></button>
+      </div>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Gatillo en M15<i aria-hidden="true">?</i><span class="tooltiptext">La confirmación final, en el gráfico de 15 minutos. Evita comprar un nivel que se está rompiendo: esperas a que el precio demuestre que giró. Sin gatillo tienes una zona, no una entrada.</span></button></p>
+      <div class="keys">
+        <button type="button" class="key up tooltip" data-dir="t3" data-v="1" aria-pressed="false"><span class="kt">Giro al alza<small>M15 cierra sobre la anterior</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> La señal de que el soporte aguantó y el precio ya gira hacia arriba.</span><span class="p"><b>Cómo saberlo.</b> En el gráfico M15 espera a que la vela termine. Mientras se está formando no cuenta.</span><span class="p"><b>Márcalo si</b> una vela M15 tocó tu nivel, dejó mecha hacia abajo y cerró por encima del máximo de la vela anterior.</span></span></button>
+        <button type="button" class="key down tooltip" data-dir="t3" data-v="-1" aria-pressed="false"><span class="kt">Giro a la baja<small>M15 cierra bajo la anterior</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> La señal de que la resistencia aguantó y el precio ya gira hacia abajo.</span><span class="p"><b>Cómo saberlo.</b> En el gráfico M15 espera a que la vela termine. Mientras se está formando no cuenta.</span><span class="p"><b>Márcalo si</b> una vela M15 tocó tu nivel, dejó mecha hacia arriba y cerró por debajo del mínimo de la vela anterior.</span></span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="desk" data-roles="exec dealer">
+    <header><span class="n">3</span><h2>Momento</h2><span class="role">Trader de ejecución</span></header>
+    <p class="q">¿Es buen momento para meter la orden? Dos de estos permisos te los dice el panel.</p>
+    <div class="keys">
+      <button type="button" class="key gate tooltip" data-gate="news" aria-pressed="false"><span class="kt">Sin noticia roja<small id="a-news">sin calendario cargado</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Un dato de alto impacto mueve el precio de golpe y abre el spread. En tu histórico, los 5 minutos tras las 08:30 de Nueva York (<span data-ny="8:30"></span>) pasan de 23 pips 1 de cada 10 días; lo típico son 4.5.</span><span class="p"><b>Cómo saberlo.</b> Carga aquí abajo el calendario de la semana y este botón te avisa solo. A mano: en el calendario de Forex Factory, las carpetas rojas de USD y EUR.</span><span class="p"><b>Márcalo si</b> no hay ninguna roja de USD o EUR desde 30 minutos antes hasta 30 minutos después de ahora.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="session" aria-pressed="false"><span class="kt">Sesión líquida<small id="a-session">—</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Las horas con más participantes: el precio se mueve y el spread es bajo. En tus datos una hora típica mueve 13 a 23 pips en esa ventana y 8 a 12 en la noche asiática.</span><span class="p"><b>Cómo saberlo.</b> Mira el reloj del mercado, arriba: si la aguja está dentro de la franja marcada, es sesión líquida. Este botón también te lo dice en pequeño.</span><span class="p"><b>Márcalo si</b> estás entre <span data-ny="2-12"></span>, de lunes a viernes: desde que abre Europa hasta que cierra Londres.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="spread" aria-pressed="false"><span class="kt">Spread normal<small>5 puntos o menos</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El spread es la diferencia entre el precio de compra y el de venta. Es lo que pagas por entrar.</span><span class="p"><b>Cómo saberlo.</b> En MT5, en la lista de cotizaciones, activa la vista que muestra el Spread. Se mide en puntos: 10 puntos son 1 pip.</span><span class="p"><b>Márcalo si</b> el EURUSD marca 5 puntos o menos. En tu archivo lo normal son 2 puntos y solo 1 de cada 20 velas pasa de 5. En la hora que sigue al cierre diario (<span data-ny="17-18"></span>) el promedio sube a 36.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="room" aria-pressed="false"><span class="kt">Queda recorrido<small id="a-room">hoy menos de 73 pips</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Cada día el precio recorre una distancia parecida. Si hoy ya la gastó, es raro que siga mucho más: solo 12% de los días llega a 1.5 veces su rango medio.</span><span class="p"><b>Cómo saberlo.</b> En MT5 mide la vela D1 de hoy, del máximo al mínimo, en pips. Compárala con el ATR del paso 4.</span><span class="p"><b>Márcalo si</b> lo recorrido hoy es menos que el ATR. Además, al mediodía de Nueva York (<span data-ny="12"></span>) ya está hecho el 93% del rango del día.</span></span></button>
+    </div>
+    <p class="now" id="now"><b>Ahora</b><span>—</span></p>
+    <div class="fields">
+      <div class="field"><div class="fl"><label for="f-dh">Máximo de hoy</label><button type="button" class="help tooltip" aria-label="Ayuda: Máximo de hoy">?<span class="tooltiptext"><span class="p"><b>Para qué.</b> Con el máximo y el mínimo de hoy el panel calcula cuánto del recorrido del día ya se gastó y te lo dice en el botón «Queda recorrido». Es opcional.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1: toca la vela de hoy y lee High. La apertura del día (Open) no hace falta.</span></span></button></div><input class="num" id="f-dh" inputmode="decimal" autocomplete="off" placeholder="opcional"></div>
+      <div class="field"><div class="fl"><label for="f-dl">Mínimo de hoy</label><button type="button" class="help tooltip" aria-label="Ayuda: Mínimo de hoy">?<span class="tooltiptext"><span class="p"><b>Para qué.</b> Junto con el máximo de hoy, sirve para calcular cuánto del recorrido del día ya se gastó. Es opcional.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1: toca la vela de hoy y lee Low.</span></span></button></div><input class="num" id="f-dl" inputmode="decimal" autocomplete="off" placeholder="opcional"></div>
+    </div>
+    <div class="cal">
+      <div class="calrow"><label class="filebtn" for="f-cal">Cargar calendario de la semana</label><button type="button" class="help tooltip" aria-label="Ayuda: cargar calendario">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee el archivo ff_calendar_thisweek.csv de Forex Factory, el mismo que me pasaste. Con él, el botón «Sin noticia roja» te avisa solo y las rojas de USD y EUR aparecen en el reloj de arriba.</span><span class="p"><b>Cada cuánto.</b> Una vez por semana: el archivo trae la semana completa.</span><span class="p">El archivo se lee en tu dispositivo y no se envía a ningún lado.</span></span></button></div>
+      <input class="vh" type="file" id="f-cal" accept=".csv,text/csv,text/plain">
+      <p class="note" id="cal-st">Sin calendario cargado. Revisa las carpetas rojas en el <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener">calendario de Forex Factory</a>.</p>
+      <div class="chips" id="cal-list"></div>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Tipo de orden<i aria-hidden="true">?</i><span class="tooltiptext">Cómo entra la orden al mercado. Regla simple: si el precio aún no llega a tu nivel, Límite. Si quieres que confirme rompiendo un punto, Stop. Si ya dio gatillo y sigue en el nivel, Mercado.</span></button></p>
+      <div class="keys three">
+        <button type="button" class="key pick tooltip" data-pick="order" data-v="limite" aria-pressed="true">Límite<span class="tooltiptext"><span class="p"><b>Orden pasiva.</b> Dejas la orden en tu nivel y esperas a que el precio llegue. Mejor precio y sin deslizamiento, pero puede no ejecutarse.</span><span class="p"><b>Úsala si</b> el precio todavía no llegó a tu nivel. En MT5: Buy Limit para comprar más abajo, Sell Limit para vender más arriba.</span></span></button>
+        <button type="button" class="key pick tooltip" data-pick="order" data-v="stop" aria-pressed="false">Stop<span class="tooltiptext"><span class="p"><b>Orden de ruptura.</b> Entra sola cuando el precio cruza un punto y confirma. Pagas un precio peor a cambio de confirmación; en noticias puede deslizarse.</span><span class="p"><b>Úsala si</b> quieres entrar solo cuando rompa el máximo o el mínimo del gatillo. En MT5: Buy Stop o Sell Stop.</span></span></button>
+        <button type="button" class="key pick tooltip" data-pick="order" data-v="mercado" aria-pressed="false">Mercado<span class="tooltiptext"><span class="p"><b>Ejecución inmediata.</b> Entras ya, al precio disponible. Pagas el spread completo y, si el mercado corre, algo de deslizamiento.</span><span class="p"><b>Úsala si</b> el gatillo ya se dio y el precio sigue en tu nivel. Una mesa elige según tamaño, urgencia y liquidez; con tu tamaño el costo es el spread.</span></span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="desk" data-roles="risk comp quant">
+    <header><span class="n">4</span><h2>Riesgo y tamaño</h2><span class="role">Gestor de riesgo</span></header>
+    <p class="q">¿Cuánto pierdo si me equivoco? Pon tu capital y el panel calcula los lotes.</p>
+    <div class="fields">
+      <div class="field"><div class="fl"><label for="f-capital">Capital (USD)</label><button type="button" class="help tooltip" aria-label="Ayuda: Capital (USD)">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El dinero que hay en tu cuenta de trading, en dólares.</span><span class="p"><b>Dónde verlo.</b> En MT5, pestaña Operaciones: Balance.</span><span class="p"><b>Para qué.</b> Con esta cifra el panel calcula cuántos lotes abrir para que, si salta el stop, pierdas solo el porcentaje que elijas abajo. Queda guardada en este dispositivo.</span></span></button></div><input class="num" id="f-capital" inputmode="decimal" autocomplete="off" value="1000"></div>
+      <div class="field"><div class="fl"><label for="f-atr">ATR diario (pips)</label><button type="button" class="help tooltip" aria-label="Ayuda: ATR diario (pips)">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> ATR significa Average True Range, rango medio verdadero. Es cuántos pips recorre el precio en un día normal, del máximo al mínimo, promediando los últimos 14 días.</span><span class="p"><b>Para qué.</b> Para que el stop y el objetivo tengan el tamaño de lo que el mercado se mueve ahora, ni más ni menos.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1, indicador Average True Range, del grupo Osciladores, con periodo 14. Si marca 0.0073, son 73 pips.</span><span class="p">El 73 que ves sale de tu archivo, que termina el 22 abr 2026. Actualízalo una vez por semana: en tus datos fue de 55 a 108 según el trimestre.</span></span></button></div><input class="num" id="f-atr" inputmode="decimal" autocomplete="off" value="73"></div>
+    </div>
+    <div class="keys">
+      <button type="button" class="key gate tooltip" data-gate="inval" aria-pressed="false"><span class="kt">Invalidación clara<small>sé el precio del stop</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio que demuestra que tu idea estaba mal.</span><span class="p"><b>Cómo saberlo.</b> En una compra queda justo debajo del soporte y de la mecha del gatillo. En una venta, justo encima de la resistencia.</span><span class="p"><b>Márcalo si</b> puedes decir ese precio antes de entrar y el stop del paso 5 queda al otro lado. Después de entrar, el stop no se aleja.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="daily" aria-pressed="false"><span class="kt">Límite diario intacto<small>menos de 2 pérdidas hoy</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Un tope de pérdida por día. Te saca del mercado antes de que un mal día se vuelva un desastre. En una mesa se llama límite de stop-loss.</span><span class="p"><b>Cómo saberlo.</b> En MT5, pestaña Historial, cuenta las operaciones cerradas hoy.</span><span class="p"><b>Márcalo si</b> hoy llevas menos de 2 operaciones perdidas y has perdido menos de 2% de la cuenta. Si no, se acabó por hoy.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="dup" aria-pressed="false"><span class="kt">Sin apuesta repetida<small>nada igual abierto</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Dos operaciones que ganan o pierden juntas son una sola apuesta al doble de tamaño.</span><span class="p"><b>Cómo saberlo.</b> Mira tus posiciones abiertas. EURUSD, GBPUSD y AUDUSD suelen moverse juntos; USDCHF y USDJPY, al revés.</span><span class="p"><b>Márcalo si</b> no tienes abierta otra operación que dependa del dólar en la misma dirección.</span></span></button>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Riesgo por operación<i aria-hidden="true">?</i><span class="tooltiptext">Qué parte de tu cuenta aceptas perder si esta operación sale mal. Es la decisión que más pesa: con poco riesgo sobrevives a una mala racha. Si estás empezando, usa el más bajo.</span></button></p>
+      <div class="keys four">
+        <button type="button" class="key pick tooltip" data-pick="risk" data-v="0.25" aria-pressed="false">0.25%<span class="tooltiptext">Con 0.25%, 10 pérdidas seguidas cuestan 2.5% de la cuenta. Si estás empezando, usa este: aprender sale más barato.</span></button>
+        <button type="button" class="key pick tooltip" data-pick="risk" data-v="0.5" aria-pressed="true">0.5%<span class="tooltiptext">Con 0.5%, 10 pérdidas seguidas cuestan 4.9% de la cuenta.</span></button>
+        <button type="button" class="key pick tooltip" data-pick="risk" data-v="1" aria-pressed="false">1%<span class="tooltiptext">Con 1%, 10 pérdidas seguidas cuestan 9.6% de la cuenta.</span></button>
+        <button type="button" class="key pick tooltip" data-pick="risk" data-v="2" aria-pressed="false">2%<span class="tooltiptext">Con 2%, 10 pérdidas seguidas cuestan 18.3% de la cuenta, y recuperar eso exige ganar 22%. Es mucho para una sola idea.</span></button>
+      </div>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Stop: preajuste o pips a mano<i aria-hidden="true">?</i><span class="tooltiptext">El stop es la orden que cierra la operación si el precio va en contra. Elige una distancia en fracciones de ATR, o escribe los pips exactos en la casilla si tu nivel pide otra distancia. A más distancia, menos lotes: el riesgo en dinero no cambia.</span></button></p>
+      <div class="keys four">
+        <button type="button" class="key pick tooltip" data-pick="stopf" data-v="0.25" aria-pressed="true">¼ ATR<small>18 pips</small><span class="tooltiptext"><span class="p"><b>Para operar dentro del día.</b> Cerca de lo que mueve una hora activa típica: 16 pips en tus datos.</span><span class="p">Menos que eso queda dentro del ruido: una vela de 15 minutos mueve 8 pips, y 12 en el 20% más movido.</span></span></button>
+        <button type="button" class="key pick tooltip" data-pick="stopf" data-v="0.5" aria-pressed="false">½ ATR<small>37 pips</small><span class="tooltiptext"><b>Para uno o dos días.</b> Medio rango diario de margen.</span></button>
+        <button type="button" class="key pick tooltip" data-pick="stopf" data-v="1" aria-pressed="false">1 ATR<small>73 pips</small><span class="tooltiptext"><b>Para varios días.</b> Un rango diario completo de margen. El tamaño baja en la misma proporción, así el riesgo en dinero no cambia.</span></button>
+        <input class="num" id="f-stop" inputmode="decimal" autocomplete="off" value="18" aria-label="Stop en pips">
+      </div>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Objetivo<i aria-hidden="true">?</i><span class="tooltiptext">Dónde cobras. Se mide en R: cuántas veces lo que arriesgas. Con 2R, una ganancia paga dos pérdidas.</span></button></p>
+      <div class="keys three">
+        <button type="button" class="key pick tooltip" data-pick="rr" data-v="1.5" aria-pressed="false">1.5R<span class="tooltiptext">Ganas una vez y media lo que arriesgas. Necesitas acertar más del 40% de las veces para no perder, antes de costos.</span></button>
+        <button type="button" class="key pick tooltip" data-pick="rr" data-v="2" aria-pressed="true">2R<span class="tooltiptext">Ganas el doble de lo que arriesgas. Te basta acertar más del 33% de las veces para no perder, antes de costos.</span></button>
+        <button type="button" class="key pick tooltip" data-pick="rr" data-v="3" aria-pressed="false">3R<span class="tooltiptext">Ganas el triple. Te basta acertar más del 25%, pero el precio llega menos veces tan lejos.</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="desk" data-roles="pm">
+    <header><span class="n">5</span><h2>Plan y precios</h2><span class="role">Gestor de cartera</span></header>
+    <p class="q">La decisión: a qué precio y con cuánto. Solo escribes la entrada; lo demás se calcula.</p>
+    <div class="field">
+      <div class="fl"><label for="f-entry">Entrada (precio)</label><button type="button" class="help tooltip" aria-label="Ayuda: Entrada (precio)">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio al que quieres entrar.</span><span class="p"><b>Cómo saberlo.</b> Es el nivel del paso 2: tu soporte si vas a comprar, tu resistencia si vas a vender. Escríbelo con 5 decimales, igual que en MT5.</span><span class="p">El stop y el objetivo se calculan desde aquí con lo que elegiste en el paso 4.</span></span></button></div>
+      <input class="num" id="f-entry" inputmode="decimal" autocomplete="off" value="1.17124">
+      <p class="note" id="entry-note">Ejemplo: último precio de tu archivo (22 abr 2026). Pon tu nivel de hoy.</p>
+    </div>
+    <div class="tk">
+      <div class="side buy" id="tk-buy"><h3>Compra</h3><dl><dt>Entrada</dt><dd class="e">—</dd><dt>Stop</dt><dd class="s">—</dd><dt>Objetivo</dt><dd class="t">—</dd></dl></div>
+      <div class="side sell" id="tk-sell"><h3>Venta</h3><dl><dt>Entrada</dt><dd class="e">—</dd><dt>Stop</dt><dd class="s">—</dd><dt>Objetivo</dt><dd class="t">—</dd></dl></div>
+    </div>
+    <div class="tiles">
+      <button type="button" class="tile tooltip"><b id="o-lots">—</b><span id="o-lots-s">lotes</span><span class="tooltiptext">Tamaño = riesgo en dólares ÷ (pips de stop × 10). En EURUSD un lote son 100 000 € y cada pip vale 10 USD por lote. Se redondea hacia abajo al 0.01, que es lo mínimo que acepta MT5. Es el número que escribes en Volumen.</span></button>
+      <button type="button" class="tile tooltip"><b id="o-risk">—</b><span id="o-risk-s">riesgo si salta el stop</span><span class="tooltiptext">Lo que pierdes si el precio toca el stop, con el tamaño ya redondeado. Sin contar spread, comisión ni deslizamiento.</span></button>
+      <button type="button" class="tile tooltip"><b id="o-gain">—</b><span>ganancia si llega al objetivo</span><span class="tooltiptext">Riesgo × el múltiplo R que elegiste en el paso 4.</span></button>
+      <button type="button" class="tile tooltip"><b id="o-be">—</b><span>acierto mínimo para no perder</span><span class="tooltiptext">1 ÷ (1 + R). Es el porcentaje de operaciones ganadoras con el que quedas en cero, antes de costos. Una mesa piensa en la serie de operaciones, no en una sola.</span></button>
+    </div>
+    <p class="note" id="o-ctx"></p>
+    <p class="warn" id="o-warn" hidden></p>
+    <p class="slip none" id="o-slip">Sin sesgo todavía: el plan muestra los dos lados.</p>
+  </section>
+
+  <section class="desk" data-roles="pm risk perf">
+    <header><span class="n">6</span><h2>Salida</h2><span class="role">Gestor de cartera</span></header>
+    <p class="q">Ya dentro: ¿cuándo cerrar? Si marcas una, el panel dice SALIR.</p>
+    <div class="keys">
+      <button type="button" class="key exit tooltip" data-exit="tp" aria-pressed="false"><span class="kt">Tocó el objetivo<small>llegó al Take Profit</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio llegó al objetivo del paso 5.</span><span class="p"><b>Qué se hace.</b> Se cobra según el plan. Si pusiste el Take Profit en MT5, se cierra solo. Variante común: cerrar la mitad en 1R y llevar el stop a la entrada.</span></span></button>
+      <button type="button" class="key exit tooltip" data-exit="sl" aria-pressed="false"><span class="kt">Tocó el stop<small>llegó al Stop Loss</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio llegó al stop del paso 5: la idea estaba mal.</span><span class="p"><b>Qué se hace.</b> Se cierra sin discutir. Si pusiste el Stop Loss en MT5, se cierra solo. Mover el stop para darle más espacio es el error que más cuentas destruye.</span></span></button>
+      <button type="button" class="key exit tooltip" data-exit="thesis" aria-pressed="false"><span class="kt">Cambió la tesis<small>el paso 1 ya no vale</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Un dato o un banco central cambió el sesgo que justificaba la operación.</span><span class="p"><b>Cómo saberlo.</b> Repasa el paso 1: si hoy no marcarías los mismos botones, la tesis cambió.</span><span class="p"><b>Qué se hace.</b> Se cierra aunque el precio no haya tocado el stop.</span></span></button>
+      <button type="button" class="key exit tooltip" data-exit="time" aria-pressed="false"><span class="kt">Se agotó el tiempo<small>no avanzó en el plazo</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El stop de tiempo: la operación no hizo lo esperado en el plazo que le diste.</span><span class="p"><b>Cómo saberlo.</b> Antes de entrar decide un plazo. Para una operación del día, el cierre de Londres o el final de la tarde de Nueva York.</span><span class="p"><b>Qué se hace.</b> Si llegó el plazo y el precio no avanzó, se cierra. El capital quieto también cuesta.</span></span></button>
+      <button type="button" class="key exit tooltip" data-exit="news" aria-pressed="false"><span class="kt">Viene noticia roja<small>roja en menos de 30 min</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Falta menos de media hora para un dato de alto impacto de USD o EUR.</span><span class="p"><b>Qué se hace.</b> Se reduce el tamaño o se protege la posición: el spread se abre y el precio salta. El panel dirá REDUCIR.</span></span></button>
+    </div>
+  </section>
+
+  <section class="desk" data-roles="quant tech">
+    <header><h2>Seguimiento del tramo</h2><span class="role">Analista cuantitativo</span></header>
+    <p class="q">Del máximo al mínimo: ¿sigue el patrón o ya cambió? Escribe tres precios de tu gráfico.</p>
+    <div class="keys">
+      <button type="button" class="key down tooltip" data-pick="leg" data-v="down" aria-pressed="true"><span class="kt">Sigo una bajada<small>de un máximo hacia abajo</small></span><span class="tooltiptext">Un tramo que nace en un máximo y va marcando mínimos más bajos, con rebotes por el camino. Termina cuando un rebote alcanza el umbral.</span></button>
+      <button type="button" class="key up tooltip" data-pick="leg" data-v="up" aria-pressed="false"><span class="kt">Sigo una subida<small>de un mínimo hacia arriba</small></span><span class="tooltiptext">Un tramo que nace en un mínimo y va marcando máximos más altos, con retrocesos por el camino. Termina cuando un retroceso alcanza el umbral.</span></button>
+    </div>
+    <div>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Umbral: qué rebote cuenta como cambio<i aria-hidden="true">?</i><span class="tooltiptext">Un tramo termina cuando el precio se devuelve más de cierto tamaño. Ese tamaño es el umbral, medido en fracciones del ATR del paso 4. Con un umbral más grande salen tramos más largos y menos giros al día.</span></button></p>
+      <div class="keys three">
+        <button type="button" class="key pick tooltip" data-pick="scale" data-v="0.33" aria-pressed="false">⅓ ATR<small>24 pips</small><span class="tooltiptext"><b>Tramos cortos.</b> En tus datos, la mitad dura menos de 3.6 horas y recorre 44 pips. Hay unos 4 giros al día.</span></button>
+        <button type="button" class="key pick tooltip" data-pick="scale" data-v="0.4" aria-pressed="true">0.4 ATR<small>29 pips</small><span class="tooltiptext"><b>Tramos medios.</b> La mitad dura menos de 5 horas y 1 de cada 4 pasa de 12; el típico recorre 53 pips. Hay casi 3 giros al día.</span></button>
+        <button type="button" class="key pick tooltip" data-pick="scale" data-v="0.5" aria-pressed="false">½ ATR<small>37 pips</small><span class="tooltiptext"><b>Tramos largos.</b> La mitad dura menos de 8 horas y 1 de cada 4 pasa de 19; el típico recorre 66 pips. Hay casi 2 giros al día.</span></button>
+      </div>
+    </div>
+    <div class="fields three">
+      <div class="field"><div class="fl"><label for="f-l0"><span id="lb-l0">Máximo</span></label><button type="button" class="help tooltip" aria-label="Ayuda: Máximo">?<span class="tooltiptext">Donde nació el tramo que sigues: el máximo si es una bajada, el mínimo si es una subida. Léelo en tu gráfico de MT5.</span></button></div><input class="num" id="f-l0" inputmode="decimal" autocomplete="off" value="1.17625"></div>
+      <div class="field"><div class="fl"><label for="f-l1"><span id="lb-l1">Mínimo</span></label><button type="button" class="help tooltip" aria-label="Ayuda: Mínimo">?<span class="tooltiptext">El punto más lejano que ha tocado el tramo. Cámbialo cada vez que marque uno nuevo: el nivel de cambio se mueve con él, como un stop móvil.</span></button></div><input class="num" id="f-l1" inputmode="decimal" autocomplete="off" value="1.17119"></div>
+      <div class="field"><div class="fl"><label for="f-lp">Ahora</label><button type="button" class="help tooltip" aria-label="Ayuda: Ahora">?<span class="tooltiptext">El precio actual. Su distancia al extremo es el rebote que está en marcha.</span></button></div><input class="num" id="f-lp" inputmode="decimal" autocomplete="off" value="1.17124"></div>
+    </div>
+    <p class="note" id="leg-note">Ejemplo: el último tramo de tu archivo, una bajada que empezó a la 01:21 de Nueva York del 22 abr 2026.</p>
+    <div class="tiles">
+      <button type="button" class="tile tooltip"><b id="t-level">—</b><span id="t-level-s">nivel de cambio</span><span class="tooltiptext">Extremo más el umbral (escala × ATR del paso 4). Si el precio llega aquí, el tramo terminó. Se recalcula con cada extremo nuevo, así que sirve de stop móvil.</span></button>
+      <button type="button" class="tile tooltip"><b id="t-bounce">—</b><span id="t-bounce-s">rebote ahora</span><span class="tooltiptext">En tus datos, la probabilidad de que un rebote sea el final del tramo crece en línea recta con su tamaño: a un cuarto del umbral, 28%; a la mitad, 52%; a tres cuartos, 76%. No hay un tamaño de rebote que avise antes.</span></button>
+      <button type="button" class="tile tooltip"><b id="t-travel">—</b><span id="t-travel-s">recorrido</span><span class="tooltiptext">Distancia del inicio al extremo, comparada con los tramos completos de tu archivo a esta escala. Que ya haya recorrido mucho no dice cuánto le falta.</span></button>
+      <button type="button" class="tile tooltip"><b id="t-half">—</b><span>la mitad de los tramos llega aquí o más lejos</span><span class="tooltiptext">Medido en 938 tramos de tu archivo: desde un extremo nuevo, la mitad avanza al menos 0.7 umbrales más; 1 de cada 4, 1.4; 1 de cada 10, 2.3. Da igual que el tramo lleve 1, 2 o 3 umbrales recorridos: lo que falta se reparte igual.</span></button>
+    </div>
+    <p class="note" id="t-more"></p>
+    <p class="status" id="t-status"><span id="t-status-t"></span><button type="button" class="act" id="t-flip" hidden>Seguir el nuevo tramo</button></p>
+    <p class="now" id="now2"><b>Ahora</b><span>—</span></p>
+  </section>
+
+  <section class="desk" data-roles="quant">
+    <header><h2>Cómo giran los tramos</h2><span class="role">Analista cuantitativo</span></header>
+    <p class="q">943 tramos medidos en tu archivo, con cambio = rebote de 0.4 ATR.</p>
+    <div class="tiles">
+      <button type="button" class="tile tooltip"><b>5 h</b><span>dura el tramo típico</span><span class="tooltiptext">La mitad de los tramos dura menos de 5 horas, 1 de cada 4 pasa de 12 y 1 de cada 10, de 21. No hay una duración fija: depende del rebote que cuentes como cambio. Con ⅓ ATR la mitad dura menos de 3.6 horas; con ½ ATR, menos de 8.</span></button>
+      <button type="button" class="tile tooltip"><b>1 de 2</b><span>giros cae en 7 horas del día</span><span class="tooltiptext">16% de los giros cae entre las 02:00 y las 05:00 de Nueva York (<span data-ny="2-5"></span>), con la apertura de Londres, y 35% entre las 08:00 y las 12:00 (<span data-ny="8-12"></span>), con los datos y la apertura de Nueva York. Esas dos ventanas están a unas 6 horas. Eso encaja con los tramos de unas 6 horas que ves, de la noche asiática a Londres o de Londres a Nueva York, y con los de unas 12, de la noche asiática a Nueva York.</span></button>
+      <button type="button" class="tile tooltip"><b>7 pips</b><span>rebote típico dentro del tramo</span><span class="tooltiptext">Dentro de un tramo hay unos 6 rebotes de 3 pips o más. El típico mide 7 pips y 1 de cada 10 pasa de 19. El mayor rebote de un tramo suele medir la mitad del umbral: unos 15 pips.</span></button>
+      <button type="button" class="tile tooltip"><b>50 / 50</b><span>tras el cambio: sigue o se devuelve</span><span class="tooltiptext">Probado en 940 giros de tu archivo: después de confirmarse el cambio, el precio avanzó otro umbral antes de volver al extremo 49.5% de las veces (±3). Comparar cada rebote con los rebotes anteriores del mismo tramo, la idea de que sube más que el patrón, dio 51 a 53%. Es una moneda al aire. El cambio dice que el tramo terminó y dónde va el stop; la dirección la deciden los pasos 1 y 2.</span></button>
+    </div>
+    <div class="keys three">
+      <button type="button" class="key pick tooltip" data-pick="tset" data-v="all" aria-pressed="true">Giros<span class="tooltiptext">Máximos y mínimos de tramo juntos: 942 giros en tu archivo.</span></button>
+      <button type="button" class="key pick tooltip" data-pick="tset" data-v="hi" aria-pressed="false">Máximos<span class="tooltiptext"><b>Solo los máximos de tramo:</b> donde termina una subida y empieza una bajada. Son 471. El máximo del día completo cae entre las 08:00 y las 12:00 de Nueva York (<span data-ny="8-12"></span>) en 27% de los días. El máximo y el mínimo de un mismo día suelen quedar a unas 11 horas uno del otro, entre 7 y 15 en la mitad de los días, y cuál llega primero es parejo.</span></button>
+      <button type="button" class="key pick tooltip" data-pick="tset" data-v="lo" aria-pressed="false">Mínimos<span class="tooltiptext"><b>Solo los mínimos de tramo:</b> donde termina una bajada y empieza una subida. Son 471 y caen casi a las mismas horas que los máximos. Ojo con la hora del cierre diario (<span data-ny="17-18"></span>): el spread se abre, el precio bid que dibuja MT5 se hunde unos pips y aparecen mínimos que no son giros del mercado. De ahí sale 11% de los mínimos del día, contra 1% de los máximos.</span></button>
+    </div>
+    <div class="fig">
+      <h3 id="fig2-t">Giros por hora, en tu hora local</h3>
+      <div class="plotbox">
+        <span class="yt" style="bottom:5.4rem">10%</span>
+        <span class="yt" style="bottom:2.7rem">5%</span>
+        <div class="plot" id="plot2" role="group" aria-labelledby="fig2-t">
+          <span class="gl" style="bottom:80%"></span><span class="gl" style="bottom:40%"></span>
+        </div>
+      </div>
+      <div class="axis" id="axis2" aria-hidden="true"></div>
+      <p class="legend"><span><i class="l1"></i>ventanas de giro</span><span><i></i>resto del día</span><span><i class="l2"></i>ahora</span></p>
+    </div>
+    <p class="note" id="fig2-n"></p>
+    <p class="note">El cambio confirma que el tramo terminó. No predice hacia dónde irá el siguiente.</p>
+  </section>
+
+  <section class="desk">
+    <header><h2>Roles de la mesa</h2></header>
+    <p class="q">En una institución cada paso tiene dueño. Tú haces todos, uno a la vez. Marca un rol y se iluminan sus habilidades.</p>
+    <div class="chips">
+      <button type="button" class="key chip tooltip" data-tag="r-pm" data-skills="macro stats risk disc tesis bit" aria-pressed="false">Gestor de cartera<span class="tooltiptext"><b>Portfolio manager.</b> Decide qué se compra o se vende, por qué y con cuánto riesgo, dentro del mandato. Es el dueño del resultado. <i>Pasos 5 y 6.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-macro" data-skills="macro cal tesis" aria-pressed="false">Estratega macro<span class="tooltiptext"><b>Macro strategist, economista.</b> Forma la opinión de arriba hacia abajo: tipos, inflación, bancos centrales y flujos de capital. Da la dirección. <i>Paso 1.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-research" data-skills="macro cal tesis stats" aria-pressed="false">Analista de investigación<span class="tooltiptext"><b>Research analyst.</b> Convierte los datos en una tesis escrita: escenario, catalizador y qué la invalidaría. <i>Paso 1.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-tech" data-skills="precio disc" aria-pressed="false">Analista técnico<span class="tooltiptext"><b>Technical analyst.</b> Lee la estructura del precio: tendencia, niveles y momento de entrada. <i>Paso 2.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-quant" data-skills="stats py back" aria-pressed="false">Analista cuantitativo<span class="tooltiptext"><b>Quantitative researcher.</b> Comprueba con datos si una idea tiene ventaja estadística: backtests, modelos, tamaño de muestra. Las cifras de este panel son trabajo de este rol. <i>Paso 4, seguimiento del tramo y tus datos.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-dev" data-skills="py back" aria-pressed="false">Desarrollador cuantitativo<span class="tooltiptext"><b>Quant developer.</b> Construye los datos, los backtests y los algoritmos que usan los demás.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-exec" data-skills="ejec precio disc" aria-pressed="false">Trader de ejecución<span class="tooltiptext"><b>Execution trader.</b> Decide cómo y cuándo meter la orden al mercado: tipo de orden, algoritmo y hora, al menor costo y sin delatar la intención. <i>Paso 3.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-dealer" data-skills="ejec risk deriv" aria-pressed="false">Creador de mercado<span class="tooltiptext"><b>Dealer, market maker.</b> La contraparte en el banco: cotiza compra y venta, gana el spread y gestiona su inventario. Es la liquidez contra la que operas. <i>Paso 3.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-sales" data-skills="cal tesis etica" aria-pressed="false">Ventas institucionales<span class="tooltiptext"><b>Sales trader.</b> Puente entre el cliente y la mesa del banco: toma la orden y cuenta lo que se ve en el mercado.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-risk" data-skills="risk stats deriv" aria-pressed="false">Gestor de riesgo<span class="tooltiptext"><b>Risk manager.</b> Fija y vigila los límites: presupuesto de riesgo, tamaño de posición, escenarios y pérdida máxima. <i>Pasos 4 y 6.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-comp" data-skills="etica" aria-pressed="false">Cumplimiento<span class="tooltiptext"><b>Compliance.</b> Vigila que se respeten las reglas, los límites y la mejor ejecución. <i>Paso 4.</i></span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-ops" data-skills="etica py" aria-pressed="false">Operaciones<span class="tooltiptext"><b>Middle y back office.</b> Confirma, liquida y concilia cada operación.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="r-perf" data-skills="stats py bit" aria-pressed="false">Analista de desempeño<span class="tooltiptext"><b>Performance y TCA.</b> Mide el resultado y el costo de cada operación contra su precio de referencia. Cierra el ciclo: lo aprendido vuelve al plan. <i>Paso 6.</i></span></button>
+    </div>
+  </section>
+
+  <section class="desk">
+    <header><h2>Habilidades</h2></header>
+    <p class="q">Marca una habilidad y se iluminan los roles que la usan.</p>
+    <div class="chips">
+      <button type="button" class="key chip tooltip" data-tag="s-macro" aria-pressed="false">Macroeconomía<span class="tooltiptext">Tipos, inflación, empleo y bancos centrales: qué mueve una divisa y por qué.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-cal" aria-pressed="false">Calendario económico<span class="tooltiptext">Leer previsión, dato anterior y sorpresa. Saber qué datos mueven el precio y a qué hora salen.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-precio" aria-pressed="false">Acción del precio<span class="tooltiptext">Tendencia, soportes y resistencias en varios marcos de tiempo.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-stats" aria-pressed="false">Estadística<span class="tooltiptext">Probabilidad, esperanza matemática y tamaño de muestra. Pensar en series de operaciones, no en una.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-py" aria-pressed="false">Python y datos<span class="tooltiptext">Limpiar históricos y calcular con ellos: pandas, SQL, Excel. Así salieron las cifras de este panel.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-back" aria-pressed="false">Backtesting<span class="tooltiptext">Probar una regla sobre datos pasados sin engañarse: datos fuera de muestra, costos reales y nada de sobreajuste.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-risk" aria-pressed="false">Gestión de riesgo<span class="tooltiptext">Tamaño de posición, stop, correlación y rachas de pérdidas. Es lo que te mantiene en el juego.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-ejec" aria-pressed="false">Ejecución<span class="tooltiptext"><b>Microestructura.</b> Spread, liquidez, tipos de orden y deslizamiento: cuánto cuesta entrar y salir.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-deriv" aria-pressed="false">Derivados<span class="tooltiptext">Forwards y opciones: cobertura y lectura de la volatilidad implícita.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-disc" aria-pressed="false">Disciplina<span class="tooltiptext">Seguir el plan bajo presión y reconocer los sesgos propios.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-bit" aria-pressed="false">Bitácora<span class="tooltiptext">Registrar cada operación con su tesis y revisarla después. Es el paso de retroalimentación del proceso.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-tesis" aria-pressed="false">Redacción de tesis<span class="tooltiptext">Explicar la idea en tres líneas: por qué, dónde entra y qué la invalida.</span></button>
+      <button type="button" class="key chip tooltip" data-tag="s-etica" aria-pressed="false">Normas y ética<span class="tooltiptext">Las reglas del mercado: el Código Global de FX y la mejor ejecución.</span></button>
+    </div>
+  </section>
+
+  <section class="desk" data-roles="quant dev">
+    <header><h2>Tus datos</h2><span class="role">Analista cuantitativo</span></header>
+    <p class="q">EURUSD en velas de 1 minuto: 350 días, del 13 dic 2024 al 21 abr 2026.</p>
+    <div class="tiles">
+      <button type="button" class="tile tooltip"><b>72 pips</b><span>rango de un día típico</span><span class="tooltiptext">Mediana del máximo menos el mínimo de cada día. La media de los últimos 20 días del archivo es 74 y el ATR de 14 días, 73. Cambia mucho por trimestre: 108 de media en abr a jun 2025 y 55 en oct a dic 2025. Por eso el ATR del paso 4 se puede editar.</span></button>
+      <button type="button" class="tile tooltip"><b>8 pips</b><span>ruido de una vela de 15 min</span><span class="tooltiptext">Rango típico de 15 minutos entre la apertura de Londres y el mediodía de Nueva York; 12 pips en el 20% más movido. Una hora típica: 16 pips, y 25 en el 20% más movido. Un stop menor que esto lo saca el ruido.</span></button>
+      <button type="button" class="tile tooltip"><b>93%</b><span>del rango hecho al mediodía de NY</span><span class="tooltiptext">De media, a las 12:00 de Nueva York (<span data-ny="12"></span>) el día ya recorrió el 93% de su rango. Al abrir Nueva York (<span data-ny="8"></span>) lleva el 71%.</span></button>
+      <button type="button" class="tile tooltip"><b>1.1–1.8×</b><span>movimiento tras noticia roja</span><span class="tooltiptext">En tu calendario (2 a 6 feb 2026) hubo 8 momentos con datos de alto impacto de USD o EUR. En los 15 minutos siguientes el EURUSD recorrió entre 1.1 y 1.8 veces lo que recorre a esa misma hora en los 20 días previos. Fue una semana tranquila: sin dato de nóminas y con el BCE previsto sin cambios.</span></button>
+    </div>
+    <div class="fig">
+      <h3 id="fig-t">Pips típicos por hora, en tu hora local</h3>
+      <div class="plotbox">
+        <span class="yt" style="bottom:5.4rem">20</span>
+        <span class="yt" style="bottom:2.7rem">10</span>
+        <div class="plot" id="plot" role="group" aria-labelledby="fig-t">
+          <span class="gl" style="bottom:80%"></span><span class="gl" style="bottom:40%"></span>
+        </div>
+      </div>
+      <div class="axis" id="axis" aria-hidden="true"></div>
+      <p class="legend"><span><i class="l1"></i>Londres y Nueva York</span><span><i></i>resto del día</span><span><i class="l2"></i>ahora</span></p>
+    </div>
+    <button type="button" class="key flat" data-view="table" aria-pressed="false" aria-controls="tbl">Ver tabla por hora</button>
+    <div class="tblwrap" id="tbl" hidden>
+      <table>
+        <thead><tr><th>Tu hora</th><th>NY</th><th>Pips/h</th><th>Spread</th><th>Hecho</th><th>Máx.</th><th>Mín.</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p><strong>Sirve para ordenar tu propia decisión; no es asesoría financiera.</strong> El veredicto solo refleja los botones que tú marcas. Reguladores europeos (ESMA, 2018) hallaron que entre 74% y 89% de las cuentas minoristas de CFD pierden dinero.</p>
+  <p>Método: <a href="https://www.cfainstitute.org/membership/professional-development/refresher-readings/2018/the-portfolio-management-process-and-the-investment-policy-statement">proceso de gestión de cartera</a>, <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/trade-strategy-execution">estrategia y ejecución</a> y <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/measuring-managing-market-risk">límites de riesgo</a> (CFA Institute); <a href="https://www.bis.org/publications/fx-execution-algorithms-and-market-functioning">algoritmos de ejecución en FX</a> (BIS); <a href="https://globalfxc.org/docs/fx_global.pdf">Código Global de FX</a>; <a href="https://www.ecb.europa.eu/press/key/date/2017/html/ecb.sp171103.en.html">tipos de interés y EURUSD</a> (BCE); <a href="https://www.esma.europa.eu/sites/default/files/library/esma35-43-1135_notice_of_pi_decisions_on_cfds_and_binary_options.pdf">aviso de ESMA</a>.</p>
+  <p>Cifras: calculadas de tu EURUSD.csv (499 470 velas M1; el reloj del bróker va 7 horas por delante de Nueva York) y de tu ff_calendar_thisweek.csv (2 a 6 feb 2026). Un tramo termina cuando el precio se devuelve 0.4 veces el ATR de 14 días. Los datos terminan el 22 abr 2026: los precios de hoy los pones tú.</p>
+</footer>
+
+<div id="tip" role="tooltip" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+/* ---- figures computed from the user's EURUSD.csv (median pips per hour, mean spread, share of day range done) ---- */
+const D = {
+  ny0: 17, /* the FX day starts at 17:00 New York */
+  med: [6.1,8.4,8.0,11.7,10.8,9.2,8.0,7.6,9.6,15.0,17.6,16.0,12.7,13.0,14.7,18.6,19.1,22.8,17.9,14.1,12.2,11.0,9.0,7.3],
+  sp:  [3.61,0.24,0.15,0.14,0.14,0.14,0.14,0.14,0.14,0.13,0.13,0.13,0.13,0.13,0.13,0.14,0.13,0.13,0.13,0.15,0.14,0.15,0.16,0.43],
+  cum: [10,19,24,32,36,39,41,43,46,51,58,62,65,68,71,78,83,89,93,95,96,98,99,100],
+  turn:[1.2,3.4,2.0,3.4,3.1,1.8,1.3,1.2,2.5,3.9,6.6,5.4,2.9,3.5,4.9,11.3,8.2,9.3,5.9,5.1,4.5,3.5,2.5,2.7], /* % of swing turns per hour: all, then highs only, lows only */
+  hi: [0.2,3.4,1.9,4.7,3.8,1.3,1.5,0.6,3.4,4.9,5.5,5.9,3.6,2.5,3.8,11.7,7.0,10.8,6.8,4.7,4.5,3.6,2.3,1.5],
+  lo: [2.1,3.4,2.1,2.1,2.3,2.3,1.1,1.7,1.7,3.0,7.6,4.9,2.1,4.5,5.9,10.8,9.3,7.9,5.1,5.5,4.5,3.4,2.8,3.8]
+};
+const DEF = { capital: '1000', atr: '73', stop: '18', entry: '1.17124', l0: '1.17625', l1: '1.17119', lp: '1.17124', dh: '', dl: '' };
+const PIP = 0.0001, LS = 'mesa-eurusd-v1', TTL = 8 * 3600e3;
+
+/*PURE*/
+const GATES = [
+  { id: 'news', short: 'noticia' }, { id: 'session', short: 'sesión' }, { id: 'spread', short: 'spread' }, { id: 'room', short: 'recorrido' },
+  { id: 'inval', short: 'invalidación' }, { id: 'daily', short: 'límite diario' }, { id: 'dup', short: 'apuesta repetida' }
+];
+const EXITS = [
+  { id: 'sl', why: 'Stop tocado: se cierra sin discutir.' },
+  { id: 'tp', why: 'Objetivo alcanzado: se cobra según el plan.' },
+  { id: 'thesis', why: 'La tesis cambió: fuera aunque no haya tocado el stop.' },
+  { id: 'time', why: 'Tiempo agotado: se libera el capital para la siguiente idea.' },
+  { id: 'news', why: 'Viene un dato de alto impacto: reduce o protege antes.' }
+];
+function judge(S) {
+  const d = S.dir || {}, g = S.gate || {}, x = S.exit || {};
+  const ex = EXITS.filter(e => x[e.id]);
+  if (ex.length) {
+    const trim = ex.length === 1 && ex[0].id === 'news';
+    return { v: trim ? 'trim' : 'exit', dir: 0, word: trim ? 'REDUCIR' : 'SALIR', why: ex[0].why, miss: [] };
+  }
+  const m = [d.m1 | 0, d.m2 | 0, d.m3 | 0], macroSet = m.some(Boolean), macro = Math.sign(m[0] + m[1] + m[2]);
+  const trend = d.t1 | 0, level = d.t2 | 0, trig = d.t3 | 0;
+  const nm = v => (v > 0 ? 'alcista' : 'bajista');
+  const wait = why => ({ v: 'wait', dir: 0, word: 'ESPERAR', why, miss: [] });
+  if (!macroSet && !trend) return wait('Empieza por el sesgo macro y la tendencia.');
+  if (macroSet && !macro) return wait('Macro dividido: no hay sesgo claro.');
+  if (!macroSet) return wait('Tendencia ' + nm(trend) + '. Falta el sesgo macro.');
+  if (!trend) return wait('Macro ' + nm(macro) + '. Falta la tendencia.');
+  if (macro !== trend) return { v: 'no', dir: 0, word: 'NO OPERAR', why: 'Macro ' + nm(macro) + ' contra tendencia ' + nm(trend) + '. Sin acuerdo no hay operación.', miss: [] };
+  const b = macro, word = 'BUSCAR ' + (b > 0 ? 'COMPRA' : 'VENTA');
+  if (level === -b) return { v: 'seek', dir: b, word, why: b > 0 ? 'El precio está en resistencia. Espera el retroceso a un soporte.' : 'El precio está en soporte. Espera el rebote a una resistencia.', miss: ['nivel'] };
+  if (trig === -b) return { v: 'seek', dir: b, word, why: 'El gatillo va en contra. Espera a que gire a tu favor.', miss: ['gatillo'] };
+  const miss = [];
+  if (!level) miss.push('nivel');
+  if (!trig) miss.push('gatillo');
+  GATES.forEach(G => { if (!g[G.id]) miss.push(G.short); });
+  if (miss.length) return { v: 'seek', dir: b, word, why: 'Falta: ' + miss.slice(0, 4).join(' · ') + (miss.length > 4 ? ' · +' + (miss.length - 4) : ''), miss };
+  return { v: 'go', dir: b, word: b > 0 ? 'COMPRAR' : 'VENDER', why: '', miss: [] };
+}
+function plan(n, pick) {
+  const f = v => parseFloat(String(v).replace(',', '.'));
+  const cap = f(n.capital), atr = f(n.atr), stop = f(n.stop), entry = f(n.entry), riskPct = f(pick.risk), rr = f(pick.rr);
+  const ok = cap > 0 && stop > 0 && entry > 0 && riskPct > 0 && rr > 0;
+  const riskUsd = cap * riskPct / 100;
+  const lots = Math.floor(riskUsd / (stop * 10) * 100 + 1e-9) / 100;
+  const real = lots * stop * 10;
+  return { ok, cap, atr, stop, entry, riskPct, rr, riskUsd, lots, real, gain: real * rr, be: 1 / (1 + rr), minLotRisk: 0.01 * stop * 10,
+    buy: { sl: entry - stop * PIP, tp: entry + rr * stop * PIP }, sell: { sl: entry + stop * PIP, tp: entry - rr * stop * PIP } };
+}
+/* Leg tracker. Fitted on the file: a leg ends when price comes back T = scale x ATR from its extreme;
+   P(leg over | counter-move b) = b / T; legs run 1 + Exp(1) thresholds, and the remaining run from a fresh
+   extreme is memoryless: half go 0.7 T further, a quarter 1.4 T, a tenth 2.3 T. */
+function track(n, pick) {
+  const f = v => parseFloat(String(v).replace(',', '.'));
+  const atr = f(n.atr), a = f(n.l0), b = f(n.l1), p = f(n.lp), dn = pick.leg !== 'up', s = dn ? -1 : 1;
+  const T = atr * f(pick.scale);
+  const ok = T > 0 && a > 0 && b > 0 && p > 0 && (dn ? a > b : b > a);
+  const travel = Math.abs(a - b) / PIP, raw = (dn ? p - b : b - p) / PIP, bounce = Math.max(0, raw);
+  return { ok, dn, T, travel, bounce, beyond: raw < -0.05, formed: travel >= T, broken: bounce >= T,
+    pOver: Math.min(1, bounce / T), pct: travel >= T ? 1 - Math.exp(-(travel / T - 1)) : 0,
+    level: b - s * T * PIP, half: b + s * 0.7 * T * PIP, quarter: b + s * 1.4 * T * PIP, tenth: b + s * 2.3 * T * PIP };
+}
+/*END PURE*/
+
+/* ---- state ---- */
+const S = { dir: {}, gate: {}, exit: {}, pick: { risk: '0.5', rr: '2', order: 'limite', stopf: '0.25', leg: 'down', scale: '0.4', tset: 'all' }, num: { ...DEF }, tags: {}, table: false, ts: 0 };
+try {
+  const r = JSON.parse(localStorage.getItem(LS) || 'null');
+  if (r) {
+    Object.assign(S.pick, r.pick || {}); Object.assign(S.num, r.num || {});
+    S.tags = r.tags || {}; S.table = !!r.table;
+    if (Date.now() - (r.ts || 0) < TTL) { S.dir = r.dir || {}; S.gate = r.gate || {}; S.exit = r.exit || {}; S.ts = r.ts; }
+    if (Date.now() - (r.dts || 0) > TTL) S.num.dh = S.num.dl = ''; else S.dts = r.dts;
+  }
+} catch (e) { /* storage unavailable: the page works without it */ }
+const save = () => { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} };
+
+/* ---- time: the profile is by New York clock; show it in the viewer's clock ---- */
+function offsetMin(tz, d) {
+  try {
+    const o = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      .formatToParts(d).forEach(p => { o[p.type] = +p.value; });
+    return Math.round((Date.UTC(o.year, o.month - 1, o.day, o.hour % 24, o.minute) - Math.floor(d.getTime() / 6e4) * 6e4) / 6e4);
+  } catch (e) { return null; }
+}
+const nyOff = offsetMin('America/New_York', new Date());
+const shift = nyOff == null ? 0 : -new Date().getTimezoneOffset() - nyOff; /* minutes to add to NY time to get local time */
+const p2 = n => String(n).padStart(2, '0');
+const hm = min => { min = ((Math.round(min) % 1440) + 1440) % 1440; return p2(Math.floor(min / 60)) + ':' + p2(min % 60); };
+const loc = (h, m = 0) => hm(h * 60 + m + shift);
+$$('[data-ny]').forEach(el => {
+  const t = el.dataset.ny.split('-').map(s => { const [h, m] = s.split(':'); return loc(+h, +(m || 0)); });
+  el.textContent = t.join('–') + (nyOff == null ? ' NY' : ' en tu hora');
+});
+
+/* ---- hourly charts + table ---- */
+const tbody = $('#tbody');
+let uid = 0, drawn = '';
+function bars(plot, axis, vals, ymax, strong, tipHtml, peakText, unit) {
+  const peak = vals.indexOf(Math.max(...vals));
+  vals.forEach((v, i) => {
+    const h = (D.ny0 + i) % 24, b = document.createElement('button');
+    b.type = 'button'; b.className = 'hb tooltip' + (strong(h) ? ' liq' : ''); b.dataset.h = h;
+    b.style.setProperty('--h', (v / ymax * 100).toFixed(1) + '%');
+    b.setAttribute('aria-label', loc(h) + ': ' + peakText(v) + unit);
+    b.appendChild(document.createElement('i'));
+    if (i === peak) { const e = document.createElement('em'); e.textContent = peakText(v); b.appendChild(e); }
+    const t = document.createElement('span'); t.className = 'tooltiptext'; t.id = 'hb' + (++uid); b.setAttribute('aria-describedby', t.id);
+    t.innerHTML = '<b>' + loc(h) + '–' + loc(h + 1) + '</b> <i>(' + p2(h) + ':00 NY)</i><br>' + tipHtml(i);
+    b.appendChild(t); plot.appendChild(b);
+    if (i % 3 === 0) { const sp = document.createElement('span'); sp.textContent = loc(h); axis.appendChild(sp); }
+  });
+}
+const liquid = h => h >= 2 && h < 12, turnWin = h => (h >= 2 && h < 5) || (h >= 8 && h < 12);
+bars($('#plot'), $('#axis'), D.med, 25, liquid,
+  i => D.med[i].toFixed(1) + ' pips en una hora típica · spread ' + D.sp[i].toFixed(2) + '<br>' + D.cum[i] + '% del rango del día hecho al terminar',
+  v => String(Math.round(v)), ' pips por hora');
+const TSET = {
+  all: { v: D.turn, t: 'Giros', of: 'de los giros' },
+  hi:  { v: D.hi,   t: 'Máximos de tramo', of: 'de los máximos' },
+  lo:  { v: D.lo,   t: 'Mínimos de tramo', of: 'de los mínimos' }
+};
+function drawTurns() {
+  const key = TSET[S.pick.tset] ? S.pick.tset : 'all', k = TSET[key], plot = $('#plot2'), axis = $('#axis2');
+  $$('.hb', plot).forEach(b => b.remove()); axis.textContent = '';
+  bars(plot, axis, k.v, 12.5, turnWin,
+    i => k.v[i].toFixed(1) + '% ' + k.of + ' cae en esta hora' +
+      '<br><i>máximos ' + D.hi[i].toFixed(1) + '% · mínimos ' + D.lo[i].toFixed(1) + '% · parejo sería 4.2%</i>',
+    v => Math.round(v) + '%', ' ' + k.of);
+  const sum = hs => Math.round(hs.reduce((a, h) => a + k.v[(h - D.ny0 + 24) % 24], 0));
+  const top = k.v.map((v, i) => [v, (D.ny0 + i) % 24]).sort((a, b) => b[0] - a[0]);
+  $('#fig2-t').textContent = k.t + ' por hora, en tu hora local';
+  $('#fig2-n').textContent = sum([8, 9, 10, 11]) + '% ' + k.of + ' cae entre ' + loc(8) + ' y ' + loc(12) + ', y ' + sum([2, 3, 4]) + '% entre ' + loc(2) + ' y ' + loc(5) +
+    '. Horas punta: ' + loc(top[0][1]) + ' (' + Math.round(top[0][0]) + '%) y ' + loc(top[1][1]) + ' (' + Math.round(top[1][0]) + '%).';
+  drawn = S.pick.tset;
+}
+D.med.forEach((m, i) => {
+  const h = (D.ny0 + i) % 24, tr = document.createElement('tr'); if (liquid(h)) tr.className = 'liq';
+  [loc(h), p2(h) + ':00', m.toFixed(1), D.sp[i].toFixed(2), D.cum[i] + '%', D.hi[i].toFixed(1) + '%', D.lo[i].toFixed(1) + '%'].forEach(c => { const td = document.createElement('td'); td.textContent = c; tr.appendChild(td); });
+  tbody.appendChild(tr);
+});
+
+/* ---- market clock: sessions in the viewer's time ---- */
+const SESS = [
+  { id: 'syd', name: 'Sídney', tz: 'Australia/Sydney', o: 7, c: 16, tip: 'Sesión tranquila para el EURUSD: 8 a 12 pips por hora en tus datos.' },
+  { id: 'tok', name: 'Tokio', tz: 'Asia/Tokyo', o: 9, c: 18, tip: 'La noche asiática: 8 a 12 pips por hora en tus datos.' },
+  { id: 'lon', name: 'Londres', tz: 'Europe/London', o: 8, c: 17, liq: true, tip: 'La plaza más grande de divisas: 13 a 18 pips por hora por la mañana y 18 a 23 cuando coincide con Nueva York.' },
+  { id: 'ny', name: 'Nueva York', tz: 'America/New_York', o: 8, c: 17, liq: true, tip: 'Sus primeras cuatro horas coinciden con Londres: es el solape, lo más movido del día. Por la tarde baja a 9 a 14 pips por hora.' }
+];
+const DAYS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+const span = (tz, oh, ch) => { const off = offsetMin(tz, new Date()); return off == null ? null : [((oh * 60 - off - new Date().getTimezoneOffset()) % 1440 + 1440) % 1440, (ch - oh) * 60]; };
+const segs = sp => (sp[0] + sp[1] <= 1440 ? [[sp[0], sp[1]]] : [[sp[0], 1440 - sp[0]], [0, sp[0] + sp[1] - 1440]]);
+const inSpan = (sp, m) => !!sp && ((m - sp[0] + 1440) % 1440) < sp[1];
+const hmTs = ts => { const d = new Date(ts); return p2(d.getHours()) + ':' + p2(d.getMinutes()); };
+const dayHm = ts => DAYS[new Date(ts).getDay()] + ' ' + hmTs(ts);
+const span2txt = ms => { const m = Math.round(ms / 6e4); return m < 60 ? m + ' min' : m < 2880 ? Math.floor(m / 60) + ' h ' + p2(m % 60) + ' min' : Math.round(m / 1440) + ' días'; };
+const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+
+/* ---- weekly calendar (Forex Factory CSV, times in UTC): red USD and EUR events ---- */
+const LSC = LS + '-cal';
+let CAL = [], calMsg = '', ckSig = '';
+try { const c = JSON.parse(localStorage.getItem(LSC) || '[]'); if (Array.isArray(c)) CAL = c.filter(e => e && typeof e.ts === 'number'); } catch (e) {}
+function csvRows(text) {
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === ',') { row.push(cur); cur = ''; }
+    else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    else if (c !== '\r') cur += c;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+function parseCal(text) {
+  const rows = csvRows(text); if (!rows.length) return [];
+  const hd = rows.shift().map(x => x.trim().toLowerCase()), ix = n => hd.indexOf(n), out = [];
+  if (ix('date') < 0 || ix('time') < 0 || ix('impact') < 0) return [];
+  rows.forEach(r => {
+    const cur = (r[ix('country')] || '').trim().toUpperCase(), imp = (r[ix('impact')] || '').trim().toLowerCase();
+    if ((cur !== 'USD' && cur !== 'EUR') || imp !== 'high') return;
+    const d = (r[ix('date')] || '').match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/), t = (r[ix('time')] || '').trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+    if (!d || !t) return;
+    const h = (+t[1] % 12) + (/pm/i.test(t[3]) ? 12 : 0);
+    out.push({ ts: Date.UTC(+d[3], +d[1] - 1, +d[2], h, +t[2]), cur, title: (r[ix('title')] || '').trim().slice(0, 80),
+      f: (r[ix('forecast')] || '').trim().slice(0, 20), p: (r[ix('previous')] || '').trim().slice(0, 20) });
+  });
+  return out.sort((a, b) => a.ts - b.ts);
+}
+function newsState(now) {
+  if (calMsg) return { hint: 'sin calendario cargado', st: calMsg };
+  if (!CAL.length) return { hint: 'sin calendario cargado', st: null };
+  const range = 'del ' + new Date(CAL[0].ts).toLocaleDateString('es', { day: 'numeric', month: 'short' }) + ' al ' + new Date(CAL[CAL.length - 1].ts).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
+  if (CAL[CAL.length - 1].ts < now - 12 * 3600e3) return { hint: 'calendario vencido', st: 'Calendario vencido (' + range + '). Carga el de esta semana.' };
+  const near = CAL.filter(e => Math.abs(e.ts - now) <= 30 * 6e4).sort((a, b) => Math.abs(a.ts - now) - Math.abs(b.ts - now))[0];
+  if (near) { const m = Math.round(Math.abs(near.ts - now) / 6e4); return { near, hint: 'ahora: no · roja ' + (m === 0 ? 'ahora' : (near.ts >= now ? 'en ' : 'hace ') + m + ' min'), st: 'Roja cerca: ' + near.cur + ' ' + near.title + ' a las ' + hmTs(near.ts) + '. Espera media hora.' }; }
+  const next = CAL.find(e => e.ts > now);
+  if (next) return { hint: 'ahora: sí · próxima en ' + span2txt(next.ts - now), st: 'Próxima roja: ' + next.cur + ' ' + next.title + ', ' + dayHm(next.ts) + '.' };
+  return { hint: 'ahora: sí · sin más rojas', st: 'No quedan rojas de USD ni EUR en este calendario.' };
+}
+function evTip(el, e) {
+  const t = document.createElement('span'); t.className = 'tooltiptext'; t.id = 'ev' + (++uid);
+  t.textContent = dayHm(e.ts) + ' · ' + e.cur + ' ' + e.title + (e.f ? ' · previsión ' + e.f : '') + (e.p ? ' · anterior ' + e.p : '') + '. Dato de alto impacto: no entres desde 30 minutos antes hasta 30 minutos después.';
+  el.appendChild(t); el.classList.add('tooltip'); el.setAttribute('aria-describedby', t.id);
+}
+function drawCal() {
+  const now = Date.now(), box = $('#cal-list'); box.textContent = '';
+  CAL.filter(e => e.ts > now - 3 * 3600e3 && e.ts < now + 48 * 3600e3).slice(0, 8).forEach(e => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.ts = e.ts;
+    b.className = 'evt'; b.textContent = dayHm(e.ts) + ' · ' + e.cur + ' ' + e.title; evTip(b, e); box.appendChild(b);
+  });
+  ckSig = ''; /* force the clock to redraw its news marks */
+}
+function drawClock() {
+  const ck = $('#ck'), now = Date.now(); ck.textContent = '';
+  const add = (cls, left, width, top) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.style.left = (left / 14.4).toFixed(3) + '%';
+    if (width != null) b.style.width = (width / 14.4).toFixed(3) + '%'; if (top != null) b.style.top = top + 'rem'; ck.appendChild(b); return b;
+  };
+  const tipOf = (el, html) => { const t = document.createElement('span'); t.className = 'tooltiptext'; t.id = 'ck' + (++uid); t.innerHTML = html; el.appendChild(t); el.classList.add('tooltip'); el.setAttribute('aria-describedby', t.id); };
+  const widest = list => list.reduce((a, b) => (b[1] > a[1] ? b : a));
+  const lw = span('America/New_York', 2, 12), cl = span('America/New_York', 17, 18);
+  if (lw) { const sg = segs(lw), w = widest(sg); sg.forEach(x => { const b = add('ck-band', x[0], x[1]); if (x === w) { const l = document.createElement('b'); l.textContent = 'ventana líquida'; b.appendChild(l); }
+    tipOf(b, '<b>Ventana líquida:</b> de ' + hm(lw[0]) + ' a ' + hm(lw[0] + lw[1]) + ' en tu hora, de lunes a viernes. Va desde que abre Europa hasta que cierra Londres. En tus datos, aquí una hora típica mueve 13 a 23 pips y ya se hizo el 93% del rango del día cuando termina.'); }); }
+  if (cl) segs(cl).forEach((x, i) => { const b = add('ck-close', x[0], x[1]); if (!i) { const l = document.createElement('b'); l.textContent = 'cierre'; b.appendChild(l); }
+    tipOf(b, '<b>Cierre diario:</b> ' + hm(cl[0]) + ' en tu hora (17:00 de Nueva York). Durante la hora siguiente el spread se abre: en tu archivo sube de 2 puntos a 36 de media. No entres y no dejes stops muy ajustados.'); });
+  SESS.forEach((sx, row) => { const sp = span(sx.tz, sx.o, sx.c); if (!sp) return; const sg = segs(sp), w = widest(sg);
+    sg.forEach(x => { const b = add('ckb' + (sx.liq ? ' liq' : ''), x[0], x[1], row * 1.6); b.dataset.s = sx.id; if (x === w) b.appendChild(document.createTextNode(sx.name)); b.setAttribute('aria-label', sx.name);
+      tipOf(b, '<b>' + sx.name + ':</b> de ' + hm(sp[0]) + ' a ' + hm(sp[0] + sp[1]) + ' en tu hora (' + p2(sx.o) + ':00 a ' + p2(sx.c) + ':00 de allá). ' + sx.tip); }); });
+  CAL.filter(e => sameDay(e.ts, now)).forEach(e => { const d = new Date(e.ts), b = add('ckn' + (e.ts < now ? ' past' : ''), d.getHours() * 60 + d.getMinutes()); b.setAttribute('aria-label', 'Noticia roja ' + hmTs(e.ts)); evTip(b, e); });
+  const n = document.createElement('span'); n.className = 'ck-needle'; n.id = 'ck-needle'; ck.appendChild(n);
+}
+$('#f-cal').addEventListener('change', async ev => {
+  const f = ev.target.files && ev.target.files[0]; if (!f) return;
+  try {
+    const text = f.text ? await f.text() : await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = no; r.readAsText(f); });
+    const list = parseCal(text);
+    if (list.length) { CAL = list; calMsg = ''; try { localStorage.setItem(LSC, JSON.stringify(CAL)); } catch (e) {} }
+    else calMsg = 'Ese archivo no trae datos rojos de USD o EUR. Tiene que ser el ff_calendar_thisweek.csv de Forex Factory.';
+  } catch (e) { calMsg = 'No pude leer el archivo. Prueba otra vez.'; }
+  ev.target.value = ''; drawCal(); tick();
+});
+
+function tick() {
+  const now = new Date(), ts = now.getTime(), el = $('#now span'), el2 = $('#now2 span');
+  const here = p2(now.getHours()) + ':' + p2(now.getMinutes()), lmin = now.getHours() * 60 + now.getMinutes();
+  const sig = now.toDateString() + '|' + now.getTimezoneOffset() + '|' + SESS.map(x => offsetMin(x.tz, now)).join(',') + '|' + CAL.length + '|' + (CAL[0] ? CAL[0].ts : 0);
+  if (sig !== ckSig) { drawClock(); ckSig = sig; }
+  $('#ck-needle').style.left = (lmin / 14.4).toFixed(3) + '%';
+  const ns = newsState(ts);
+  $('#a-news').textContent = ns.hint;
+  if (ns.st) $('#cal-st').textContent = ns.st;
+  $$('.evt').forEach(b => { const t = +b.dataset.ts; b.classList.toggle('past', t < ts - 30 * 6e4); b.classList.toggle('near', Math.abs(t - ts) <= 30 * 6e4); });
+  $$('.hb.now').forEach(b => b.classList.remove('now'));
+  if (nyOff == null) { el.textContent = el2.textContent = 'sin zona horaria: las horas se muestran en horario de Nueva York'; $('#ck-now').textContent = here; $('#a-session').textContent = 'mira el reloj'; return; }
+  const ny = new Date(ts + offsetMin('America/New_York', now) * 6e4), h = ny.getUTCHours(), dow = ny.getUTCDay();
+  const i = (h - D.ny0 + 24) % 24, closed = dow === 6 || (dow === 5 && h >= 17) || (dow === 0 && h < 17);
+  const open = closed ? [] : SESS.filter(x => inSpan(span(x.tz, x.o, x.c), lmin)), liq = !closed && h >= 2 && h < 12;
+  $$('.ckb').forEach(b => b.classList.toggle('open', open.some(x => x.id === b.dataset.s)));
+  $('#a-session').textContent = closed ? 'mercado cerrado' : liq ? 'ahora: sí' : 'ahora: no';
+  const ckn = $('#ck-now'); ckn.textContent = '';
+  const hb = document.createElement('b'); hb.textContent = here; ckn.appendChild(hb);
+  ckn.appendChild(document.createTextNode(closed ? ' · mercado cerrado por fin de semana; abre el domingo a las ' + loc(17)
+    : ' · ' + (open.length ? (open.length > 1 ? 'abiertas: ' : 'abierta: ') + open.map(x => x.name).join(' y ') : 'entre sesiones') + ' · ' + (liq ? 'dentro de la ventana líquida' : 'fuera de la ventana líquida')));
+  if (closed) { el.textContent = el2.textContent = here + ' · mercado cerrado por fin de semana'; return; }
+  $$('.hb[data-h="' + h + '"]').forEach(b => b.classList.add('now'));
+  const kind = h === 17 ? 'cierre diario, spread alto' : (liq ? 'hora fuerte' : 'hora tranquila');
+  el.textContent = here + ' · ' + kind + ' · ' + D.med[i].toFixed(0) + ' pips por hora · spread ' + D.sp[i].toFixed(2);
+  const t = D.turn[i];
+  el2.textContent = here + ' · ' + (t >= 6 ? 'hora de muchos giros' : t < 3.5 ? 'hora de pocos giros' : 'hora de giros normales') + ' · aquí cae ' + t.toFixed(1) + '% de los giros del día';
+}
+
+/* ---- render ---- */
+const money = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const px = x => { const s = x.toFixed(5); return '<span class="px">' + s.slice(0, -3) + '<b>' + s.slice(-3, -1) + '</b><sup>' + s.slice(-1) + '</sup></span>'; };
+const ORDER = { limite: 'LÍMITE', stop: 'STOP', mercado: 'A MERCADO' };
+const numEls = { capital: $('#f-capital'), atr: $('#f-atr'), stop: $('#f-stop'), entry: $('#f-entry'), l0: $('#f-l0'), l1: $('#f-l1'), lp: $('#f-lp'), dh: $('#f-dh'), dl: $('#f-dl') };
+const nv = v => parseFloat(String(v).replace(',', '.'));
+const pp = v => (v < 10 ? v.toFixed(1) : String(Math.round(v))) + ' pips';
+
+function render() {
+  const J = judge(S), P = plan(S.num, S.pick);
+  /* keys */
+  $$('.key').forEach(k => {
+    const t = k.dataset; let on = false;
+    if (t.dir) on = (S.dir[t.dir] | 0) === +t.v;
+    else if (t.gate) on = !!S.gate[t.gate];
+    else if (t.exit) on = !!S.exit[t.exit];
+    else if (t.pick) on = S.pick[t.pick] === t.v;
+    else if (t.tag) on = !!S.tags[t.tag];
+    else if (t.view) on = S.table;
+    k.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  $$('[data-pick="stopf"],[data-pick="scale"]').forEach(k => { $('small', k).textContent = (P.atr > 0 ? Math.round(P.atr * +k.dataset.v) : '—') + ' pips'; });
+  $('#tbl').hidden = !S.table;
+  const dh = nv(S.num.dh), dl = nv(S.num.dl), used = (dh - dl) / PIP;
+  $('#a-room').textContent = !(P.atr > 0) ? 'hoy menos que el ATR' : dh > 0 && dl > 0 && dh > dl
+    ? (used < P.atr ? 'sí: lleva ' : 'no: lleva ') + Math.round(used) + ' de ' + Math.round(P.atr) + ' pips' : 'hoy menos de ' + Math.round(P.atr) + ' pips';
+  if (drawn !== S.pick.tset) { drawTurns(); if (drawn && uid > 48) tick(); }
+  /* roles <-> skills */
+  const roles = $$('.key[data-tag^="r-"]'), rel = new Set();
+  roles.forEach(r => { if (S.tags[r.dataset.tag]) r.dataset.skills.split(' ').forEach(s => rel.add('s-' + s)); });
+  $$('.key[data-tag^="s-"]').forEach(s => { if (S.tags[s.dataset.tag]) roles.forEach(r => { if (r.dataset.skills.split(' ').includes(s.dataset.tag.slice(2))) rel.add(r.dataset.tag); }); });
+  $$('.key[data-tag]').forEach(k => k.classList.toggle('rel', rel.has(k.dataset.tag) && !S.tags[k.dataset.tag]));
+  $$('.desk[data-roles]').forEach(d => d.classList.toggle('lit', d.dataset.roles.split(' ').some(r => S.tags['r-' + r])));
+  /* plan */
+  const act = J.v === 'seek' || J.v === 'go';
+  [['buy', 1], ['sell', -1]].forEach(([side, dir]) => {
+    const el = $('#tk-' + side);
+    el.classList.toggle('on', act && J.dir === dir); el.classList.toggle('off', act && J.dir !== dir);
+    $('.e', el).innerHTML = P.ok ? px(P.entry) : '—'; $('.s', el).innerHTML = P.ok ? px(P[side].sl) : '—'; $('.t', el).innerHTML = P.ok ? px(P[side].tp) : '—';
+  });
+  const tiny = P.ok && P.lots < 0.01;
+  $('#o-lots').textContent = !P.ok ? '—' : tiny ? '< 0.01' : P.lots.toFixed(2);
+  $('#o-lots-s').textContent = P.ok && !tiny ? 'lotes (' + Math.round(P.lots * 100000).toLocaleString('en-US') + ' €)' : 'lotes';
+  $('#o-risk').textContent = P.ok && !tiny ? money(P.real) : '—';
+  $('#o-risk-s').textContent = P.ok && !tiny ? 'riesgo: ' + (P.real / P.cap * 100).toFixed(2) + '% de la cuenta' : 'riesgo si salta el stop';
+  $('#o-gain').textContent = P.ok && !tiny ? money(P.gain) : '—';
+  $('#o-be').textContent = P.ok ? Math.round(P.be * 100) + '%' : '—';
+  const tgt = P.stop * P.rr;
+  $('#o-ctx').textContent = !P.ok ? 'Completa capital, stop y entrada para ver el plan.' :
+    'Objetivo a ' + Math.round(tgt) + ' pips' + (P.atr > 0 ? ': ' + Math.round(tgt / P.atr * 100) + '% de un día típico' + (tgt > P.atr ? '. Es una operación de más de un día.' : '.') : '.');
+  const w = $('#o-warn'); w.hidden = !tiny;
+  if (tiny) w.textContent = 'El lote mínimo (0.01) arriesgaría ' + money(P.minLotRisk) + ' y tu límite es ' + money(P.riskUsd) + '. Acorta el stop, o esta operación no cabe en tu cuenta.';
+  let slip = '';
+  if (act && P.ok && !tiny) {
+    const sd = J.dir > 0 ? 'buy' : 'sell';
+    slip = (J.dir > 0 ? 'COMPRA ' : 'VENTA ') + ORDER[S.pick.order] + ' · ' + P.lots.toFixed(2) + ' EURUSD · ' + px(P.entry) + ' · SL ' + px(P[sd].sl) + ' · TP ' + px(P[sd].tp);
+  }
+  const so = $('#o-slip'); so.classList.toggle('none', !slip);
+  so.innerHTML = slip || (act ? 'Completa el plan para ver la orden.' : 'Sin sesgo todavía: el plan muestra los dos lados.');
+  $('#entry-note').hidden = S.num.entry !== DEF.entry;
+  /* leg tracker */
+  const K = track(S.num, S.pick), leg = K.dn ? 'bajada' : 'subida', cm = K.dn ? 'rebote' : 'retroceso';
+  $('#lb-l0').textContent = K.dn ? 'Máximo' : 'Mínimo';
+  $('#lb-l1').textContent = K.dn ? 'Mínimo' : 'Máximo';
+  $('#leg-note').hidden = !(S.num.l0 === DEF.l0 && S.num.l1 === DEF.l1 && S.num.lp === DEF.lp && S.pick.leg === 'down');
+  $('#t-level').innerHTML = K.ok ? px(K.level) : '—';
+  $('#t-level-s').textContent = 'nivel de cambio' + (K.T > 0 ? ': ' + cm + ' de ' + Math.round(K.T) + ' pips' : '');
+  $('#t-bounce').textContent = K.ok ? pp(K.bounce) : '—';
+  $('#t-bounce-s').textContent = cm + ' ahora' + (K.ok && K.formed ? ': ≈ ' + Math.round(K.pOver * 100) + '% de que el tramo ya terminó' : '');
+  $('#t-travel').textContent = K.ok ? pp(K.travel) : '—';
+  $('#t-travel-s').textContent = !K.ok ? 'recorrido' : K.formed ? 'recorrido: más largo que ' + Math.round(K.pct * 100) + '% de los tramos' : 'recorrido: aún menor que el umbral';
+  $('#t-half').innerHTML = K.ok ? px(K.half) : '—';
+  $('#t-more').innerHTML = K.ok ? 'Desde un extremo nuevo, 1 de cada 4 tramos llega a ' + px(K.quarter) + ' y 1 de cada 10 a ' + px(K.tenth) + '.' : '';
+  let st = '', alert = false;
+  if (!K.ok) st = 'Escribe los tres precios. En una ' + leg + ' el ' + (K.dn ? 'máximo es mayor que el mínimo y va primero' : 'mínimo es menor que el máximo y va primero') + '.';
+  else if (K.beyond) st = 'El precio ya pasó el extremo: actualiza el ' + (K.dn ? 'mínimo' : 'máximo') + '.';
+  else if (K.broken) { st = '<b>Cambio.</b> El ' + cm + ' de ' + pp(K.bounce) + ' alcanzó el umbral: la ' + leg + ' terminó en ' + px(parseFloat(String(S.num.l1).replace(',', '.'))) + '.'; alert = true; }
+  else if (!K.formed) st = 'Todavía no es un tramo a esta escala: lleva ' + pp(K.travel) + ' y el umbral es ' + Math.round(K.T) + '.';
+  else st = '<b>La ' + leg + ' sigue.</b> ' + (K.pOver < 0.34 ? 'El ' + cm + ' está dentro de lo normal.' : K.pOver < 0.67 ? 'El ' + cm + ' ya va a medio camino del cambio.' : 'El ' + cm + ' está cerca del nivel de cambio.');
+  $('#t-status-t').innerHTML = st; $('#t-status').classList.toggle('alert', alert); $('#t-flip').hidden = !alert;
+  /* tape */
+  document.body.dataset.v = J.v; document.body.dataset.d = J.dir;
+  $('#verdict').textContent = J.word;
+  $('#why').innerHTML = J.v === 'go' ? (slip || 'Todo alineado. Completa el plan del paso 5.') : J.why;
+  const sg = v => (v > 0 ? 'up' : v < 0 ? 'down' : '');
+  const m = (S.dir.m1 | 0) + (S.dir.m2 | 0) + (S.dir.m3 | 0), mset = S.dir.m1 || S.dir.m2 || S.dir.m3;
+  const lamp = { macro: m ? sg(m) : (mset ? 'mix' : ''), trend: sg(S.dir.t1 | 0), level: sg(S.dir.t2 | 0), trig: sg(S.dir.t3 | 0) };
+  $$('.lamp').forEach(l => { l.dataset.s = lamp[l.dataset.l]; });
+  $('#gcount').textContent = GATES.filter(G => S.gate[G.id]).length + '/' + GATES.length;
+}
+
+/* ---- pressing ---- */
+function press(k) {
+  const t = k.dataset;
+  if (t.dir) { S.dir[t.dir] = (S.dir[t.dir] | 0) === +t.v ? 0 : +t.v; S.ts = Date.now(); }
+  else if (t.gate) { S.gate[t.gate] = !S.gate[t.gate]; S.ts = Date.now(); }
+  else if (t.exit) { S.exit[t.exit] = !S.exit[t.exit]; S.ts = Date.now(); }
+  else if (t.pick === 'stopf') {
+    if (S.pick.stopf === t.v) S.pick.stopf = '';
+    else { S.pick.stopf = t.v; const a = parseFloat(String(S.num.atr).replace(',', '.')); if (a > 0) { S.num.stop = String(Math.round(a * +t.v)); numEls.stop.value = S.num.stop; } }
+  }
+  else if (t.pick) S.pick[t.pick] = t.v;
+  else if (t.tag) S.tags[t.tag] = !S.tags[t.tag];
+  else if (t.view) S.table = !S.table;
+  save(); render();
+}
+Object.entries(numEls).forEach(([id, el]) => {
+  el.value = S.num[id];
+  el.addEventListener('input', () => {
+    S.num[id] = el.value.trim();
+    if (id === 'stop') S.pick.stopf = '';
+    if (id === 'dh' || id === 'dl') S.dts = Date.now();
+    if (id === 'atr' && S.pick.stopf) { const a = parseFloat(S.num.atr.replace(',', '.')); if (a > 0) { S.num.stop = String(Math.round(a * +S.pick.stopf)); numEls.stop.value = S.num.stop; } }
+    save(); render();
+  });
+});
+$('#clear').addEventListener('click', () => { S.dir = {}; S.gate = {}; S.exit = {}; S.ts = 0; save(); render(); });
+$('#t-flip').addEventListener('click', () => {
+  S.pick.leg = S.pick.leg === 'up' ? 'down' : 'up'; S.num.l0 = S.num.l1; S.num.l1 = S.num.lp;
+  numEls.l0.value = S.num.l0; numEls.l1.value = S.num.l1; save(); render();
+});
+
+/* ---- tooltips: hover and focus with a mouse or keyboard; tap or long-press on touch ---- */
+const tip = $('#tip'), tape = $('#tape');
+let tipEl = null, ptype = 'mouse', lp = 0, lpAt = [0, 0], lpFired = false;
+$$('.tooltip').forEach((el, i) => { const t = $('.tooltiptext', el); if (t) { t.id = 'tt' + i; el.setAttribute('aria-describedby', t.id); } });
+function place() {
+  if (!tipEl) return;
+  const r = tipEl.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = window.innerHeight;
+  const tw = tip.offsetWidth, th = tip.offsetHeight, top0 = tape.getBoundingClientRect().bottom + 4;
+  const x = Math.max(12, Math.min(vw - tw - 12, r.left + r.width / 2 - tw / 2));
+  let above = r.top - th - 10 >= top0;
+  if (!above && r.bottom + 10 + th > vh && r.top - top0 > vh - r.bottom) above = true;
+  if (tipEl.closest('.tape')) above = false;
+  tip.classList.toggle('below', !above);
+  tip.style.left = (x + window.scrollX) + 'px';
+  tip.style.top = ((above ? r.top - th - 10 : r.bottom + 10) + window.scrollY) + 'px';
+  tip.style.setProperty('--ax', Math.max(14, Math.min(tw - 14, r.left + r.width / 2 - x)) + 'px');
+}
+function show(el) {
+  const t = $('.tooltiptext', el);
+  if (!t) { hide(); return; }
+  $$('.hb.sel').forEach(b => b.classList.remove('sel'));
+  if (el.classList.contains('hb')) el.classList.add('sel');
+  tipEl = el; tip.innerHTML = t.innerHTML; tip.hidden = false; tip.style.left = '0px'; tip.style.top = '0px'; place();
+}
+function hide() { tipEl = null; tip.hidden = true; $$('.hb.sel').forEach(b => b.classList.remove('sel')); }
+document.addEventListener('pointerdown', e => {
+  ptype = e.pointerType || 'mouse';
+  const k = e.target.closest('.tooltip'); clearTimeout(lp); lpFired = false;
+  if (k && ptype !== 'mouse') { lpAt = [e.clientX, e.clientY]; lp = setTimeout(() => { lpFired = true; show(k); }, 480); }
+}, { passive: true });
+document.addEventListener('pointermove', e => { if (Math.abs(e.clientX - lpAt[0]) > 10 || Math.abs(e.clientY - lpAt[1]) > 10) clearTimeout(lp); }, { passive: true });
+['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => clearTimeout(lp), { passive: true }));
+document.addEventListener('contextmenu', e => { if (ptype !== 'mouse' && e.target.closest('.tooltip')) e.preventDefault(); });
+document.addEventListener('pointerover', e => { if (e.pointerType === 'mouse') { const k = e.target.closest('.tooltip'); if (k && k !== tipEl) show(k); } });
+document.addEventListener('pointerout', e => { if (e.pointerType === 'mouse') { const k = e.target.closest('.tooltip'); if (k && !k.contains(e.relatedTarget)) hide(); } });
+document.addEventListener('focusin', e => { const k = e.target.closest('.tooltip'); if (k && e.target.matches(':focus-visible') && ptype === 'mouse') show(k); });
+document.addEventListener('focusout', () => { if (ptype === 'mouse') hide(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); else ptype = 'mouse'; });
+document.addEventListener('click', e => {
+  if (e.target.closest('#tip')) { hide(); return; }
+  const k = e.target.closest('.key'), t = e.target.closest('.tooltip');
+  if (lpFired) { lpFired = false; e.preventDefault(); return; }
+  if (k) press(k);
+  if (!t) { hide(); return; }
+  if (ptype !== 'mouse') show(t); else if (tipEl) place();
+});
+window.addEventListener('resize', place);
+window.addEventListener('scroll', () => { if (tipEl && tipEl.closest('.tape')) hide(); }, { passive: true });
+
+render(); drawCal(); tick(); setInterval(tick, 30000);
+})();
+</script>
+
+</body></html>
