@@ -283,14 +283,102 @@ tr.liq td:first-child{font-weight:600}
 .foot strong{color:var(--ink);font-weight:600}
 .foot a{color:inherit;text-underline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---------- tape: two buttons, short title on phones ---------- */
+.tapebtns{grid-area:clear;display:flex;align-items:center;gap:.4rem}
+.hs{display:none}
+@media (min-width:30rem){.hs{display:inline}}
+
+/* ---------- theory links inside tooltips; the pseudo-element bridges the gap so a mouse can reach the link ---------- */
+#tip::before{content:"";position:absolute;left:0;right:0;bottom:-14px;height:14px}
+#tip.below::before{bottom:auto;top:-14px}
+#tip a{color:inherit;text-decoration:underline;text-underline-offset:2px;display:inline-block;padding:.2rem 0}
+#tip .p.thl{margin-top:.5rem;padding-top:.3rem;border-top:1px solid rgb(128 128 128 / .5);font-weight:600}
+
+/* ---------- Teoría view: same board look, its own sticky bar ---------- */
+body[data-view="teoria"][data-v]{--band-bg:var(--panel);--band-fg:var(--ink);--verdict:var(--ink)}
+.thbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--panel);color:var(--ink);border-bottom:1px solid var(--line)}
+.thbar-in{display:flex;align-items:center;gap:.4rem;padding-block:.5rem}
+.thtitle{margin:0 0 0 auto;font:600 1.0625rem/1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase}
+.theory{columns:21rem auto;column-gap:var(--gap);padding-block:.625rem .25rem}
+.th{break-inside:avoid;scroll-margin-top:calc(env(safe-area-inset-top,0px) + 4rem);background:var(--panel);border:1px solid var(--line);border-radius:6px;
+  margin:0 0 var(--gap);padding:.75rem;display:grid;grid-template-columns:minmax(0,1fr);gap:.55rem;
+  transition:background-color .6s ease,border-color .6s ease}
+.th.flash{background:var(--hold-wash);border-color:var(--hold)}
+.th p,.th li{margin:0;font-size:.9375rem;line-height:1.5}
+.th ul,.th ol{margin:0;padding-left:1.2rem;display:grid;gap:.35rem}
+.th h3{margin:.2rem 0 0;font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.th b{font-weight:600}
+.th a{color:inherit;text-underline-offset:2px}
+.th .px{font-weight:600}
+.kick{margin:0;font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.th .note{font-size:.8125rem;line-height:1.4;color:var(--ink-2)}
+.callout{padding:.5rem .65rem;border-radius:5px;border:1px solid var(--hold);background:var(--hold-wash)}
+.callout.rule{border-color:var(--ok);background:var(--ok-wash)}
+
+/* index of topics */
+.ixs{display:grid;gap:.6rem}
+.ixs>div{display:grid;gap:.3rem}
+.ixl{display:flex;flex-wrap:wrap;gap:.375rem}
+.th .ixl a{display:inline-flex;align-items:center;min-height:2.25rem;padding:.25rem .7rem;border:1px solid var(--line);border-radius:99px;background:var(--key);
+  box-shadow:0 1px 0 var(--edge);color:var(--ink);text-decoration:none;font:500 .875rem/1.15 var(--f-cond);-webkit-tap-highlight-color:transparent}
+.th .ixl a:hover{border-color:var(--edge)}
+
+/* the four pending orders */
+.q4{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:.375rem}
+.o4{min-width:0;display:grid;gap:.15rem;align-content:start;background:var(--key);border:1px solid var(--line);border-left:4px solid var(--ink);border-radius:5px;padding:.45rem .55rem}
+.o4.buy{border-left-color:var(--buy)}
+.o4.sell{border-left-color:var(--sell)}
+.th .o4 h3{margin:0;font:600 .875rem/1.2 var(--f-cond);letter-spacing:.02em;text-transform:none;color:var(--ink)}
+.th .o4 p{font-size:.8125rem;line-height:1.35;color:var(--ink-2)}
+
+/* text tables and glossary */
+.tt{width:100%;font:400 .8125rem/1.35 var(--f-text)}
+.tt th,.tt td{padding:.35rem .4rem;text-align:left;vertical-align:top;white-space:normal}
+.tt th{font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)}
+.tt td:first-child{font-weight:600}
+.th dl{margin:0;display:grid;grid-template-columns:minmax(0,1fr);gap:.1rem}
+.th dt{margin-top:.45rem;font:600 .875rem/1.25 var(--f-cond);letter-spacing:.02em}
+.th dd{margin:0;font-size:.875rem;line-height:1.45;color:var(--ink-2)}
+
+/* figures: marks use the same tokens as the board, so both themes follow */
+.fig-o{margin:0;display:grid;gap:.4rem}
+.fig-o figcaption{font-size:.8125rem;line-height:1.4;color:var(--ink-2)}
+.dg{display:block;width:100%;max-width:26rem;height:auto;margin-inline:auto;color:var(--ink-2);overflow:visible}
+.dg-axis{stroke:var(--ink);stroke-width:1.5}
+.dg-div{stroke:var(--line);stroke-width:1}
+.dg-lvl{fill:none;stroke-width:1.75;stroke-dasharray:6 4}
+.dg-lvl.b{stroke:var(--buy)}
+.dg-lvl.s{stroke:var(--sell)}
+.dg-path{fill:none;stroke:var(--ink-2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dg-dot{fill:var(--ink-2)}
+.dg-b{fill:var(--buy)}
+.dg-s{fill:var(--sell)}
+.dg-ring{stroke:var(--panel);stroke-width:3;paint-order:stroke;stroke-linejoin:round}
+.dg-pill{fill:var(--panel);stroke:var(--edge);stroke-width:1}
+.dg-h{font:600 12px var(--f-cond);letter-spacing:.09em;fill:var(--ink)}
+.dg-n{font:600 13px var(--f-cond);fill:var(--ink)}
+.dg-t{font:500 11.5px var(--f-cond);fill:var(--ink-2)}
+.dg-m{font:600 12px var(--f-mono);fill:var(--ink)}
+.dg-step{fill:none;stroke:var(--hold);stroke-width:2;stroke-dasharray:6 4;stroke-linejoin:round}
+.dg-ref{stroke:var(--ink-3);stroke-width:1;stroke-dasharray:2 3}
+.dg-dim{stroke:var(--ink-2);stroke-width:1.25}
+.dg-ringc{fill:var(--panel);stroke:var(--ink-2);stroke-width:2}
+.dg-cross{fill:var(--hold)}
+
+/* comfortable tap targets for the view buttons; focus ring that shows on the dark tooltip too */
+.tapebtns .clear{min-height:2rem}
+.thbar .clear{min-height:2.5rem;padding-inline:.85rem;font-size:.75rem}
+#tip :focus-visible{outline-color:currentColor}
+.th:focus{outline:none}
 </style>
 
 <header class="tape" id="tape">
   <div class="wrap tape-in">
-    <h1 class="eyebrow">Mesa de decisión · EURUSD</h1>
-    <strong class="verdict tooltip" tabindex="0"><span id="verdict" aria-live="polite">ESPERAR</span><span class="tooltiptext"><span class="p"><b>Qué dice cada veredicto.</b></span><span class="p"><b>ESPERAR:</b> falta el sesgo macro o la tendencia, o el macro está dividido.</span><span class="p"><b>NO OPERAR:</b> macro y tendencia apuntan a lados opuestos.</span><span class="p"><b>BUSCAR COMPRA o VENTA:</b> hay dirección; falta el nivel, el gatillo o algún permiso.</span><span class="p"><b>COMPRAR o VENDER:</b> las cuatro luces apuntan al mismo lado y están los 7 permisos.</span><span class="p"><b>SALIR o REDUCIR:</b> marcaste una condición del paso 6.</span></span></strong>
+    <h1 class="eyebrow">Mesa<span class="hs"> de decisión</span> · EURUSD</h1>
+    <strong class="verdict tooltip" tabindex="0" data-teoria="veredicto"><span id="verdict" aria-live="polite">ESPERAR</span><span class="tooltiptext"><span class="p"><b>Qué dice cada veredicto.</b></span><span class="p"><b>ESPERAR:</b> falta el sesgo macro o la tendencia, o el macro está dividido.</span><span class="p"><b>NO OPERAR:</b> macro y tendencia apuntan a lados opuestos.</span><span class="p"><b>BUSCAR COMPRA o VENTA:</b> hay dirección; falta el nivel, el gatillo o algún permiso.</span><span class="p"><b>COMPRAR o VENDER:</b> las cuatro luces apuntan al mismo lado y están los 7 permisos.</span><span class="p"><b>SALIR o REDUCIR:</b> marcaste una condición del paso 6.</span></span></strong>
     <p class="why" id="why">Empieza por el sesgo macro y la tendencia.</p>
-    <button type="button" class="lamps tooltip" id="lamps" aria-label="Resumen de la lista">
+    <button type="button" class="lamps tooltip" id="lamps" aria-label="Resumen de la lista" data-teoria="veredicto">
       <span class="lamp" data-l="macro"><i></i><span>Macro</span></span>
       <span class="lamp" data-l="trend"><i></i><span>Tendencia</span></span>
       <span class="lamp" data-l="level"><i></i><span>Nivel</span></span>
@@ -298,40 +386,40 @@ tr.liq td:first-child{font-weight:600}
       <span class="cnt"><span id="gcount">0/7</span><small>permisos</small></span>
       <span class="tooltiptext"><span class="p"><b>Resumen.</b> Cuatro luces de dirección: macro, tendencia, nivel y gatillo. Triángulo hacia arriba: a favor de comprar. Hacia abajo: a favor de vender. Círculo lleno: macro dividido.</span><span class="p">El contador son los permisos de los pasos 3 y 4. Solo dice COMPRAR o VENDER cuando las cuatro luces apuntan al mismo lado y están los 7 permisos.</span></span>
     </button>
-    <button type="button" class="clear tooltip" id="clear">Limpiar<span class="tooltiptext">Suelta todos los botones de los pasos 1 a 6. Tu capital, riesgo y precios se conservan. La lista también se limpia sola a las 8 horas, para no decidir con condiciones de ayer.</span></button>
+    <div class="tapebtns"><button type="button" class="clear" data-go="teoria">Teoría</button><button type="button" class="clear tooltip" id="clear" data-teoria="veredicto">Limpiar<span class="tooltiptext">Suelta todos los botones de los pasos 1 a 6. Tu capital, riesgo y precios se conservan. La lista también se limpia sola a las 8 horas, para no decidir con condiciones de ayer.</span></button></div>
   </div>
 </header>
 
 <section class="wrap clockwrap" aria-labelledby="ck-t">
   <div class="clock">
     <header><h2 id="ck-t">Reloj del mercado, en tu hora</h2><p class="ck-now" id="ck-now">—</p></header>
-    <div class="ck" id="ck"></div>
+    <div class="ck" id="ck" data-teoria="sesion"></div>
     <div class="ck-axis" aria-hidden="true"><span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span><span>24</span></div>
   </div>
 </section>
 
-<p class="wrap hint">Toca lo que se cumpla; queda marcado hasta que lo toques otra vez. Cada botón trae su regla en pequeño; son reglas prácticas, no garantías. Mantén presionado un botón, o toca su «?», para ver cómo comprobarla paso a paso.</p>
+<p class="wrap hint">Toca lo que se cumpla; queda marcado hasta que lo toques otra vez. Cada botón trae su regla en pequeño; son reglas prácticas, no garantías. Mantén presionado un botón, o toca su «?», para ver cómo comprobarla paso a paso. Cada ayuda termina con «Ver teoría ↗», y el botón «Teoría», arriba, abre todos los temas.</p>
 
 <main class="wrap board" id="board">
 
   <section class="desk" data-roles="macro research">
     <header><span class="n">1</span><h2>Sesgo macro</h2><span class="role">Estratega macro</span></header>
     <p class="q">¿Hacia dónde empuja el dinero grande? Es lo único que no sale de tu MT5.</p>
-    <div>
+    <div data-teoria="tipos">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Tipos de interés<i aria-hidden="true">?</i><span class="tooltiptext">El dinero grande se mueve hacia la moneda que paga más interés. Por eso lo primero que mira una mesa es qué banco central va más duro: la Fed, que maneja el dólar, o el BCE, que maneja el euro. Marca uno de los dos botones, o ninguno si van parejos.</span></button></p>
       <div class="keys">
         <button type="button" class="key up tooltip" data-dir="m1" data-v="1" aria-pressed="false"><span class="kt">BCE más duro<small>diferencia a 2 años baja</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El mercado espera tipos relativamente más altos en Europa que en EE. UU. Eso empuja al euro hacia arriba.</span><span class="p"><b>Cómo saberlo.</b> En TradingView, que es gratis, busca US02Y y DE02Y: son los rendimientos a 2 años de EE. UU. y de Alemania. Resta el alemán al de EE. UU. Haz la misma resta con los valores de hace un mes.</span><span class="p"><b>Márcalo si</b> la diferencia bajó más de 0.10 en el mes. Ejemplo: hoy 3.60 − 2.10 = 1.50 y hace un mes era 1.70. Bajó 0.20: BCE más duro. Si cambió menos de 0.10, no marques ninguno.</span></span></button>
         <button type="button" class="key down tooltip" data-dir="m1" data-v="-1" aria-pressed="false"><span class="kt">Fed más dura<small>diferencia a 2 años sube</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El mercado espera tipos relativamente más altos en EE. UU. que en Europa. El dinero va al dólar y el EURUSD baja.</span><span class="p"><b>Cómo saberlo.</b> En TradingView busca US02Y y DE02Y: los rendimientos a 2 años de EE. UU. y de Alemania. Resta el alemán al de EE. UU. Haz la misma resta con los valores de hace un mes. Segunda opinión: la herramienta FedWatch de CME muestra qué espera el mercado de la Fed.</span><span class="p"><b>Márcalo si</b> la diferencia subió más de 0.10 en el mes. Ejemplo: hoy 1.70 y hace un mes 1.50. Si cambió menos de 0.10, no marques ninguno.</span></span></button>
       </div>
     </div>
-    <div>
+    <div data-teoria="sorpresas">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Datos económicos<i aria-hidden="true">?</i><span class="tooltiptext">Empleo, inflación y actividad. No importa si el dato es bueno o malo, sino si salió mejor o peor de lo que se esperaba. Lo esperado ya está en el precio; la sorpresa es lo que lo mueve.</span></button></p>
       <div class="keys">
         <button type="button" class="key up tooltip" data-dir="m2" data-v="1" aria-pressed="false"><span class="kt">Sorprende Europa<small>más verdes en EUR</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Los datos de la eurozona salen mejor de lo esperado, o los de EE. UU. peor.</span><span class="p"><b>Cómo saberlo.</b> En el calendario de Forex Factory revisa los datos de carpeta roja de los últimos 7 días. El número de la columna Actual sale en verde si fue mejor de lo previsto para esa moneda, y en rojo si fue peor.</span><span class="p"><b>Márcalo si</b> EUR tiene más verdes que rojos y USD no. Si es USD el que tiene más verdes, marca el otro botón. Si están parejos, ninguno.</span></span></button>
         <button type="button" class="key down tooltip" data-dir="m2" data-v="-1" aria-pressed="false"><span class="kt">Sorprende EE.&nbsp;UU.<small>más verdes en USD</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Los datos de EE. UU., como empleo, ISM o inflación, salen mejor de lo esperado, o los europeos peor.</span><span class="p"><b>Cómo saberlo.</b> En el calendario de Forex Factory revisa los datos de carpeta roja de los últimos 7 días. El número de la columna Actual sale en verde si fue mejor de lo previsto para esa moneda, y en rojo si fue peor.</span><span class="p"><b>Márcalo si</b> USD tiene más verdes que rojos y EUR no. Si es EUR el que tiene más verdes, marca el otro botón. Si están parejos, ninguno.</span></span></button>
       </div>
     </div>
-    <div>
+    <div data-teoria="animo">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Ánimo del mercado<i aria-hidden="true">?</i><span class="tooltiptext">Cuando hay miedo, el mundo compra dólares como refugio; cuando hay confianza, los suelta. Se mide con la bolsa de EE. UU. (S&amp;P 500) y con el VIX, al que llaman el índice del miedo.</span></button></p>
       <div class="keys">
         <button type="button" class="key up tooltip" data-dir="m3" data-v="1" aria-pressed="false"><span class="kt">Apetito de riesgo<small>bolsa sube, VIX bajo 20</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Los inversores están confiados y sueltan el dólar que tenían como refugio. Suele ayudar al EURUSD a subir.</span><span class="p"><b>Cómo saberlo.</b> En TradingView, Investing o Yahoo Finanzas busca dos cosas: SPX, que es el S&amp;P 500, y VIX.</span><span class="p"><b>Márcalo si</b> el S&amp;P 500 va subiendo en la semana y el VIX está por debajo de 20. Por debajo de 20 se considera un mercado en calma.</span></span></button>
@@ -344,21 +432,21 @@ tr.liq td:first-child{font-weight:600}
   <section class="desk" data-roles="tech">
     <header><span class="n">2</span><h2>Estructura y nivel</h2><span class="role">Analista técnico</span></header>
     <p class="q">¿Dónde sale barato probar la idea? Todo esto se ve en tu gráfico de MT5.</p>
-    <div>
+    <div data-teoria="tendencia">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Tendencia en D1<i aria-hidden="true">?</i><span class="tooltiptext">La dirección de fondo. Se mira en el gráfico diario (D1) con dos medias móviles, la de 50 y la de 200 días. Operar a favor de ella es la regla base; si contradice al paso 1, el panel dice NO OPERAR.</span></button></p>
       <div class="keys">
         <button type="button" class="key up tooltip" data-dir="t1" data-v="1" aria-pressed="false"><span class="kt">Alcista<small>sobre las medias 50 y 200</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> La dirección de fondo del precio es hacia arriba.</span><span class="p"><b>Cómo saberlo.</b> En MT5 abre el EURUSD en D1 y añade dos veces el indicador Moving Average, del grupo Tendencia: una de 50 periodos y otra de 200, método Simple, aplicada a Close.</span><span class="p"><b>Márcalo si</b> el precio está por encima de las dos medias y la de 50 está por encima de la de 200. Si el precio está entre las dos, no hay tendencia clara: no marques ninguno.</span><span class="p"><b>Confirmación.</b> En H4, los últimos mínimos son cada vez más altos.</span></span></button>
         <button type="button" class="key down tooltip" data-dir="t1" data-v="-1" aria-pressed="false"><span class="kt">Bajista<small>bajo las medias 50 y 200</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> La dirección de fondo del precio es hacia abajo.</span><span class="p"><b>Cómo saberlo.</b> En MT5 abre el EURUSD en D1 y añade dos veces el indicador Moving Average, del grupo Tendencia: una de 50 periodos y otra de 200, método Simple, aplicada a Close.</span><span class="p"><b>Márcalo si</b> el precio está por debajo de las dos medias y la de 50 está por debajo de la de 200. Si el precio está entre las dos, no hay tendencia clara: no marques ninguno.</span><span class="p"><b>Confirmación.</b> En H4, los últimos máximos son cada vez más bajos.</span></span></button>
       </div>
     </div>
-    <div>
+    <div data-teoria="niveles">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Dónde está el precio<i aria-hidden="true">?</i><span class="tooltiptext">No se compra en cualquier parte. Se espera a que el precio llegue a un nivel donde ya reaccionó antes: ahí el stop queda cerca y arriesgas poco. Los niveles que más se miran son el máximo y el mínimo de ayer y de la semana pasada, y los números redondos.</span></button></p>
       <div class="keys">
         <button type="button" class="key up tooltip" data-dir="t2" data-v="1" aria-pressed="false"><span class="kt">En soporte<small>a 15 pips sobre un nivel</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio bajó hasta una zona donde antes se frenó. Es donde tiene sentido comprar.</span><span class="p"><b>Cómo saberlo.</b> Dibuja cuatro líneas horizontales en MT5: el máximo y el mínimo de ayer, que es la vela D1 anterior, y los de la semana pasada, la vela W1 anterior. Cuenta también los números redondos, como 1.1700 y 1.1750.</span><span class="p"><b>Márcalo si</b> el precio viene bajando y está a menos de 15 pips por encima de una de esas líneas. Quince pips es un quinto de lo que recorre en un día.</span></span></button>
         <button type="button" class="key down tooltip" data-dir="t2" data-v="-1" aria-pressed="false"><span class="kt">En resistencia<small>a 15 pips bajo un nivel</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio subió hasta una zona donde antes fue rechazado. Es donde tiene sentido vender.</span><span class="p"><b>Cómo saberlo.</b> Dibuja cuatro líneas horizontales en MT5: el máximo y el mínimo de ayer, que es la vela D1 anterior, y los de la semana pasada, la vela W1 anterior. Cuenta también los números redondos, como 1.1700 y 1.1750.</span><span class="p"><b>Márcalo si</b> el precio viene subiendo y está a menos de 15 pips por debajo de una de esas líneas.</span></span></button>
       </div>
     </div>
-    <div>
+    <div data-teoria="gatillo">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Gatillo en M15<i aria-hidden="true">?</i><span class="tooltiptext">La confirmación final, en el gráfico de 15 minutos. Evita comprar un nivel que se está rompiendo: esperas a que el precio demuestre que giró. Sin gatillo tienes una zona, no una entrada.</span></button></p>
       <div class="keys">
         <button type="button" class="key up tooltip" data-dir="t3" data-v="1" aria-pressed="false"><span class="kt">Giro al alza<small>M15 cierra sobre la anterior</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> La señal de que el soporte aguantó y el precio ya gira hacia arriba.</span><span class="p"><b>Cómo saberlo.</b> En el gráfico M15 espera a que la vela termine. Mientras se está formando no cuenta.</span><span class="p"><b>Márcalo si</b> una vela M15 tocó tu nivel, dejó mecha hacia abajo y cerró por encima del máximo de la vela anterior.</span></span></button>
@@ -371,29 +459,30 @@ tr.liq td:first-child{font-weight:600}
     <header><span class="n">3</span><h2>Momento</h2><span class="role">Trader de ejecución</span></header>
     <p class="q">¿Es buen momento para meter la orden? Dos de estos permisos te los dice el panel.</p>
     <div class="keys">
-      <button type="button" class="key gate tooltip" data-gate="news" aria-pressed="false"><span class="kt">Sin noticia roja<small id="a-news">sin calendario cargado</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Un dato de alto impacto mueve el precio de golpe y abre el spread. En tu histórico, los 5 minutos tras las 08:30 de Nueva York (<span data-ny="8:30"></span>) pasan de 23 pips 1 de cada 10 días; lo típico son 4.5.</span><span class="p"><b>Cómo saberlo.</b> Carga aquí abajo el calendario de la semana y este botón te avisa solo. A mano: en el calendario de Forex Factory, las carpetas rojas de USD y EUR.</span><span class="p"><b>Márcalo si</b> no hay ninguna roja de USD o EUR desde 30 minutos antes hasta 30 minutos después de ahora.</span></span></button>
-      <button type="button" class="key gate tooltip" data-gate="session" aria-pressed="false"><span class="kt">Sesión líquida<small id="a-session">—</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Las horas con más participantes: el precio se mueve y el spread es bajo. En tus datos una hora típica mueve 13 a 23 pips en esa ventana y 8 a 12 en la noche asiática.</span><span class="p"><b>Cómo saberlo.</b> Mira el reloj del mercado, arriba: si la aguja está dentro de la franja marcada, es sesión líquida. Este botón también te lo dice en pequeño.</span><span class="p"><b>Márcalo si</b> estás entre <span data-ny="2-12"></span>, de lunes a viernes: desde que abre Europa hasta que cierra Londres.</span></span></button>
-      <button type="button" class="key gate tooltip" data-gate="spread" aria-pressed="false"><span class="kt">Spread normal<small>5 puntos o menos</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El spread es la diferencia entre el precio de compra y el de venta. Es lo que pagas por entrar.</span><span class="p"><b>Cómo saberlo.</b> En MT5, en la lista de cotizaciones, activa la vista que muestra el Spread. Se mide en puntos: 10 puntos son 1 pip.</span><span class="p"><b>Márcalo si</b> el EURUSD marca 5 puntos o menos. En tu archivo lo normal son 2 puntos y solo 1 de cada 20 velas pasa de 5. En la hora que sigue al cierre diario (<span data-ny="17-18"></span>) el promedio sube a 36.</span></span></button>
-      <button type="button" class="key gate tooltip" data-gate="room" aria-pressed="false"><span class="kt">Queda recorrido<small id="a-room">hoy menos de 73 pips</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Cada día el precio recorre una distancia parecida. Si hoy ya la gastó, es raro que siga mucho más: solo 12% de los días llega a 1.5 veces su rango medio.</span><span class="p"><b>Cómo saberlo.</b> En MT5 mide la vela D1 de hoy, del máximo al mínimo, en pips. Compárala con el ATR del paso 4.</span><span class="p"><b>Márcalo si</b> lo recorrido hoy es menos que el ATR. Además, al mediodía de Nueva York (<span data-ny="12"></span>) ya está hecho el 93% del rango del día.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="news" data-teoria="noticia" aria-pressed="false"><span class="kt">Sin noticia roja<small id="a-news">sin calendario cargado</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Un dato de alto impacto mueve el precio de golpe y abre el spread. En tu histórico, los 5 minutos tras las 08:30 de Nueva York (<span data-ny="8:30"></span>) pasan de 23 pips 1 de cada 10 días; lo típico son 4.5.</span><span class="p"><b>Cómo saberlo.</b> Carga aquí abajo el calendario de la semana y este botón te avisa solo. A mano: en el calendario de Forex Factory, las carpetas rojas de USD y EUR.</span><span class="p"><b>Márcalo si</b> no hay ninguna roja de USD o EUR desde 30 minutos antes hasta 30 minutos después de ahora.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="session" data-teoria="sesion" aria-pressed="false"><span class="kt">Sesión líquida<small id="a-session">—</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Las horas con más participantes: el precio se mueve y el spread es bajo. En tus datos una hora típica mueve 13 a 23 pips en esa ventana y 8 a 12 en la noche asiática.</span><span class="p"><b>Cómo saberlo.</b> Mira el reloj del mercado, arriba: si la aguja está dentro de la franja marcada, es sesión líquida. Este botón también te lo dice en pequeño.</span><span class="p"><b>Márcalo si</b> estás entre <span data-ny="2-12"></span>, de lunes a viernes: desde que abre Europa hasta que cierra Londres.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="spread" data-teoria="costos" aria-pressed="false"><span class="kt">Spread normal<small>5 puntos o menos</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El spread es la diferencia entre el precio de compra y el de venta. Es lo que pagas por entrar.</span><span class="p"><b>Cómo saberlo.</b> En MT5, en la lista de cotizaciones, activa la vista que muestra el Spread. Se mide en puntos: 10 puntos son 1 pip.</span><span class="p"><b>Márcalo si</b> el EURUSD marca 5 puntos o menos. En tu archivo lo normal son 2 puntos y solo 1 de cada 20 velas pasa de 5. En la hora que sigue al cierre diario (<span data-ny="17-18"></span>) el promedio sube a 36.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="room" data-teoria="recorrido" aria-pressed="false"><span class="kt">Queda recorrido<small id="a-room">hoy menos de 73 pips</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Cada día el precio recorre una distancia parecida. Si hoy ya la gastó, es raro que siga mucho más: solo 12% de los días llega a 1.5 veces su rango medio.</span><span class="p"><b>Cómo saberlo.</b> En MT5 mide la vela D1 de hoy, del máximo al mínimo, en pips. Compárala con el ATR del paso 4.</span><span class="p"><b>Márcalo si</b> lo recorrido hoy es menos que el ATR. Además, al mediodía de Nueva York (<span data-ny="12"></span>) ya está hecho el 93% del rango del día.</span></span></button>
     </div>
     <p class="now" id="now"><b>Ahora</b><span>—</span></p>
     <div class="fields">
-      <div class="field"><div class="fl"><label for="f-dh">Máximo de hoy</label><button type="button" class="help tooltip" aria-label="Ayuda: Máximo de hoy">?<span class="tooltiptext"><span class="p"><b>Para qué.</b> Con el máximo y el mínimo de hoy el panel calcula cuánto del recorrido del día ya se gastó y te lo dice en el botón «Queda recorrido». Es opcional.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1: toca la vela de hoy y lee High. La apertura del día (Open) no hace falta.</span></span></button></div><input class="num" id="f-dh" inputmode="decimal" autocomplete="off" placeholder="opcional"></div>
-      <div class="field"><div class="fl"><label for="f-dl">Mínimo de hoy</label><button type="button" class="help tooltip" aria-label="Ayuda: Mínimo de hoy">?<span class="tooltiptext"><span class="p"><b>Para qué.</b> Junto con el máximo de hoy, sirve para calcular cuánto del recorrido del día ya se gastó. Es opcional.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1: toca la vela de hoy y lee Low.</span></span></button></div><input class="num" id="f-dl" inputmode="decimal" autocomplete="off" placeholder="opcional"></div>
+      <div class="field" data-teoria="recorrido"><div class="fl"><label for="f-dh">Máximo de hoy</label><button type="button" class="help tooltip" aria-label="Ayuda: Máximo de hoy">?<span class="tooltiptext"><span class="p"><b>Para qué.</b> Con el máximo y el mínimo de hoy el panel calcula cuánto del recorrido del día ya se gastó y te lo dice en el botón «Queda recorrido». Es opcional.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1: toca la vela de hoy y lee High. La apertura del día (Open) no hace falta.</span></span></button></div><input class="num" id="f-dh" inputmode="decimal" autocomplete="off" placeholder="opcional"></div>
+      <div class="field" data-teoria="recorrido"><div class="fl"><label for="f-dl">Mínimo de hoy</label><button type="button" class="help tooltip" aria-label="Ayuda: Mínimo de hoy">?<span class="tooltiptext"><span class="p"><b>Para qué.</b> Junto con el máximo de hoy, sirve para calcular cuánto del recorrido del día ya se gastó. Es opcional.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1: toca la vela de hoy y lee Low.</span></span></button></div><input class="num" id="f-dl" inputmode="decimal" autocomplete="off" placeholder="opcional"></div>
     </div>
-    <div class="cal">
+    <div class="cal" data-teoria="noticia">
       <div class="calrow"><label class="filebtn" for="f-cal">Cargar calendario de la semana</label><button type="button" class="help tooltip" aria-label="Ayuda: cargar calendario">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee el archivo ff_calendar_thisweek.csv de Forex Factory, el mismo que me pasaste. Con él, el botón «Sin noticia roja» te avisa solo y las rojas de USD y EUR aparecen en el reloj de arriba.</span><span class="p"><b>Cada cuánto.</b> Una vez por semana: el archivo trae la semana completa.</span><span class="p">El archivo se lee en tu dispositivo y no se envía a ningún lado.</span></span></button></div>
       <input class="vh" type="file" id="f-cal" accept=".csv,text/csv,text/plain">
       <p class="note" id="cal-st">Sin calendario cargado. Revisa las carpetas rojas en el <a href="https://www.forexfactory.com/calendar" target="_blank" rel="noopener">calendario de Forex Factory</a>.</p>
       <div class="chips" id="cal-list"></div>
     </div>
-    <div>
-      <p class="lbl"><button type="button" class="lblbtn tooltip">Tipo de orden<i aria-hidden="true">?</i><span class="tooltiptext">Cómo entra la orden al mercado. Regla simple: si el precio aún no llega a tu nivel, Límite. Si quieres que confirme rompiendo un punto, Stop. Si ya dio gatillo y sigue en el nivel, Mercado.</span></button></p>
+    <div data-teoria="ordenes">
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Tipo de orden<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> La forma en que tu orden entra al mercado: <b>cuándo</b> se ejecuta y <b>a qué precio</b>. Aquí eliges entre tres.</span><span class="p"><b>La regla.</b> <b>Límite:</b> esperas un precio <b>mejor</b> que el actual. <b>Stop:</b> esperas un precio <b>peor</b>, a cambio de la confirmación de la ruptura. <b>Mercado:</b> entras ya, al precio que haya.</span><span class="p"><b>Cómo elegir.</b> ¿Ya dio gatillo y el precio sigue en tu nivel? Mercado. ¿Puedes esperar un precio mejor? Límite. ¿Quieres entrar solo si rompe? Stop.</span><span class="p"><b>En MT5</b> cada tipo tiene versión de compra y de venta. Si la pones del lado equivocado del precio actual, MT5 la rechaza. El tema de teoría trae un dibujo con los cuatro casos.</span></span></button></p>
       <div class="keys three">
-        <button type="button" class="key pick tooltip" data-pick="order" data-v="limite" aria-pressed="true">Límite<span class="tooltiptext"><span class="p"><b>Orden pasiva.</b> Dejas la orden en tu nivel y esperas a que el precio llegue. Mejor precio y sin deslizamiento, pero puede no ejecutarse.</span><span class="p"><b>Úsala si</b> el precio todavía no llegó a tu nivel. En MT5: Buy Limit para comprar más abajo, Sell Limit para vender más arriba.</span></span></button>
-        <button type="button" class="key pick tooltip" data-pick="order" data-v="stop" aria-pressed="false">Stop<span class="tooltiptext"><span class="p"><b>Orden de ruptura.</b> Entra sola cuando el precio cruza un punto y confirma. Pagas un precio peor a cambio de confirmación; en noticias puede deslizarse.</span><span class="p"><b>Úsala si</b> quieres entrar solo cuando rompa el máximo o el mínimo del gatillo. En MT5: Buy Stop o Sell Stop.</span></span></button>
-        <button type="button" class="key pick tooltip" data-pick="order" data-v="mercado" aria-pressed="false">Mercado<span class="tooltiptext"><span class="p"><b>Ejecución inmediata.</b> Entras ya, al precio disponible. Pagas el spread completo y, si el mercado corre, algo de deslizamiento.</span><span class="p"><b>Úsala si</b> el gatillo ya se dio y el precio sigue en tu nivel. Una mesa elige según tamaño, urgencia y liquidez; con tu tamaño el costo es el spread.</span></span></button>
+        <button type="button" class="key pick tooltip" data-pick="order" data-v="limite" data-teoria="limite" aria-pressed="true">Límite<small>mejor precio</small><span class="tooltiptext"><span class="p"><b>Orden pasiva.</b> La dejas esperando en tu nivel; solo se ejecuta si el precio llega a él o a uno mejor para ti. En MT5: <b>Buy Limit</b> para comprar más abajo, <b>Sell Limit</b> para vender más arriba.</span><span class="p"><b>Lo bueno.</b> Pagas el precio que escribiste, sin deslizamiento, y el stop queda cerca del nivel.</span><span class="p"><b>Lo malo.</b> Puede no ejecutarse: el precio gira antes de llegar y la operación se va sin ti. Con un Buy Limit, el gráfico (que dibuja el Bid) tiene que bajar un spread por debajo de tu nivel, porque compras al Ask.</span><span class="p"><b>Úsala si</b> el precio todavía no llegó a tu nivel y puedes esperar. Ejemplo: precio en 1.17300 y soporte en 1.17124: Buy Limit en 1.17124. Ponle vencimiento.</span></span></button>
+        <button type="button" class="key pick tooltip" data-pick="order" data-v="stop" data-teoria="stop" aria-pressed="false">Stop<small>ruptura</small><span class="tooltiptext"><span class="p"><b>Orden de ruptura.</b> Se activa sola cuando el precio cruza el nivel que pusiste, y entra a mercado. En MT5: <b>Buy Stop</b> encima del precio actual, <b>Sell Stop</b> debajo.</span><span class="p"><b>Lo bueno.</b> Entras solo con confirmación: si rompe, de verdad se mueve a tu favor. Encaja con el gatillo: un Buy Stop un pip encima del máximo de la vela M15 del gatillo.</span><span class="p"><b>Lo malo.</b> Entras a un precio peor, y como se ejecuta a mercado puede llenarse unos pips más lejos, sobre todo con noticias.</span><span class="p"><b>No la confundas</b> con el Stop Loss: el Stop de entrada abre la operación; el Stop Loss la cierra. <b>Úsala si</b> solo quieres entrar cuando rompa el máximo o el mínimo del gatillo.</span></span></button>
+        <button type="button" class="key pick tooltip" data-pick="order" data-v="mercado" data-teoria="mercado" aria-pressed="false">Mercado<small>entra ya</small><span class="tooltiptext"><span class="p"><b>Ejecución inmediata.</b> Compras al precio Ask o vendes al Bid, el que haya en ese momento. En MT5: los botones <b>Buy</b> y <b>Sell</b>.</span><span class="p"><b>Lo bueno.</b> Entras seguro: no corres el riesgo de quedarte fuera.</span><span class="p"><b>Lo malo.</b> Pagas el spread completo: en tus datos, 0.2 pips normalmente y 3.6 de media en la hora que sigue al cierre diario (<span data-ny="17-18"></span>). Y si el precio corre, algo de deslizamiento.</span><span class="p"><b>Úsala si</b> el gatillo ya se dio, el precio sigue en tu nivel y el spread es normal. Con tu tamaño, tu costo es el spread.</span></span></button>
       </div>
+      <p class="note">En MT5 cada tipo tiene versión de compra y de venta, y una orden del lado equivocado del precio se rechaza. <a href="#teoria-ordenes" data-ir="ordenes">Ver los cuatro casos, con dibujo ↗</a></p>
     </div>
   </section>
 
@@ -401,15 +490,15 @@ tr.liq td:first-child{font-weight:600}
     <header><span class="n">4</span><h2>Riesgo y tamaño</h2><span class="role">Gestor de riesgo</span></header>
     <p class="q">¿Cuánto pierdo si me equivoco? Pon tu capital y el panel calcula los lotes.</p>
     <div class="fields">
-      <div class="field"><div class="fl"><label for="f-capital">Capital (USD)</label><button type="button" class="help tooltip" aria-label="Ayuda: Capital (USD)">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El dinero que hay en tu cuenta de trading, en dólares.</span><span class="p"><b>Dónde verlo.</b> En MT5, pestaña Operaciones: Balance.</span><span class="p"><b>Para qué.</b> Con esta cifra el panel calcula cuántos lotes abrir para que, si salta el stop, pierdas solo el porcentaje que elijas abajo. Queda guardada en este dispositivo.</span></span></button></div><input class="num" id="f-capital" inputmode="decimal" autocomplete="off" value="1000"></div>
-      <div class="field"><div class="fl"><label for="f-atr">ATR diario (pips)</label><button type="button" class="help tooltip" aria-label="Ayuda: ATR diario (pips)">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> ATR significa Average True Range, rango medio verdadero. Es cuántos pips recorre el precio en un día normal, del máximo al mínimo, promediando los últimos 14 días.</span><span class="p"><b>Para qué.</b> Para que el stop y el objetivo tengan el tamaño de lo que el mercado se mueve ahora, ni más ni menos.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1, indicador Average True Range, del grupo Osciladores, con periodo 14. Si marca 0.0073, son 73 pips.</span><span class="p">El 73 que ves sale de tu archivo, que termina el 22 abr 2026. Actualízalo una vez por semana: en tus datos fue de 55 a 108 según el trimestre.</span></span></button></div><input class="num" id="f-atr" inputmode="decimal" autocomplete="off" value="73"></div>
+      <div class="field" data-teoria="riesgo"><div class="fl"><label for="f-capital">Capital (USD)</label><button type="button" class="help tooltip" aria-label="Ayuda: Capital (USD)">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El dinero que hay en tu cuenta de trading, en dólares.</span><span class="p"><b>Dónde verlo.</b> En MT5, pestaña Operaciones: Balance.</span><span class="p"><b>Para qué.</b> Con esta cifra el panel calcula cuántos lotes abrir para que, si salta el stop, pierdas solo el porcentaje que elijas abajo. Queda guardada en este dispositivo.</span></span></button></div><input class="num" id="f-capital" inputmode="decimal" autocomplete="off" value="1000"></div>
+      <div class="field" data-teoria="atr"><div class="fl"><label for="f-atr">ATR diario (pips)</label><button type="button" class="help tooltip" aria-label="Ayuda: ATR diario (pips)">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> ATR significa Average True Range, rango medio verdadero. Es cuántos pips recorre el precio en un día normal, del máximo al mínimo, promediando los últimos 14 días.</span><span class="p"><b>Para qué.</b> Para que el stop y el objetivo tengan el tamaño de lo que el mercado se mueve ahora, ni más ni menos.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico D1, indicador Average True Range, del grupo Osciladores, con periodo 14. Si marca 0.0073, son 73 pips.</span><span class="p">El 73 que ves sale de tu archivo, que termina el 22 abr 2026. Actualízalo una vez por semana: en tus datos fue de 55 a 108 según el trimestre.</span></span></button></div><input class="num" id="f-atr" inputmode="decimal" autocomplete="off" value="73"></div>
     </div>
     <div class="keys">
-      <button type="button" class="key gate tooltip" data-gate="inval" aria-pressed="false"><span class="kt">Invalidación clara<small>sé el precio del stop</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio que demuestra que tu idea estaba mal.</span><span class="p"><b>Cómo saberlo.</b> En una compra queda justo debajo del soporte y de la mecha del gatillo. En una venta, justo encima de la resistencia.</span><span class="p"><b>Márcalo si</b> puedes decir ese precio antes de entrar y el stop del paso 5 queda al otro lado. Después de entrar, el stop no se aleja.</span></span></button>
-      <button type="button" class="key gate tooltip" data-gate="daily" aria-pressed="false"><span class="kt">Límite diario intacto<small>menos de 2 pérdidas hoy</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Un tope de pérdida por día. Te saca del mercado antes de que un mal día se vuelva un desastre. En una mesa se llama límite de stop-loss.</span><span class="p"><b>Cómo saberlo.</b> En MT5, pestaña Historial, cuenta las operaciones cerradas hoy.</span><span class="p"><b>Márcalo si</b> hoy llevas menos de 2 operaciones perdidas y has perdido menos de 2% de la cuenta. Si no, se acabó por hoy.</span></span></button>
-      <button type="button" class="key gate tooltip" data-gate="dup" aria-pressed="false"><span class="kt">Sin apuesta repetida<small>nada igual abierto</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Dos operaciones que ganan o pierden juntas son una sola apuesta al doble de tamaño.</span><span class="p"><b>Cómo saberlo.</b> Mira tus posiciones abiertas. EURUSD, GBPUSD y AUDUSD suelen moverse juntos; USDCHF y USDJPY, al revés.</span><span class="p"><b>Márcalo si</b> no tienes abierta otra operación que dependa del dólar en la misma dirección.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="inval" data-teoria="limites" aria-pressed="false"><span class="kt">Invalidación clara<small>sé el precio del stop</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio que demuestra que tu idea estaba mal.</span><span class="p"><b>Cómo saberlo.</b> En una compra queda justo debajo del soporte y de la mecha del gatillo. En una venta, justo encima de la resistencia.</span><span class="p"><b>Márcalo si</b> puedes decir ese precio antes de entrar y el stop del paso 5 queda al otro lado. Después de entrar, el stop no se aleja.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="daily" data-teoria="limites" aria-pressed="false"><span class="kt">Límite diario intacto<small>menos de 2 pérdidas hoy</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Un tope de pérdida por día. Te saca del mercado antes de que un mal día se vuelva un desastre. En una mesa se llama límite de stop-loss.</span><span class="p"><b>Cómo saberlo.</b> En MT5, pestaña Historial, cuenta las operaciones cerradas hoy.</span><span class="p"><b>Márcalo si</b> hoy llevas menos de 2 operaciones perdidas y has perdido menos de 2% de la cuenta. Si no, se acabó por hoy.</span></span></button>
+      <button type="button" class="key gate tooltip" data-gate="dup" data-teoria="limites" aria-pressed="false"><span class="kt">Sin apuesta repetida<small>nada igual abierto</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Dos operaciones que ganan o pierden juntas son una sola apuesta al doble de tamaño.</span><span class="p"><b>Cómo saberlo.</b> Mira tus posiciones abiertas. EURUSD, GBPUSD y AUDUSD suelen moverse juntos; USDCHF y USDJPY, al revés.</span><span class="p"><b>Márcalo si</b> no tienes abierta otra operación que dependa del dólar en la misma dirección.</span></span></button>
     </div>
-    <div>
+    <div data-teoria="riesgo">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Riesgo por operación<i aria-hidden="true">?</i><span class="tooltiptext">Qué parte de tu cuenta aceptas perder si esta operación sale mal. Es la decisión que más pesa: con poco riesgo sobrevives a una mala racha. Si estás empezando, usa el más bajo.</span></button></p>
       <div class="keys four">
         <button type="button" class="key pick tooltip" data-pick="risk" data-v="0.25" aria-pressed="false">0.25%<span class="tooltiptext">Con 0.25%, 10 pérdidas seguidas cuestan 2.5% de la cuenta. Si estás empezando, usa este: aprender sale más barato.</span></button>
@@ -418,7 +507,7 @@ tr.liq td:first-child{font-weight:600}
         <button type="button" class="key pick tooltip" data-pick="risk" data-v="2" aria-pressed="false">2%<span class="tooltiptext">Con 2%, 10 pérdidas seguidas cuestan 18.3% de la cuenta, y recuperar eso exige ganar 22%. Es mucho para una sola idea.</span></button>
       </div>
     </div>
-    <div>
+    <div data-teoria="stopr">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Stop: preajuste o pips a mano<i aria-hidden="true">?</i><span class="tooltiptext">El stop es la orden que cierra la operación si el precio va en contra. Elige una distancia en fracciones de ATR, o escribe los pips exactos en la casilla si tu nivel pide otra distancia. A más distancia, menos lotes: el riesgo en dinero no cambia.</span></button></p>
       <div class="keys four">
         <button type="button" class="key pick tooltip" data-pick="stopf" data-v="0.25" aria-pressed="true">¼ ATR<small>18 pips</small><span class="tooltiptext"><span class="p"><b>Para operar dentro del día.</b> Cerca de lo que mueve una hora activa típica: 16 pips en tus datos.</span><span class="p">Menos que eso queda dentro del ruido: una vela de 15 minutos mueve 8 pips, y 12 en el 20% más movido.</span></span></button>
@@ -427,7 +516,7 @@ tr.liq td:first-child{font-weight:600}
         <input class="num" id="f-stop" inputmode="decimal" autocomplete="off" value="18" aria-label="Stop en pips">
       </div>
     </div>
-    <div>
+    <div data-teoria="stopr">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Objetivo<i aria-hidden="true">?</i><span class="tooltiptext">Dónde cobras. Se mide en R: cuántas veces lo que arriesgas. Con 2R, una ganancia paga dos pérdidas.</span></button></p>
       <div class="keys three">
         <button type="button" class="key pick tooltip" data-pick="rr" data-v="1.5" aria-pressed="false">1.5R<span class="tooltiptext">Ganas una vez y media lo que arriesgas. Necesitas acertar más del 40% de las veces para no perder, antes de costos.</span></button>
@@ -437,10 +526,10 @@ tr.liq td:first-child{font-weight:600}
     </div>
   </section>
 
-  <section class="desk" data-roles="pm">
+  <section class="desk" data-roles="pm" data-teoria="plan">
     <header><span class="n">5</span><h2>Plan y precios</h2><span class="role">Gestor de cartera</span></header>
     <p class="q">La decisión: a qué precio y con cuánto. Solo escribes la entrada; lo demás se calcula.</p>
-    <div class="field">
+    <div class="field" data-teoria="plan">
       <div class="fl"><label for="f-entry">Entrada (precio)</label><button type="button" class="help tooltip" aria-label="Ayuda: Entrada (precio)">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio al que quieres entrar.</span><span class="p"><b>Cómo saberlo.</b> Es el nivel del paso 2: tu soporte si vas a comprar, tu resistencia si vas a vender. Escríbelo con 5 decimales, igual que en MT5.</span><span class="p">El stop y el objetivo se calculan desde aquí con lo que elegiste en el paso 4.</span></span></button></div>
       <input class="num" id="f-entry" inputmode="decimal" autocomplete="off" value="1.17124">
       <p class="note" id="entry-note">Ejemplo: último precio de tu archivo (22 abr 2026). Pon tu nivel de hoy.</p>
@@ -449,18 +538,19 @@ tr.liq td:first-child{font-weight:600}
       <div class="side buy" id="tk-buy"><h3>Compra</h3><dl><dt>Entrada</dt><dd class="e">—</dd><dt>Stop</dt><dd class="s">—</dd><dt>Objetivo</dt><dd class="t">—</dd></dl></div>
       <div class="side sell" id="tk-sell"><h3>Venta</h3><dl><dt>Entrada</dt><dd class="e">—</dd><dt>Stop</dt><dd class="s">—</dd><dt>Objetivo</dt><dd class="t">—</dd></dl></div>
     </div>
-    <div class="tiles">
+    <div class="tiles" data-teoria="riesgo">
       <button type="button" class="tile tooltip"><b id="o-lots">—</b><span id="o-lots-s">lotes</span><span class="tooltiptext">Tamaño = riesgo en dólares ÷ (pips de stop × 10). En EURUSD un lote son 100 000 € y cada pip vale 10 USD por lote. Se redondea hacia abajo al 0.01, que es lo mínimo que acepta MT5. Es el número que escribes en Volumen.</span></button>
       <button type="button" class="tile tooltip"><b id="o-risk">—</b><span id="o-risk-s">riesgo si salta el stop</span><span class="tooltiptext">Lo que pierdes si el precio toca el stop, con el tamaño ya redondeado. Sin contar spread, comisión ni deslizamiento.</span></button>
-      <button type="button" class="tile tooltip"><b id="o-gain">—</b><span>ganancia si llega al objetivo</span><span class="tooltiptext">Riesgo × el múltiplo R que elegiste en el paso 4.</span></button>
-      <button type="button" class="tile tooltip"><b id="o-be">—</b><span>acierto mínimo para no perder</span><span class="tooltiptext">1 ÷ (1 + R). Es el porcentaje de operaciones ganadoras con el que quedas en cero, antes de costos. Una mesa piensa en la serie de operaciones, no en una sola.</span></button>
+      <button type="button" class="tile tooltip" data-teoria="stopr"><b id="o-gain">—</b><span>ganancia si llega al objetivo</span><span class="tooltiptext">Riesgo × el múltiplo R que elegiste en el paso 4.</span></button>
+      <button type="button" class="tile tooltip" data-teoria="stopr"><b id="o-be">—</b><span>acierto mínimo para no perder</span><span class="tooltiptext">1 ÷ (1 + R). Es el porcentaje de operaciones ganadoras con el que quedas en cero, antes de costos. Una mesa piensa en la serie de operaciones, no en una sola.</span></button>
     </div>
     <p class="note" id="o-ctx"></p>
     <p class="warn" id="o-warn" hidden></p>
     <p class="slip none" id="o-slip">Sin sesgo todavía: el plan muestra los dos lados.</p>
+    <p class="note" id="o-mt5" hidden></p>
   </section>
 
-  <section class="desk" data-roles="pm risk perf">
+  <section class="desk" data-roles="pm risk perf" data-teoria="salida">
     <header><span class="n">6</span><h2>Salida</h2><span class="role">Gestor de cartera</span></header>
     <p class="q">Ya dentro: ¿cuándo cerrar? Si marcas una, el panel dice SALIR.</p>
     <div class="keys">
@@ -472,7 +562,7 @@ tr.liq td:first-child{font-weight:600}
     </div>
   </section>
 
-  <section class="desk" data-roles="quant tech">
+  <section class="desk" data-roles="quant tech" data-teoria="tramos">
     <header><h2>Seguimiento del tramo</h2><span class="role">Analista cuantitativo</span></header>
     <p class="q">Del máximo al mínimo: ¿sigue el patrón o ya cambió? Escribe tres precios de tu gráfico.</p>
     <div class="keys">
@@ -504,7 +594,7 @@ tr.liq td:first-child{font-weight:600}
     <p class="now" id="now2"><b>Ahora</b><span>—</span></p>
   </section>
 
-  <section class="desk" data-roles="quant">
+  <section class="desk" data-roles="quant" data-teoria="tramos">
     <header><h2>Cómo giran los tramos</h2><span class="role">Analista cuantitativo</span></header>
     <p class="q">943 tramos medidos en tu archivo, con cambio = rebote de 0.4 ATR.</p>
     <div class="tiles">
@@ -534,7 +624,7 @@ tr.liq td:first-child{font-weight:600}
     <p class="note">El cambio confirma que el tramo terminó. No predice hacia dónde irá el siguiente.</p>
   </section>
 
-  <section class="desk">
+  <section class="desk" data-teoria="proceso">
     <header><h2>Roles de la mesa</h2></header>
     <p class="q">En una institución cada paso tiene dueño. Tú haces todos, uno a la vez. Marca un rol y se iluminan sus habilidades.</p>
     <div class="chips">
@@ -554,7 +644,7 @@ tr.liq td:first-child{font-weight:600}
     </div>
   </section>
 
-  <section class="desk">
+  <section class="desk" data-teoria="proceso">
     <header><h2>Habilidades</h2></header>
     <p class="q">Marca una habilidad y se iluminan los roles que la usan.</p>
     <div class="chips">
@@ -574,7 +664,7 @@ tr.liq td:first-child{font-weight:600}
     </div>
   </section>
 
-  <section class="desk" data-roles="quant dev">
+  <section class="desk" data-roles="quant dev" data-teoria="datos">
     <header><h2>Tus datos</h2><span class="role">Analista cuantitativo</span></header>
     <p class="q">EURUSD en velas de 1 minuto: 350 días, del 13 dic 2024 al 21 abr 2026.</p>
     <div class="tiles">
@@ -583,7 +673,7 @@ tr.liq td:first-child{font-weight:600}
       <button type="button" class="tile tooltip"><b>93%</b><span>del rango hecho al mediodía de NY</span><span class="tooltiptext">De media, a las 12:00 de Nueva York (<span data-ny="12"></span>) el día ya recorrió el 93% de su rango. Al abrir Nueva York (<span data-ny="8"></span>) lleva el 71%.</span></button>
       <button type="button" class="tile tooltip"><b>1.1–1.8×</b><span>movimiento tras noticia roja</span><span class="tooltiptext">En tu calendario (2 a 6 feb 2026) hubo 8 momentos con datos de alto impacto de USD o EUR. En los 15 minutos siguientes el EURUSD recorrió entre 1.1 y 1.8 veces lo que recorre a esa misma hora en los 20 días previos. Fue una semana tranquila: sin dato de nóminas y con el BCE previsto sin cambios.</span></button>
     </div>
-    <div class="fig">
+    <div class="fig" data-teoria="sesion">
       <h3 id="fig-t">Pips típicos por hora, en tu hora local</h3>
       <div class="plotbox">
         <span class="yt" style="bottom:5.4rem">20</span>
@@ -605,9 +695,493 @@ tr.liq td:first-child{font-weight:600}
   </section>
 </main>
 
+<header class="thbar" id="thbar" hidden>
+  <div class="wrap thbar-in">
+    <button type="button" class="clear" data-go="mesa">← Mesa</button>
+    <button type="button" class="clear" data-go="teoria">Temas</button>
+    <h1 class="thtitle">Teoría</h1>
+  </div>
+</header>
+
+<main class="wrap theory" id="theory" hidden>
+
+  <section class="th ix" id="teoria" data-short="Temas" tabindex="-1">
+    <p class="kick">Teoría</p>
+    <h2>Temas</h2>
+    <p>Aquí está el porqué de cada paso, en palabras simples. Desde la mesa, cada ayuda termina con <b>«Ver teoría ↗»</b> y te trae al tema exacto; el botón <b>← Mesa</b> te devuelve al mismo lugar donde estabas.</p>
+    <nav class="ixs" aria-label="Temas de teoría">
+      <div><h3>Órdenes</h3><p class="ixl"><a href="#teoria-ordenes" data-ir="ordenes">Tipos de orden</a><a href="#teoria-mercado" data-ir="mercado">Mercado</a><a href="#teoria-limite" data-ir="limite">Límite</a><a href="#teoria-stop" data-ir="stop">Stop</a><a href="#teoria-stoplimit" data-ir="stoplimit">Stop Limit</a><a href="#teoria-sltp" data-ir="sltp">Stop Loss y Take Profit</a><a href="#teoria-costos" data-ir="costos">Spread y deslizamiento</a><a href="#teoria-mt5" data-ir="mt5">Ponerla en MT5</a></p></div>
+      <div><h3>Paso 1 · Sesgo macro</h3><p class="ixl"><a href="#teoria-tipos" data-ir="tipos">Tipos de interés</a><a href="#teoria-sorpresas" data-ir="sorpresas">Sorpresas de datos</a><a href="#teoria-animo" data-ir="animo">Ánimo del mercado</a></p></div>
+      <div><h3>Paso 2 · Estructura y nivel</h3><p class="ixl"><a href="#teoria-tendencia" data-ir="tendencia">Tendencia</a><a href="#teoria-niveles" data-ir="niveles">Niveles</a><a href="#teoria-gatillo" data-ir="gatillo">Gatillo</a></p></div>
+      <div><h3>Paso 3 · Momento</h3><p class="ixl"><a href="#teoria-noticia" data-ir="noticia">Noticia roja</a><a href="#teoria-sesion" data-ir="sesion">Sesión líquida</a><a href="#teoria-recorrido" data-ir="recorrido">Recorrido del día</a></p></div>
+      <div><h3>Paso 4 · Riesgo y tamaño</h3><p class="ixl"><a href="#teoria-atr" data-ir="atr">ATR</a><a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a><a href="#teoria-stopr" data-ir="stopr">Stop y objetivo</a><a href="#teoria-limites" data-ir="limites">Límites del día</a></p></div>
+      <div><h3>Pasos 5 y 6</h3><p class="ixl"><a href="#teoria-plan" data-ir="plan">Plan y precios</a><a href="#teoria-salida" data-ir="salida">Salida</a></p></div>
+      <div><h3>Datos</h3><p class="ixl"><a href="#teoria-tramos" data-ir="tramos">Tramos y rebotes</a><a href="#teoria-datos" data-ir="datos">Tus datos</a></p></div>
+      <div><h3>Base</h3><p class="ixl"><a href="#teoria-veredicto" data-ir="veredicto">El veredicto</a><a href="#teoria-proceso" data-ir="proceso">Proceso y roles</a><a href="#teoria-glosario" data-ir="glosario">Glosario</a><a href="#teoria-errores" data-ir="errores">Errores típicos</a><a href="#teoria-avisos" data-ir="avisos">Avisos</a></p></div>
+    </nav>
+  </section>
+
+  <article class="th" id="teoria-ordenes" data-short="Tipos de orden" tabindex="-1">
+    <p class="kick">Órdenes</p>
+    <h2>Tipos de orden</h2>
+    <p>Una orden es la instrucción que le das a tu bróker. Entre un tipo y otro cambia <b>cuándo</b> se ejecuta y <b>a qué precio</b>.</p>
+    <figure class="fig-o"><svg class="dg" viewBox="0 0 330 284" role="img" aria-label="Cuatro órdenes de espera frente al precio actual, 1.17200. Encima del precio: Sell Limit y Buy Stop, a 1.17300. Debajo: Buy Limit y Sell Stop, a 1.17100. Con Límite el precio llega al nivel y rebota; con Stop rompe el nivel y sigue."><defs><marker id="dg1" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs><text class="dg-h" x="81" y="12" text-anchor="middle">LÍMITE</text><text class="dg-t" x="81" y="27" text-anchor="middle">mejor precio que el actual</text><text class="dg-t" x="81" y="41" text-anchor="middle">el precio llega y rebota</text><text class="dg-h" x="249" y="12" text-anchor="middle">STOP</text><text class="dg-t" x="249" y="27" text-anchor="middle">peor precio que el actual</text><text class="dg-t" x="249" y="41" text-anchor="middle">el precio rompe y sigue</text><line class="dg-div" x1="165" y1="50" x2="165" y2="280"/><line class="dg-axis" x1="4" y1="162" x2="326" y2="162"/><line class="dg-lvl s" x1="4" y1="96" x2="158" y2="96"/><line class="dg-lvl b" x1="172" y1="96" x2="326" y2="96"/><line class="dg-lvl b" x1="4" y1="228" x2="158" y2="228"/><line class="dg-lvl s" x1="172" y1="228" x2="326" y2="228"/><polyline class="dg-path" points="26,162 104,96 150,134" marker-end="url(#dg1)"/><polyline class="dg-path" points="26,162 104,228 150,190" marker-end="url(#dg1)"/><polyline class="dg-path" points="214,162 283,96 316,64" marker-end="url(#dg1)"/><polyline class="dg-path" points="214,162 283,228 316,260" marker-end="url(#dg1)"/><circle class="dg-dot" cx="26" cy="162" r="3.5"/><circle class="dg-dot" cx="214" cy="162" r="3.5"/><polygon class="dg-s dg-ring" points="104,103 111,91 97,91"/><polygon class="dg-b dg-ring" points="283,89 290,101 276,101"/><polygon class="dg-b dg-ring" points="104,221 111,233 97,233"/><polygon class="dg-s dg-ring" points="283,235 290,223 276,223"/><rect class="dg-pill" x="139" y="87" width="52" height="18" rx="3"/><text class="dg-m" x="165" y="100" text-anchor="middle">1.17300</text><rect class="dg-pill" x="139" y="219" width="52" height="18" rx="3"/><text class="dg-m" x="165" y="232" text-anchor="middle">1.17100</text><rect class="dg-pill" x="127" y="146" width="76" height="32" rx="3"/><text class="dg-t" x="165" y="159" text-anchor="middle">precio actual</text><text class="dg-m" x="165" y="173" text-anchor="middle">1.17200</text><polygon class="dg-s dg-ring" points="15,84 20,76 10,76"/><text class="dg-n" x="26" y="84">Sell Limit</text><polygon class="dg-b dg-ring" points="217,74 222,82 212,82"/><text class="dg-n" x="228" y="84">Buy Stop</text><polygon class="dg-b dg-ring" points="15,238 20,246 10,246"/><text class="dg-n" x="26" y="248">Buy Limit</text><polygon class="dg-s dg-ring" points="217,248 222,240 212,240"/><text class="dg-n" x="228" y="248">Sell Stop</text></svg><figcaption>Los cuatro tipos de orden de espera frente al precio actual (números de ejemplo). Con <b>Límite</b> el precio llega a tu nivel y rebota; con <b>Stop</b> lo rompe y sigue. El triángulo marca dónde entras: ▲ compra, ▼ venta. La línea punteada es la orden esperando.</figcaption></figure>
+    <p class="callout rule"><b>La regla.</b> Límite = precio <b>mejor</b> que el actual: esperas el rebote. Stop = precio <b>peor</b> que el actual: esperas la ruptura. Un mismo nivel sirve para dos apuestas opuestas: un Sell Limit apuesta a que el precio lo rechaza; un Buy Stop, a que lo rompe.</p>
+    <div class="q4">
+      <div class="o4 buy"><h3>Buy Limit</h3><p>Va <b>debajo</b> del precio. Se ejecuta cuando el Ask baja hasta tu precio o menos. Compras más barato.</p></div>
+      <div class="o4 sell"><h3>Sell Limit</h3><p>Va <b>encima</b> del precio. Se ejecuta cuando el Bid sube hasta tu precio o más. Vendes más caro.</p></div>
+      <div class="o4 buy"><h3>Buy Stop</h3><p>Va <b>encima</b> del precio. Se ejecuta cuando el Ask sube hasta tu precio o más. Compras con la ruptura.</p></div>
+      <div class="o4 sell"><h3>Sell Stop</h3><p>Va <b>debajo</b> del precio. Se ejecuta cuando el Bid baja hasta tu precio o menos. Vendes con la ruptura.</p></div>
+    </div>
+    <p><b>Mercado</b> es la quinta: no espera nada. Compras al Ask o vendes al Bid, ya.</p>
+    <h3>Elige en tres preguntas</h3>
+    <ol>
+      <li>¿El gatillo ya se dio y el precio sigue en tu nivel? <b><a href="#teoria-mercado" data-ir="mercado">Mercado</a></b>.</li>
+      <li>¿Quieres un precio mejor que el actual y puedes esperar? <b><a href="#teoria-limite" data-ir="limite">Límite</a></b>.</li>
+      <li>¿Quieres entrar solo si el precio rompe un punto y se aleja a tu favor? <b><a href="#teoria-stop" data-ir="stop">Stop</a></b>.</li>
+    </ol>
+    <p class="note">Si pones la orden del lado equivocado del precio, MT5 la rechaza. En los tres casos el Stop Loss y el Take Profit van aparte (<a href="#teoria-sltp" data-ir="sltp">ver Stop Loss y Take Profit</a>). Existe además el <a href="#teoria-stoplimit" data-ir="stoplimit">Stop Limit</a>, que mezcla Stop y Límite.</p>
+  </article>
+
+  <article class="th" id="teoria-mercado" data-short="Orden a mercado" tabindex="-1">
+    <p class="kick">Órdenes</p>
+    <h2>Orden a mercado</h2>
+    <p>Compras o vendes <b>ya</b>: la compra se hace al precio Ask y la venta al Bid. En MT5 son los botones Buy y Sell.</p>
+    <h3>Cuánto cuesta</h3>
+    <ul>
+      <li><b>El spread completo.</b> En tus datos, unos 0.2 pips en horas líquidas. En la hora que sigue al cierre diario (<span data-ny="17-18"></span>) el promedio sube a 3.6 pips.</li>
+      <li><b>Deslizamiento.</b> Si el precio se mueve mientras viaja tu orden, te la llenan a otro precio. Pasa más con noticias rojas.</li>
+    </ul>
+    <h3>Cómo te la llenan</h3>
+    <p>Tu bróker usa uno de estos modos de ejecución. En <b>Instant</b>, si el precio cambió, te llega un «requote»: precios nuevos para aceptar o rechazar. En <b>Market</b>, el bróker fija el precio y, al enviar la orden, aceptas el que salga. Existen dos más, Request y Exchange.</p>
+    <h3>Cuándo sí y cuándo no</h3>
+    <ul>
+      <li><b>Sí:</b> el gatillo ya se dio, el precio sigue en tu nivel y el spread es normal. Tu tamaño no mueve el mercado, así que el costo es el spread.</li>
+      <li><b>No:</b> con una noticia roja cerca o en la hora del cierre diario, cuando el spread se abre.</li>
+    </ul>
+  </article>
+
+  <article class="th" id="teoria-limite" data-short="Orden límite" tabindex="-1">
+    <p class="kick">Órdenes</p>
+    <h2>Orden límite</h2>
+    <p>La dejas esperando en tu nivel. Solo se ejecuta si el precio llega a él o a uno <b>mejor</b> para ti. En MT5: Buy Limit (debajo del precio) y Sell Limit (encima).</p>
+    <h3>Lo bueno y lo malo</h3>
+    <ul>
+      <li><b>Bueno:</b> pagas el precio que escribiste, sin deslizamiento, y el stop queda cerca del nivel.</li>
+      <li><b>Malo 1:</b> puede no ejecutarse. El precio gira antes de llegar y la operación se va sin ti.</li>
+      <li><b>Malo 2:</b> se llena justo cuando el precio viene hacia ti. Si el nivel es débil, sigue de largo y ya estás dentro. Por eso el stop va siempre puesto.</li>
+    </ul>
+    <p class="callout"><b>El gráfico toca y la orden no se llena.</b> MT5 dibuja el precio Bid, y una compra se hace al Ask, un spread más arriba. Un Buy Limit en <span class="px">1.17124</span> se ejecuta cuando el Ask baja a 1.17124, o sea cuando el gráfico ya marca 1.17122 (con 0.2 pips de spread). Un Sell Limit, en cambio, se llena apenas el gráfico toca. Detalle en <a href="#teoria-costos" data-ir="costos">Spread y deslizamiento</a>.</p>
+    <h3>Ejemplo con los números del panel</h3>
+    <p>Precio actual <span class="px">1.17300</span>, soporte en <span class="px">1.17124</span>. <b>Buy Limit</b> en 1.17124 (debajo del precio), SL en 1.16944 (18 pips), TP en 1.17484 (2R, 36 pips).</p>
+    <h3>Ponle vencimiento</h3>
+    <p>En MT5 puedes elegir que dure hasta que la canceles (GTC), solo el día de hoy, o hasta una fecha. Si el precio no llegó en el plazo de tu idea, cancélala: una orden olvidada puede ejecutarse días después, con la tesis ya vencida.</p>
+  </article>
+
+  <article class="th" id="teoria-stop" data-short="Orden stop" tabindex="-1">
+    <p class="kick">Órdenes</p>
+    <h2>Orden stop: entrada en ruptura</h2>
+    <p>Se activa sola cuando el precio <b>cruza</b> el nivel que pusiste y entra a mercado. En MT5: Buy Stop (encima del precio) y Sell Stop (debajo).</p>
+    <h3>Para qué sirve</h3>
+    <p>Para entrar solo con confirmación: si el precio rompe, de verdad se mueve en tu dirección. En el panel encaja con el gatillo: pones el Buy Stop un pip encima del máximo de la vela M15 del gatillo, y si el precio no lo supera, no entras.</p>
+    <h3>Lo bueno y lo malo</h3>
+    <ul>
+      <li><b>Bueno:</b> evitas parte de los giros falsos.</li>
+      <li><b>Malo:</b> entras peor, porque el precio ya se movió. Y como entra a mercado, puede llenarse unos pips más lejos, sobre todo en noticias.</li>
+    </ul>
+    <p class="callout"><b>No la confundas con el Stop Loss.</b> Se parecen en el nombre y son lo contrario: el Stop de entrada <b>abre</b> la operación; el Stop Loss la <b>cierra</b> cuando pierdes.</p>
+    <h3>Ejemplo</h3>
+    <p>Soporte en <span class="px">1.17100</span>. La vela M15 del gatillo tiene máximo en 1.17150 y el precio está en 1.17135. <b>Buy Stop</b> en 1.17160, con el SL bajo la mecha del gatillo. Si el precio sube a 1.17160, entras; si vuelve a caer sin tocarlo, la cancelas.</p>
+  </article>
+
+  <article class="th" id="teoria-stoplimit" data-short="Stop Limit" tabindex="-1">
+    <p class="kick">Órdenes</p>
+    <h2>Stop Limit</h2>
+    <p>Mezcla las dos ideas. Cuando el precio llega al nivel «stop», en vez de entrar a mercado coloca una orden <b>límite</b> en un segundo precio, el «Stop Limit».</p>
+    <ul>
+      <li><b>Buy Stop Limit:</b> el nivel stop va encima del precio actual y el precio límite, debajo del nivel stop.</li>
+      <li><b>Sell Stop Limit:</b> el nivel stop va debajo del precio actual y el precio límite, encima del nivel stop.</li>
+    </ul>
+    <p><b>Para qué.</b> Entrar en ruptura sin pagar más que tu límite: no hay deslizamiento. <b>Qué cuesta.</b> Si el precio rompe y sale disparado sin volver a tu límite, no entras y te pierdes el movimiento.</p>
+    <p class="note">El panel no la incluye. Para empezar, usa Límite o Mercado; Stop Limit es para cuando ya domines las otras.</p>
+  </article>
+
+  <article class="th" id="teoria-sltp" data-short="Stop Loss y Take Profit" tabindex="-1">
+    <p class="kick">Órdenes</p>
+    <h2>Stop Loss y Take Profit</h2>
+    <p>Son las dos órdenes de salida. Las pones al abrir la operación o en una orden de espera, y actúan cuando ya hay una posición abierta.</p>
+    <ul>
+      <li><b>Stop Loss (SL):</b> si el precio llega a ese nivel, se cierra toda la posición. En una compra va debajo del precio; en una venta, encima.</li>
+      <li><b>Take Profit (TP):</b> si el precio llega a ese nivel, se cierra toda la posición con ganancia. En una compra va encima del precio; en una venta, debajo.</li>
+    </ul>
+    <h3>Con qué precio se activan</h3>
+    <p>Cerrar una compra es vender (al Bid) y cerrar una venta es comprar (al Ask). Como el gráfico dibuja el Bid, <b>en una venta el SL salta un spread antes de lo que ves</b>, y el TP pide que el gráfico pase un spread más allá. En una compra basta con que el gráfico toque el nivel.</p>
+    <h3>Reglas que no se negocian</h3>
+    <ul>
+      <li>El SL se decide <b>antes</b> de entrar, del lado donde se demuestra que te equivocaste.</li>
+      <li>Una vez dentro, el SL <b>no se aleja</b>. Solo se acerca, por ejemplo a la entrada cuando ganas 1R.</li>
+      <li>En un salto de precio (noticia, apertura del domingo) el SL se ejecuta al siguiente precio disponible, que puede ser peor que el escrito.</li>
+    </ul>
+  </article>
+
+  <article class="th" id="teoria-costos" data-short="Spread y deslizamiento" tabindex="-1">
+    <p class="kick">Órdenes</p>
+    <h2>Spread y deslizamiento</h2>
+    <p>Operar tiene costos que no se ven en el gráfico. Con tus datos:</p>
+    <ul>
+      <li><b>Spread:</b> la diferencia entre el precio de compra (Ask) y el de venta (Bid). Lo normal en tu archivo son 2 puntos, o sea 0.2 pips; en la hora que sigue al cierre diario (<span data-ny="17-18"></span>) llega a 3.6 pips de media. Entrar y salir cuesta un spread, y pesa más en operaciones cortas.</li>
+      <li><b>Deslizamiento:</b> la diferencia entre el precio que pediste y el que te dieron. Crece cuando el precio salta, con una noticia roja, o cuando hay poca liquidez.</li>
+      <li><b>Requote:</b> si tu bróker usa ejecución Instant, te pide aceptar un precio nuevo.</li>
+    </ul>
+    <h3>Por qué el gráfico toca y la orden no se llena</h3>
+    <p>MT5 dibuja el Bid. Pero las compras se hacen al Ask, un spread más arriba, y las ventas al Bid:</p>
+    <div class="tblwrap"><table class="tt">
+      <thead><tr><th>Orden</th><th>Se compara con</th><th>En el gráfico (Bid)</th></tr></thead>
+      <tbody>
+        <tr><td>Buy Limit</td><td>Ask ≤ tu precio</td><td>debe pasar tu nivel un spread</td></tr>
+        <tr><td>Sell Limit</td><td>Bid ≥ tu precio</td><td>basta con que lo toque</td></tr>
+        <tr><td>Buy Stop</td><td>Ask ≥ tu precio</td><td>se activa un spread antes de que llegue</td></tr>
+        <tr><td>Sell Stop</td><td>Bid ≤ tu precio</td><td>basta con que lo toque</td></tr>
+        <tr><td>SL y TP de una compra</td><td>Bid</td><td>basta con que lo toque</td></tr>
+        <tr><td>SL de una venta</td><td>Ask</td><td>salta un spread antes de lo que ves</td></tr>
+        <tr><td>TP de una venta</td><td>Ask</td><td>debe pasar tu nivel un spread</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Con 0.2 pips de spread la diferencia es mínima. En la hora del cierre diario puede ser de varios pips.</p>
+  </article>
+
+  <article class="th" id="teoria-mt5" data-short="Ponerla en MT5" tabindex="-1">
+    <p class="kick">Órdenes</p>
+    <h2>Cómo poner la orden en MT5</h2>
+    <p>Con el plan del paso 5 a la vista (lotes, entrada, SL y TP):</p>
+    <ol>
+      <li>Abre el gráfico del EURUSD y pulsa <b>F9</b>, o clic derecho en el gráfico → Trading → Nueva orden. En el móvil, abre la ventana de nueva orden del símbolo.</li>
+      <li><b>Volumen:</b> escribe los lotes del panel.</li>
+      <li><b>Stop Loss</b> y <b>Take Profit:</b> escribe los precios del panel. Van uno a cada lado de la entrada.</li>
+      <li><b>Tipo.</b> Para Mercado, ejecución a mercado y botón Buy o Sell. Para Límite o Stop, orden pendiente: elige Buy Limit, Sell Limit, Buy Stop o Sell Stop y escribe el <b>precio</b> de entrada.</li>
+      <li><b>Vencimiento</b> (solo órdenes pendientes): hasta que la canceles (GTC), hoy o una fecha. Elige según el plazo de tu idea.</li>
+      <li>Antes de enviar, compara lote, SL y TP con el panel y revisa que el SL quede del lado contrario al TP.</li>
+      <li>Después, la pestaña <b>Operaciones</b> muestra la posición abierta o la orden pendiente. Si es pendiente y la idea ya no vale, bórrala.</li>
+    </ol>
+    <p class="note">Los nombres de los menús cambian un poco entre versiones y brókers. Los campos son siempre los mismos: tipo, precio, SL, TP, volumen y vencimiento.</p>
+  </article>
+
+  <article class="th" id="teoria-tipos" data-short="Tipos de interés" tabindex="-1">
+    <p class="kick">Paso 1 · Sesgo macro</p>
+    <h2>Tipos de interés: Fed contra BCE</h2>
+    <p>El dinero grande busca rendimiento. Si guardar dólares paga más que guardar euros, hay más demanda de dólares y el EURUSD baja; si es al revés, sube. Lo que mueve el precio no es el tipo de hoy, sino <b>lo que el mercado espera</b> que hagan los bancos centrales.</p>
+    <h3>Cómo se mide</h3>
+    <p>Con los rendimientos de los bonos a 2 años, que siguen de cerca esas expectativas: <b>US02Y</b> (EE. UU.) y <b>DE02Y</b> (Alemania). Resta el alemán al de EE. UU. y compáralo con el de hace un mes.</p>
+    <ul>
+      <li>La diferencia <b>sube</b> más de 0.10: la Fed está más dura que el BCE y presiona al EURUSD hacia abajo.</li>
+      <li>La diferencia <b>baja</b> más de 0.10: el BCE está más duro y lo empuja hacia arriba.</li>
+      <li>Cambia menos de 0.10: no marques ninguno.</li>
+    </ul>
+    <p class="note">El 0.10 es una regla práctica de esta página, no una ley. Segunda opinión: la herramienta FedWatch de CME muestra qué espera el mercado de la Fed. Es una tendencia, no una garantía: otros factores pueden pesar más ese día.</p>
+  </article>
+
+  <article class="th" id="teoria-sorpresas" data-short="Sorpresas de datos" tabindex="-1">
+    <p class="kick">Paso 1 · Sesgo macro</p>
+    <h2>Sorpresas de datos</h2>
+    <p>El mercado ya descontó lo que esperaba, la previsión. Lo que mueve el precio es la <b>sorpresa</b>: dato real menos previsión. Un dato «bueno» que era peor de lo esperado hace caer a la moneda.</p>
+    <h3>Cómo contarlas</h3>
+    <ol>
+      <li>Abre el calendario de Forex Factory y mira los datos de carpeta roja de los últimos 7 días.</li>
+      <li>El número de la columna <b>Actual</b> sale en verde si fue mejor de lo previsto <b>para esa moneda</b>, y en rojo si fue peor.</li>
+      <li>Cuenta verdes y rojos de EUR y de USD. Si EUR gana en verdes, marca «Sorprende Europa»; si es USD, «Sorprende EE. UU.»; si están parejos, ninguno.</li>
+    </ol>
+    <p class="note">El verde es de la moneda, no del par: un verde de USD es malo para el EURUSD. Y la primera reacción a un dato a veces se revierte en minutos; por eso no se opera el dato, se espera (ver <a href="#teoria-noticia" data-ir="noticia">Noticia roja</a>).</p>
+  </article>
+
+  <article class="th" id="teoria-animo" data-short="Ánimo del mercado" tabindex="-1">
+    <p class="kick">Paso 1 · Sesgo macro</p>
+    <h2>Ánimo del mercado: riesgo y refugio</h2>
+    <p>Cuando hay confianza, el dinero sale de los refugios, como el dólar, hacia activos de riesgo, y el EURUSD tiende a subir. Cuando hay miedo, corre al dólar y tiende a bajar.</p>
+    <ul>
+      <li><b>Apetito de riesgo:</b> el S&amp;P 500 sube en la semana y el VIX está bajo 20.</li>
+      <li><b>Miedo y refugio:</b> el S&amp;P 500 cae y el VIX está sobre 20 y subiendo; sobre 30 es miedo claro.</li>
+    </ul>
+    <p>El <b>VIX</b> mide la volatilidad que el mercado espera del S&amp;P 500 en los próximos 30 días; por eso lo llaman el índice del miedo. Búscalo como VIX, y el S&amp;P 500 como SPX, en TradingView, Investing o Yahoo Finanzas.</p>
+    <p class="note"><b>Excepción:</b> si el susto nace en EE. UU., el dólar puede caer en vez de subir. Ahí no marques ninguno. Los límites 20 y 30 son convenciones habituales, no leyes.</p>
+  </article>
+
+  <article class="th" id="teoria-tendencia" data-short="Tendencia" tabindex="-1">
+    <p class="kick">Paso 2 · Estructura y nivel</p>
+    <h2>Tendencia: las medias de 50 y 200</h2>
+    <p>Una media móvil es el promedio de los últimos cierres; «de 50» son los últimos 50 días en el gráfico diario (D1). Suaviza el ruido y muestra la dirección de fondo.</p>
+    <ul>
+      <li><b>Alcista:</b> el precio está sobre las dos medias y la de 50 sobre la de 200.</li>
+      <li><b>Bajista:</b> el precio está bajo las dos y la de 50 bajo la de 200.</li>
+      <li><b>Entre las dos:</b> no hay tendencia clara. No marques ninguno.</li>
+    </ul>
+    <p><b>En MT5:</b> Insertar → Indicadores → Tendencia → Moving Average, dos veces: periodo 50 y periodo 200, método Simple, aplicada a Close.</p>
+    <p class="note">Las medias llegan tarde: confirman una tendencia ya empezada y fallan cuando el precio se mueve de lado. Operar a favor de la tendencia es la regla base; si contradice al paso 1, el panel dice NO OPERAR.</p>
+  </article>
+
+  <article class="th" id="teoria-niveles" data-short="Niveles" tabindex="-1">
+    <p class="kick">Paso 2 · Estructura y nivel</p>
+    <h2>Niveles: soporte y resistencia</h2>
+    <p>Un nivel es un precio donde el mercado ya reaccionó antes. Comprar ahí es mejor que en medio de la nada: el stop queda cerca, arriesgas pocos pips y el mismo dinero compra más lotes.</p>
+    <h3>Cuáles mirar</h3>
+    <ul>
+      <li>El máximo y el mínimo de <b>ayer</b> (la vela D1 anterior).</li>
+      <li>El máximo y el mínimo de la <b>semana pasada</b> (la vela W1 anterior).</li>
+      <li>Los <b>números redondos</b>: 1.1700, 1.1750…</li>
+    </ul>
+    <p><b>Soporte:</b> un nivel debajo del precio donde frenó una bajada; se compra ahí si la tendencia es alcista. <b>Resistencia:</b> un nivel encima donde frenó una subida; se vende ahí si la tendencia es bajista. Márcalo cuando el precio esté a menos de 15 pips, un quinto de un día típico.</p>
+    <p class="note">Un nivel es una zona, no una línea exacta. Por eso hace falta el <a href="#teoria-gatillo" data-ir="gatillo">gatillo</a>.</p>
+  </article>
+
+  <article class="th" id="teoria-gatillo" data-short="Gatillo" tabindex="-1">
+    <p class="kick">Paso 2 · Estructura y nivel</p>
+    <h2>Gatillo en M15</h2>
+    <p>Estar en un nivel no basta: puede romperse. El gatillo es la prueba de que <b>aguantó</b>, en el gráfico de 15 minutos (M15).</p>
+    <ul>
+      <li><b>Giro al alza:</b> una vela M15 toca tu soporte, deja mecha hacia abajo y <b>cierra por encima del máximo de la vela anterior</b>.</li>
+      <li><b>Giro a la baja:</b> toca la resistencia, deja mecha hacia arriba y cierra por debajo del mínimo de la vela anterior.</li>
+    </ul>
+    <p>Espera a que la vela <b>termine</b>: mientras se forma puede cambiar. Con el gatillo dado puedes entrar a mercado o dejar una orden <a href="#teoria-stop" data-ir="stop">Stop</a> un pip más allá del extremo de esa vela.</p>
+    <p class="note">Sin gatillo tienes una zona, no una entrada.</p>
+  </article>
+
+  <article class="th" id="teoria-noticia" data-short="Noticia roja" tabindex="-1">
+    <p class="kick">Paso 3 · Momento</p>
+    <h2>Noticia roja</h2>
+    <p>En el calendario, la carpeta roja marca datos de alto impacto, como empleo, inflación o decisiones de tipos. Al salir, el precio salta, el spread se abre y el deslizamiento crece.</p>
+    <ul>
+      <li>En tus datos, los 5 minutos tras las 08:30 de Nueva York (<span data-ny="8:30"></span>) pasan de 23 pips 1 de cada 10 días; lo típico son 4.5.</li>
+      <li>En tu calendario de febrero, en los 15 minutos tras cada dato de USD o EUR el precio recorrió entre 1.1 y 1.8 veces lo normal a esa hora.</li>
+    </ul>
+    <p><b>Regla del panel:</b> sin entradas desde 30 minutos antes hasta 30 minutos después de una roja de USD o EUR. Si ya estás dentro y falta menos de media hora, reduce o protege: el panel dice REDUCIR. Carga el calendario de la semana en el paso 3 y el botón se marca solo.</p>
+    <p class="note">La primera reacción suele ser nerviosa y a veces se revierte. Esperar a que se calme es parte del método.</p>
+  </article>
+
+  <article class="th" id="teoria-sesion" data-short="Sesión líquida" tabindex="-1">
+    <p class="kick">Paso 3 · Momento</p>
+    <h2>Sesión líquida</h2>
+    <p>El mercado de divisas no cierra de lunes a viernes: se pasan la posta Sídney, Tokio, Londres y Nueva York. Liquidez es cuánta gente compra y vende a la vez; con mucha, el precio se mueve con soltura y el spread es bajo.</p>
+    <ul>
+      <li><b>Ventana líquida:</b> de <span data-ny="2-12"></span>, de lunes a viernes, desde que abre Europa hasta que cierra Londres. Una hora típica mueve 13 a 23 pips.</li>
+      <li><b>Noche asiática:</b> 8 a 12 pips por hora.</li>
+      <li><b>Solape de Londres y Nueva York:</b> lo más movido del día.</li>
+      <li><b>Cierre diario</b> (<span data-ny="17"></span>): el spread se abre. Evita entrar.</li>
+    </ul>
+    <p>Al mediodía de Nueva York ya se hizo el 93% del rango del día; al abrir Nueva York, el 71%.</p>
+    <p class="note">Las horas se muestran en tu hora local y se ajustan solas con el horario de verano, que EE. UU. y Europa cambian en fechas distintas.</p>
+  </article>
+
+  <article class="th" id="teoria-recorrido" data-short="Recorrido del día" tabindex="-1">
+    <p class="kick">Paso 3 · Momento</p>
+    <h2>Recorrido del día</h2>
+    <p>Cada día el precio se mueve una distancia parecida: el <a href="#teoria-atr" data-ir="atr">ATR</a>. Si hoy ya la gastó, es raro que siga mucho más: solo 12% de los días llega a 1.5 veces su rango medio.</p>
+    <ul>
+      <li>Mide la vela D1 de hoy, de máximo a mínimo, en pips.</li>
+      <li>Compárala con el ATR del paso 4. Si lo recorrido es menos, «queda recorrido».</li>
+    </ul>
+    <p>Escribe el máximo y el mínimo de hoy en el paso 3 y el panel hace la cuenta. La apertura del día no hace falta.</p>
+  </article>
+
+  <article class="th" id="teoria-atr" data-short="ATR" tabindex="-1">
+    <p class="kick">Paso 4 · Riesgo y tamaño</p>
+    <h2>ATR: cuánto se mueve el precio</h2>
+    <p>ATR es Average True Range, «rango medio verdadero»: cuántos pips recorre el precio en un día normal, promediando los últimos 14 días. Cada día se toma el mayor de tres números: máximo menos mínimo del día, y la distancia del máximo y del mínimo al cierre de ayer. Así cuenta también los saltos entre un día y otro.</p>
+    <ul>
+      <li><b>En MT5:</b> gráfico D1, indicador Average True Range (grupo Osciladores), periodo 14. Si marca 0.0073, son 73 pips.</li>
+      <li><b>Para qué:</b> el stop, el objetivo y el umbral del tramo se miden en fracciones de ATR. Así tienen el tamaño de lo que el mercado se mueve ahora.</li>
+      <li><b>Cambia con el tiempo:</b> en tus datos fue de 55 a 108 pips según el trimestre. Actualízalo una vez por semana.</li>
+    </ul>
+  </article>
+
+  <article class="th" id="teoria-riesgo" data-short="Riesgo y lotes" tabindex="-1">
+    <p class="kick">Paso 4 · Riesgo y tamaño</p>
+    <h2>Riesgo y lotes</h2>
+    <p>Primero decides cuánto aceptas perder si salta el stop, un porcentaje de tu capital. Después el tamaño se calcula; no se adivina.</p>
+    <p class="callout rule"><b>Lotes = riesgo en dólares ÷ (pips de stop × 10)</b><br>En EURUSD un lote son 100 000 € y cada pip vale 10 USD por lote. Se redondea hacia abajo al 0.01, que es lo mínimo que acepta MT5.</p>
+    <p><b>Ejemplo con el panel:</b> capital $1 000 y riesgo 0.5% son $5. Con un stop de 18 pips: 5 ÷ (18 × 10) = 0.027, que se redondea a 0.02 lotes. Si salta el stop pierdes 0.02 × 18 × 10 = $3.60, un 0.36% de la cuenta.</p>
+    <h3>Por qué un riesgo pequeño</h3>
+    <ul>
+      <li>Con 1%, diez pérdidas seguidas cuestan 9.6% de la cuenta; con 2%, 18.3%.</li>
+      <li>Perder 18.3% exige ganar 22% solo para volver al punto de partida.</li>
+    </ul>
+    <p class="note">El cálculo no incluye spread, comisión ni deslizamiento: el riesgo real es algo mayor. Si el lote mínimo (0.01) ya arriesga más de lo que quieres, acorta el stop o deja pasar la operación. Si estás empezando, usa 0.25%.</p>
+  </article>
+
+  <article class="th" id="teoria-stopr" data-short="Stop y objetivo (R)" tabindex="-1">
+    <p class="kick">Paso 4 · Riesgo y tamaño</p>
+    <h2>Stop y objetivo: la R</h2>
+    <p><b>1R</b> es lo que arriesgas en la operación: la distancia al stop. El objetivo se mide en R; con 2R ganas el doble de lo que arriesgas.</p>
+    <h3>Qué tan lejos el stop (con ATR de 73)</h3>
+    <ul>
+      <li><b>¼ ATR, 18 pips:</b> para operar dentro del día. Menos que eso queda dentro del ruido: una vela M15 mueve 8 pips y una hora típica, 16.</li>
+      <li><b>½ ATR, 37 pips:</b> para uno o dos días.</li>
+      <li><b>1 ATR, 73 pips:</b> para varios días.</li>
+    </ul>
+    <p>A más distancia, menos lotes: el riesgo en dinero no cambia. El stop va justo al otro lado del nivel (la invalidación), no donde cuadre mejor el cálculo.</p>
+    <h3>Qué acierto necesitas</h3>
+    <p>No pierdes dinero si aciertas más de <b>1 ÷ (1 + R)</b>: con 1.5R, 40%; con 2R, 33%; con 3R, 25%, antes de costos. Un objetivo lejano se alcanza menos veces: compara los pips del objetivo con el ATR en el paso 5.</p>
+  </article>
+
+  <article class="th" id="teoria-limites" data-short="Límites del día" tabindex="-1">
+    <p class="kick">Paso 4 · Riesgo y tamaño</p>
+    <h2>Invalidación, límite diario y apuesta repetida</h2>
+    <ul>
+      <li><b>Invalidación.</b> Es el precio que demuestra que tu idea estaba mal: justo debajo del soporte y de la mecha del gatillo en una compra; justo encima de la resistencia en una venta. Debes poder decirlo antes de entrar, y es donde va el stop.</li>
+      <li><b>Límite diario.</b> Un tope de pérdida por día: menos de 2 operaciones perdidas y menos de 2% de la cuenta. En una mesa se llama límite de stop-loss. Existe para sacarte del mercado antes de que un mal día se vuelva un desastre.</li>
+      <li><b>Apuesta repetida.</b> Dos operaciones que ganan o pierden juntas son una sola apuesta al doble de tamaño. EURUSD, GBPUSD y AUDUSD suelen moverse juntos contra el dólar; USDCHF y USDJPY, al revés.</li>
+    </ul>
+    <p class="note">Los números (2 pérdidas, 2%) son reglas prácticas de esta página. Ajústalos a tu plan.</p>
+  </article>
+
+  <article class="th" id="teoria-plan" data-short="Plan y precios" tabindex="-1">
+    <p class="kick">Pasos 5 y 6</p>
+    <h2>Plan y precios</h2>
+    <p>Escribes solo la entrada. El resto sale de lo que elegiste en el paso 4:</p>
+    <ul>
+      <li><b>Compra:</b> stop = entrada − pips de stop; objetivo = entrada + pips de stop × R.</li>
+      <li><b>Venta:</b> stop = entrada + pips de stop; objetivo = entrada − pips de stop × R.</li>
+      <li><b>Lotes, riesgo y ganancia:</b> ver <a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a>. Ganancia = riesgo × R.</li>
+    </ul>
+    <p>Mientras no haya sesgo, el panel muestra los dos lados. Cuando el veredicto dice BUSCAR o COMPRAR/VENDER, resalta el lado que toca y arma la orden con el tipo del paso 3 y su nombre en MT5.</p>
+    <p class="note">La entrada de ejemplo es el último precio de tu archivo (22 abr 2026): escribe tu nivel de hoy. El panel no conoce el precio actual, así que tú compruebas que la entrada quede del lado correcto.</p>
+  </article>
+
+  <article class="th" id="teoria-salida" data-short="Salida" tabindex="-1">
+    <p class="kick">Pasos 5 y 6</p>
+    <h2>Salir: las cinco razones</h2>
+    <p>Una mesa decide cuándo salir <b>antes</b> de entrar. Si marcas alguna de estas, el panel dice SALIR, o REDUCIR si es solo la noticia:</p>
+    <ul>
+      <li><b>Tocó el objetivo:</b> se cobra según el plan. Variante común: cerrar la mitad en 1R y llevar el stop a la entrada.</li>
+      <li><b>Tocó el stop:</b> la idea estaba mal y se cierra sin discutir. Mover el stop para darle espacio es el error que más cuentas destruye.</li>
+      <li><b>Cambió la tesis:</b> si hoy no marcarías los mismos botones del paso 1, se cierra aunque no haya tocado el stop.</li>
+      <li><b>Se agotó el tiempo:</b> es el stop de tiempo. Si en el plazo que le diste no avanzó, se cierra: el capital quieto también cuesta.</li>
+      <li><b>Viene noticia roja:</b> falta menos de 30 minutos. Reduce o protege.</li>
+    </ul>
+    <p class="note">Anota cada salida con su motivo. Es el paso de retroalimentación del proceso: lo aprendido vuelve al plan.</p>
+  </article>
+
+  <article class="th" id="teoria-tramos" data-short="Tramos y rebotes" tabindex="-1">
+    <p class="kick">Datos</p>
+    <h2>Tramos, rebotes y umbral</h2>
+    <p>Un tramo es una bajada, o una subida, con rebotes por el camino. Se mide con un umbral: <b>el tramo termina cuando un rebote alcanza el umbral</b>, una fracción del ATR (⅓, 0.4 o ½).</p>
+    <figure class="fig-o"><svg class="dg" viewBox="0 0 330 190" role="img" aria-label="Una bajada con rebotes. Una línea punteada, el nivel de cambio, queda un umbral por encima del último mínimo y baja con cada mínimo nuevo. Los dos primeros rebotes no la alcanzan; el tercero sí, y ahí el tramo termina."><defs><marker id="dg2" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs><polyline class="dg-step" points="64,32 136,32 136,68 208,68 208,106 276,106"/><line class="dg-ref" x1="208" y1="146" x2="270" y2="146"/><line class="dg-dim" x1="262" y1="106" x2="262" y2="146"/><line class="dg-dim" x1="257" y1="106" x2="267" y2="106"/><line class="dg-dim" x1="257" y1="146" x2="267" y2="146"/><polyline class="dg-path" points="14,30 64,72 82,56 136,108 156,90 208,146 250,98" marker-end="url(#dg2)"/><circle class="dg-dot" cx="64" cy="72" r="3.5"/><circle class="dg-dot" cx="136" cy="108" r="3.5"/><circle class="dg-dot" cx="208" cy="146" r="3.5"/><circle class="dg-ringc" cx="14" cy="30" r="3.5"/><circle class="dg-cross dg-ring" cx="243" cy="106" r="5"/><text class="dg-t" x="8" y="17">máximo</text><text class="dg-t" x="88" y="26">nivel de cambio</text><text class="dg-t" x="142" y="56">baja con cada mínimo nuevo</text><text class="dg-t" x="208" y="166" text-anchor="middle">mínimo = fin del tramo</text><text class="dg-t" x="272" y="130">umbral</text><text class="dg-n" x="258" y="90">cambio</text></svg><figcaption>Una bajada con rebotes. El <b>nivel de cambio</b> (línea punteada) queda un umbral sobre el último mínimo y baja con cada mínimo nuevo. Los dos primeros rebotes no lo alcanzan y la bajada sigue; el tercero sí, y el tramo termina en el último mínimo.</figcaption></figure>
+    <p><b>Nivel de cambio</b> = mínimo del tramo + umbral. Cada mínimo nuevo lo baja, como un stop móvil. Si el precio sube hasta el nivel, el tramo terminó y el último mínimo fue su final.</p>
+    <h3>Lo que dicen tus datos (943 tramos, umbral 0.4 ATR)</h3>
+    <ul>
+      <li>La mitad dura menos de 5 horas; 1 de cada 4 pasa de 12.</li>
+      <li>La probabilidad de que un rebote sea el final crece en línea recta con su tamaño. Ningún tamaño avisa antes.</li>
+      <li>Desde un extremo nuevo, la mitad de los tramos avanza al menos 0.7 umbrales más; 1 de cada 4, 1.4; 1 de cada 10, 2.3.</li>
+      <li><b>Cuándo cambian.</b> Los giros no se reparten parejo: 16% cae entre las 02:00 y las 05:00 de Nueva York (<span data-ny="2-5"></span>) y 35% entre las 08:00 y las 12:00 (<span data-ny="8-12"></span>). Una de cada dos, en solo 7 horas del día.</li>
+      <li>Tras confirmarse el cambio, el precio avanzó otro umbral antes de volver al extremo 49.5% de las veces (±3): una moneda al aire.</li>
+    </ul>
+    <p class="note">El cambio dice que el tramo terminó y dónde va el stop. La dirección del siguiente la deciden los pasos 1 y 2.</p>
+  </article>
+
+  <article class="th" id="teoria-datos" data-short="Tus datos" tabindex="-1">
+    <p class="kick">Datos</p>
+    <h2>Tus datos: de dónde salen las cifras</h2>
+    <ul>
+      <li><b>EURUSD.csv:</b> 499 470 velas de 1 minuto, del 13 dic 2024 al 21 abr 2026 (350 días). El reloj del bróker va 7 horas por delante de Nueva York, y el día de FX va de 17:00 a 17:00 de Nueva York.</li>
+      <li><b>ff_calendar_thisweek.csv:</b> el calendario de Forex Factory del 2 al 6 feb 2026, en hora UTC.</li>
+      <li><b>Cifras:</b> medianas por hora, spread medio, parte del rango hecha, tramos y giros. Se calcularon una vez y quedan fijas en la página.</li>
+    </ul>
+    <h3>Límites</h3>
+    <ul>
+      <li>Los datos terminan el 22 abr 2026: los precios de hoy los pones tú.</li>
+      <li>El archivo trae el precio Bid. A las 17:00 de Nueva York el spread se abre y el Bid se hunde unos pips; ahí aparecen mínimos que no son giros del mercado.</li>
+      <li>El horario de verano mueve las horas; la página las convierte con la zona de tu dispositivo.</li>
+      <li>Una semana de calendario es poca muestra: sirve de ejemplo, no de regla.</li>
+    </ul>
+  </article>
+
+  <article class="th" id="teoria-veredicto" data-short="El veredicto" tabindex="-1">
+    <p class="kick">Base</p>
+    <h2>El veredicto y las luces</h2>
+    <p>Un banco no opera con una sola señal: pide que varias <b>coincidan</b> (confluencia) y que el entorno deje ejecutar. Por eso el panel exige cuatro luces de dirección y siete permisos.</p>
+    <ul>
+      <li><b>Cuatro luces:</b> macro (paso 1), tendencia, nivel y gatillo (paso 2). Todas del mismo lado.</li>
+      <li><b>Siete permisos:</b> sin noticia roja, sesión líquida, spread normal y queda recorrido (paso 3); invalidación clara, límite diario intacto y sin apuesta repetida (paso 4).</li>
+    </ul>
+    <p><b>ESPERAR:</b> falta macro o tendencia. <b>NO OPERAR:</b> se contradicen. <b>BUSCAR COMPRA o VENTA:</b> hay dirección; falta nivel, gatillo o algún permiso. <b>COMPRAR o VENDER:</b> todo alineado. <b>SALIR o REDUCIR:</b> marcaste algo en el paso 6.</p>
+    <p class="note">El veredicto solo refleja los botones que tú marcas: es tu lista ordenada, no una señal del mercado.</p>
+  </article>
+
+  <article class="th" id="teoria-proceso" data-short="Proceso y roles" tabindex="-1">
+    <p class="kick">Base</p>
+    <h2>Proceso institucional y roles</h2>
+    <p>Una institución trabaja en tres etapas y las repite: <b>planificar</b> (qué idea y con cuánto riesgo), <b>ejecutar</b> (cómo y cuándo entrar) y <b>retroalimentar</b> (medir y aprender). En un banco cada etapa tiene dueños distintos; aquí haces todos los roles, uno a la vez.</p>
+    <ul>
+      <li><b>Planificar:</b> estratega macro (paso 1), analista técnico (paso 2), gestor de riesgo (paso 4) y gestor de cartera (pasos 5 y 6).</li>
+      <li><b>Ejecutar:</b> trader de ejecución (paso 3). El creador de mercado es la contraparte que te da liquidez.</li>
+      <li><b>Retroalimentar:</b> analista de desempeño, cumplimiento y operaciones.</li>
+    </ul>
+    <p>Marca un rol en «Roles de la mesa» y se iluminan sus habilidades; marca una habilidad y se iluminan los roles que la usan.</p>
+    <p class="note">El método se apoya en el proceso de gestión de cartera y en la estrategia de ejecución del CFA Institute, y en el Código Global de FX. Las fuentes están al pie de la página.</p>
+  </article>
+
+  <article class="th" id="teoria-glosario" data-short="Glosario" tabindex="-1">
+    <p class="kick">Base</p>
+    <h2>Glosario</h2>
+    <dl>
+      <dt>Ask</dt><dd>Precio al que compras. Está un spread por encima del Bid.</dd>
+      <dt>ATR</dt><dd>Rango medio verdadero: cuántos pips recorre el precio en un día normal, en promedio de 14 días.</dd>
+      <dt>Bid</dt><dd>Precio al que vendes. El gráfico de MT5 dibuja este.</dd>
+      <dt>Break-even</dt><dd>Punto de equilibrio. Como acierto: 1 ÷ (1 + R). Como stop: llevarlo al precio de entrada.</dd>
+      <dt>Confluencia</dt><dd>Que varias señales independientes apunten al mismo lado.</dd>
+      <dt>Deslizamiento</dt><dd>Diferencia entre el precio que pediste y el que te dieron.</dd>
+      <dt>Gatillo</dt><dd>La señal que confirma que el nivel aguantó.</dd>
+      <dt>Liquidez</dt><dd>Cuánta gente compra y vende a la vez. Con mucha, el spread es bajo.</dd>
+      <dt>Lote</dt><dd>Tamaño de la operación. 1 lote = 100 000 €; 0.01 lote = 1 000 €.</dd>
+      <dt>Margen</dt><dd>Garantía que el bróker bloquea al abrir la posición. No es lo que arriesgas: eso lo marca el stop.</dd>
+      <dt>Media móvil</dt><dd>Promedio de los últimos cierres. Suaviza el precio y muestra la dirección.</dd>
+      <dt>Orden pendiente</dt><dd>Orden que espera en el mercado hasta que el precio llegue: Límite, Stop o Stop Limit.</dd>
+      <dt>Pip</dt><dd>0.0001 en el EURUSD, el cuarto decimal. En 1.17124 el pip es el 2.</dd>
+      <dt>Punto</dt><dd>Una décima de pip (0.00001), el quinto decimal. 10 puntos = 1 pip.</dd>
+      <dt>R</dt><dd>Lo que arriesgas en una operación: la distancia al stop. Un objetivo de 2R gana el doble de lo arriesgado.</dd>
+      <dt>Requote</dt><dd>Aviso de que el precio cambió: te ofrecen uno nuevo para aceptar o rechazar. Pasa con ejecución Instant.</dd>
+      <dt>Resistencia</dt><dd>Nivel encima del precio donde antes frenó una subida.</dd>
+      <dt>Soporte</dt><dd>Nivel debajo del precio donde antes frenó una bajada.</dd>
+      <dt>Spread</dt><dd>Ask menos Bid: lo que cuesta entrar. Se mide en puntos.</dd>
+      <dt>Stop Loss</dt><dd>Orden que cierra la posición si pierde hasta tu límite.</dd>
+      <dt>Take Profit</dt><dd>Orden que cierra la posición al llegar al objetivo.</dd>
+      <dt>Tramo</dt><dd>Una bajada o subida con rebotes por el camino, medida con un umbral.</dd>
+      <dt>Umbral</dt><dd>Tamaño del rebote que da por terminado un tramo: ⅓, 0.4 o ½ ATR.</dd>
+      <dt>VIX</dt><dd>Índice de la volatilidad que se espera del S&amp;P 500 a 30 días; el «índice del miedo».</dd>
+    </dl>
+  </article>
+
+  <article class="th" id="teoria-errores" data-short="Errores típicos" tabindex="-1">
+    <p class="kick">Base</p>
+    <h2>Errores típicos</h2>
+    <ol>
+      <li><b>Orden del lado equivocado.</b> Un Buy Limit encima del precio, o un Buy Stop debajo: MT5 la rechaza. Límite = mejor precio; Stop = peor.</li>
+      <li><b>Confundir el Stop de entrada con el Stop Loss.</b> Uno abre la operación; el otro la cierra.</li>
+      <li><b>Esperar que el gráfico toque.</b> Con el spread, un Buy Limit puede no llenarse aunque el gráfico llegue a tu nivel.</li>
+      <li><b>Entrar sin stop, o alejarlo después.</b> El stop se decide antes y solo se acerca.</li>
+      <li><b>Operar el dato.</b> Sin entradas 30 minutos antes ni después de una roja.</li>
+      <li><b>Entrar en el cierre diario</b> (<span data-ny="17"></span>). El spread medio ahí es 3.6 pips.</li>
+      <li><b>Lotes a ojo.</b> Usa la fórmula: lotes = riesgo ÷ (pips de stop × 10).</li>
+      <li><b>Confundir pips con puntos.</b> Un stop de 18 pips son 180 puntos; en MT5 los precios traen 5 decimales.</li>
+      <li><b>Dejar órdenes pendientes olvidadas.</b> Ponles vencimiento y revisa la pestaña Operaciones.</li>
+      <li><b>Tomar el veredicto como garantía.</b> Es tu lista ordenada, no una señal del mercado.</li>
+    </ol>
+  </article>
+
+  <article class="th" id="teoria-avisos" data-short="Avisos" tabindex="-1">
+    <p class="kick">Base</p>
+    <h2>Límites y avisos</h2>
+    <ul>
+      <li><b>No es asesoría financiera.</b> Sirve para ordenar tu propia decisión. Reguladores europeos (ESMA, 2018) hallaron que entre 74% y 89% de las cuentas minoristas de CFD pierden dinero.</li>
+      <li><b>Reglas prácticas, no garantías.</b> Los umbrales (0.10 de diferencia de rendimientos, 15 pips de un nivel, 2 pérdidas al día, 30 minutos de una noticia) son criterios de esta página, no leyes del mercado.</li>
+      <li><b>Cifras de tus archivos.</b> Salen de tu EURUSD.csv y de una semana de calendario; con otros datos o en otra época serían distintas.</li>
+      <li><b>MT5.</b> Los nombres de los menús cambian entre versiones y brókers. Las definiciones de los tipos de orden vienen de la ayuda oficial de MetaTrader 5 (enlaces al pie).</li>
+    </ul>
+  </article>
+
+</main>
+
 <footer class="wrap foot">
   <p><strong>Sirve para ordenar tu propia decisión; no es asesoría financiera.</strong> El veredicto solo refleja los botones que tú marcas. Reguladores europeos (ESMA, 2018) hallaron que entre 74% y 89% de las cuentas minoristas de CFD pierden dinero.</p>
-  <p>Método: <a href="https://www.cfainstitute.org/membership/professional-development/refresher-readings/2018/the-portfolio-management-process-and-the-investment-policy-statement">proceso de gestión de cartera</a>, <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/trade-strategy-execution">estrategia y ejecución</a> y <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/measuring-managing-market-risk">límites de riesgo</a> (CFA Institute); <a href="https://www.bis.org/publications/fx-execution-algorithms-and-market-functioning">algoritmos de ejecución en FX</a> (BIS); <a href="https://globalfxc.org/docs/fx_global.pdf">Código Global de FX</a>; <a href="https://www.ecb.europa.eu/press/key/date/2017/html/ecb.sp171103.en.html">tipos de interés y EURUSD</a> (BCE); <a href="https://www.esma.europa.eu/sites/default/files/library/esma35-43-1135_notice_of_pi_decisions_on_cfds_and_binary_options.pdf">aviso de ESMA</a>.</p>
+  <p>Método: <a href="https://www.cfainstitute.org/membership/professional-development/refresher-readings/2018/the-portfolio-management-process-and-the-investment-policy-statement">proceso de gestión de cartera</a>, <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/trade-strategy-execution">estrategia y ejecución</a> y <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/measuring-managing-market-risk">límites de riesgo</a> (CFA Institute); <a href="https://www.bis.org/publications/fx-execution-algorithms-and-market-functioning">algoritmos de ejecución en FX</a> (BIS); <a href="https://globalfxc.org/docs/fx_global.pdf">Código Global de FX</a>; <a href="https://www.ecb.europa.eu/press/key/date/2017/html/ecb.sp171103.en.html">tipos de interés y EURUSD</a> (BCE); <a href="https://www.esma.europa.eu/sites/default/files/library/esma35-43-1135_notice_of_pi_decisions_on_cfds_and_binary_options.pdf">aviso de ESMA</a>; ayuda de MetaTrader 5: <a href="https://www.metatrader5.com/en/terminal/help/trading/general_concept">tipos de orden</a>, <a href="https://www.metatrader5.com/en/mobile-trading/android/help/trade/general_concept/order_types">órdenes en el móvil</a> y <a href="https://www.metatrader5.com/en/mobile-trading/android/help/trade/pending_place">órdenes pendientes</a>.</p>
   <p>Cifras: calculadas de tu EURUSD.csv (499 470 velas M1; el reloj del bróker va 7 horas por delante de Nueva York) y de tu ff_calendar_thisweek.csv (2 a 6 feb 2026). Un tramo termina cuando el precio se devuelve 0.4 veces el ATR de 14 días. Los datos terminan el 22 abr 2026: los precios de hoy los pones tú.</p>
 </footer>
 
@@ -836,7 +1410,7 @@ function newsState(now) {
 function evTip(el, e) {
   const t = document.createElement('span'); t.className = 'tooltiptext'; t.id = 'ev' + (++uid);
   t.textContent = dayHm(e.ts) + ' · ' + e.cur + ' ' + e.title + (e.f ? ' · previsión ' + e.f : '') + (e.p ? ' · anterior ' + e.p : '') + '. Dato de alto impacto: no entres desde 30 minutos antes hasta 30 minutos después.';
-  el.appendChild(t); el.classList.add('tooltip'); el.setAttribute('aria-describedby', t.id);
+  el.appendChild(t); el.classList.add('tooltip'); el.setAttribute('aria-describedby', t.id); el.dataset.teoria = 'noticia';
 }
 function drawCal() {
   const now = Date.now(), box = $('#cal-list'); box.textContent = '';
@@ -964,6 +1538,15 @@ function render() {
   }
   const so = $('#o-slip'); so.classList.toggle('none', !slip);
   so.innerHTML = slip || (act ? 'Completa el plan para ver la orden.' : 'Sin sesgo todavía: el plan muestra los dos lados.');
+  const om = $('#o-mt5');
+  if (slip) {
+    const buy = J.dir > 0, lim = S.pick.order === 'limite', nm = (buy ? 'Buy' : 'Sell') + (lim ? ' Limit' : S.pick.order === 'stop' ? ' Stop' : ''), side = buy === lim ? 'debajo' : 'encima';
+    om.innerHTML = (S.pick.order === 'mercado'
+      ? '<b>En MT5:</b> F9, ejecución a mercado, botón <b>' + nm + '</b>. Entra al precio del momento; el precio de entrada de arriba es solo tu referencia. '
+      : '<b>En MT5:</b> F9, orden pendiente, tipo <b>' + nm + '</b>. El precio de entrada debe quedar <b>' + side + ' del precio actual</b>; si no, MT5 la rechaza. ') +
+      '<a href="#teoria-mt5" data-ir="mt5">Cómo ponerla ↗</a>';
+  }
+  om.hidden = !slip;
   $('#entry-note').hidden = S.num.entry !== DEF.entry;
   /* leg tracker */
   const K = track(S.num, S.pick), leg = K.dn ? 'bajada' : 'subida', cm = K.dn ? 'rebote' : 'retroceso';
@@ -1028,13 +1611,22 @@ $('#t-flip').addEventListener('click', () => {
 });
 
 /* ---- tooltips: hover and focus with a mouse or keyboard; tap or long-press on touch ---- */
-const tip = $('#tip'), tape = $('#tape');
-let tipEl = null, ptype = 'mouse', lp = 0, lpAt = [0, 0], lpFired = false;
+const tip = $('#tip'), tape = $('#tape'), thbar = $('#thbar'), theory = $('#theory');
+let tipEl = null, ptype = 'mouse', kbd = false, lp = 0, lpAt = [0, 0], lpFired = false, hideT = 0, quiet = false;
 $$('.tooltip').forEach((el, i) => { const t = $('.tooltiptext', el); if (t) { t.id = 'tt' + i; el.setAttribute('aria-describedby', t.id); } });
-function place() {
+const inTip = n => !!(n && n.closest && n.closest('#tip'));
+
+/* A tip whose element, or the group it sits in, carries data-teoria ends with a link to that card of the Teoría view. */
+function thLink(el) {
+  const host = el.closest('[data-teoria]'); if (!host) return '';
+  const id = host.dataset.teoria, card = document.getElementById('teoria-' + id); if (!card) return '';
+  return '<span class="p thl"><a href="#teoria-' + id + '" data-ir="' + id + '">Ver teoría: ' + (card.dataset.short || id) + ' ↗</a>' +
+    (kbd && el.matches(':focus-visible') ? ' <i>(tecla T)</i>' : '') + '</span>';
+}
+function place(auto) {
   if (!tipEl) return;
   const r = tipEl.getBoundingClientRect(), vw = document.documentElement.clientWidth, vh = window.innerHeight;
-  const tw = tip.offsetWidth, th = tip.offsetHeight, top0 = tape.getBoundingClientRect().bottom + 4;
+  const tw = tip.offsetWidth, th = tip.offsetHeight, top0 = Math.max(tape.getBoundingClientRect().bottom, thbar.getBoundingClientRect().bottom) + 4;
   const x = Math.max(12, Math.min(vw - tw - 12, r.left + r.width / 2 - tw / 2));
   let above = r.top - th - 10 >= top0;
   if (!above && r.bottom + 10 + th > vh && r.top - top0 > vh - r.bottom) above = true;
@@ -1043,40 +1635,105 @@ function place() {
   tip.style.left = (x + window.scrollX) + 'px';
   tip.style.top = ((above ? r.top - th - 10 : r.bottom + 10) + window.scrollY) + 'px';
   tip.style.setProperty('--ax', Math.max(14, Math.min(tw - 14, r.left + r.width / 2 - x)) + 'px');
+  if (auto && !tipEl.closest('.tape')) { /* touch or keyboard: a tall tip that is cut off brings itself into view */
+    const b = tip.getBoundingClientRect(), dy = b.top < top0 ? b.top - top0 : b.bottom > vh - 8 ? Math.min(b.bottom - (vh - 8), b.top - top0) : 0;
+    if (dy) window.scrollBy(0, dy);
+  }
 }
-function show(el) {
+function show(el, auto) {
+  clearTimeout(hideT);
   const t = $('.tooltiptext', el);
   if (!t) { hide(); return; }
   $$('.hb.sel').forEach(b => b.classList.remove('sel'));
   if (el.classList.contains('hb')) el.classList.add('sel');
-  tipEl = el; tip.innerHTML = t.innerHTML; tip.hidden = false; tip.style.left = '0px'; tip.style.top = '0px'; place();
+  tipEl = el; tip.innerHTML = t.innerHTML + thLink(el); tip.hidden = false; tip.style.left = '0px'; tip.style.top = '0px'; place(auto);
 }
-function hide() { tipEl = null; tip.hidden = true; $$('.hb.sel').forEach(b => b.classList.remove('sel')); }
+function hide() { clearTimeout(hideT); tipEl = null; tip.hidden = true; $$('.hb.sel').forEach(b => b.classList.remove('sel')); }
+/* With a mouse a tip that carries a link stays a moment, so the pointer can cross the gap and reach the link. */
+function hideSoon() { clearTimeout(hideT); if ($('a', tip)) hideT = setTimeout(hide, 220); else hide(); }
+
 document.addEventListener('pointerdown', e => {
-  ptype = e.pointerType || 'mouse';
+  ptype = e.pointerType || 'mouse'; kbd = false;
   const k = e.target.closest('.tooltip'); clearTimeout(lp); lpFired = false;
-  if (k && ptype !== 'mouse') { lpAt = [e.clientX, e.clientY]; lp = setTimeout(() => { lpFired = true; show(k); }, 480); }
+  if (k && ptype !== 'mouse') { lpAt = [e.clientX, e.clientY]; lp = setTimeout(() => { lpFired = true; show(k, true); }, 480); }
 }, { passive: true });
 document.addEventListener('pointermove', e => { if (Math.abs(e.clientX - lpAt[0]) > 10 || Math.abs(e.clientY - lpAt[1]) > 10) clearTimeout(lp); }, { passive: true });
 ['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => clearTimeout(lp), { passive: true }));
 document.addEventListener('contextmenu', e => { if (ptype !== 'mouse' && e.target.closest('.tooltip')) e.preventDefault(); });
-document.addEventListener('pointerover', e => { if (e.pointerType === 'mouse') { const k = e.target.closest('.tooltip'); if (k && k !== tipEl) show(k); } });
-document.addEventListener('pointerout', e => { if (e.pointerType === 'mouse') { const k = e.target.closest('.tooltip'); if (k && !k.contains(e.relatedTarget)) hide(); } });
-document.addEventListener('focusin', e => { const k = e.target.closest('.tooltip'); if (k && e.target.matches(':focus-visible') && ptype === 'mouse') show(k); });
-document.addEventListener('focusout', () => { if (ptype === 'mouse') hide(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); else ptype = 'mouse'; });
+document.addEventListener('pointerover', e => {
+  if (e.pointerType !== 'mouse') return;
+  if (inTip(e.target)) { clearTimeout(hideT); return; }
+  const k = e.target.closest('.tooltip'); if (!k) return;
+  if (k !== tipEl) show(k); else clearTimeout(hideT);
+});
+document.addEventListener('pointerout', e => {
+  if (e.pointerType !== 'mouse') return;
+  const to = e.relatedTarget;
+  if (inTip(e.target)) { if (!inTip(to) && !(tipEl && to && tipEl.contains(to))) hideSoon(); return; }
+  const k = e.target.closest('.tooltip'); if (k && !k.contains(to) && !inTip(to)) hideSoon();
+});
+document.addEventListener('focusin', e => { const k = e.target.closest('.tooltip'); if (k && !quiet && ptype === 'mouse' && e.target.matches(':focus-visible')) show(k, true); });
+document.addEventListener('focusout', e => { if (ptype === 'mouse' && kbd && !inTip(e.relatedTarget)) hide(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { hide(); return; }
+  ptype = 'mouse'; kbd = true;
+  if ((e.key === 't' || e.key === 'T') && !e.ctrlKey && !e.metaKey && !e.altKey && tipEl && !tip.hidden && document.activeElement === tipEl) {
+    const a = $('a[data-ir]', tip); if (a) { e.preventDefault(); a.click(); }
+  }
+});
 document.addEventListener('click', e => {
+  const ir = e.target.closest('a[data-ir]'), nav = e.target.closest('[data-go]');
+  if (ir || nav) { /* a theory link, or the Teoría / Mesa / Temas buttons */
+    e.preventDefault();
+    const from = inTip(e.target) ? tipEl : (ir || nav);
+    hide();
+    go(ir ? 'teoria-' + ir.dataset.ir : nav.dataset.go === 'mesa' ? 'mesa' : 'teoria', from);
+    return;
+  }
   if (e.target.closest('#tip')) { hide(); return; }
   const k = e.target.closest('.key'), t = e.target.closest('.tooltip');
   if (lpFired) { lpFired = false; e.preventDefault(); return; }
   if (k) press(k);
   if (!t) { hide(); return; }
-  if (ptype !== 'mouse') show(t); else if (tipEl) place();
+  if (ptype !== 'mouse') show(t, true); else if (tipEl) place();
 });
-window.addEventListener('resize', place);
+window.addEventListener('resize', () => place());
 window.addEventListener('scroll', () => { if (tipEl && tipEl.closest('.tape')) hide(); }, { passive: true });
 
+/* ---- two views on one page: the board and the Teoría view. The hash tells which: #mesa, #teoria, #teoria-ordenes ... ---- */
+const FOLD = [tape, $('.clockwrap'), $('.hint'), $('#board')];
+let view = '', backY = 0, backEl = null, flashT = 0;
+const hashNow = () => { try { return decodeURIComponent(location.hash.replace(/^#/, '')).toLowerCase(); } catch (e) { return ''; } };
+function reveal(card) {
+  $$('.th.flash').forEach(c => c.classList.remove('flash')); clearTimeout(flashT);
+  if (card.id === 'teoria') window.scrollTo(0, 0);
+  else { card.scrollIntoView({ block: 'start' }); card.classList.add('flash'); flashT = setTimeout(() => card.classList.remove('flash'), 1800); }
+  card.focus({ preventScroll: true });
+}
+function route(h) {
+  if (/^(comment-|settings$|sidebar$|customize$|upgrade$|downloads$)/.test(h)) return; /* names claude.ai keeps for itself */
+  hide();
+  const first = !view;
+  if (h === 'teoria' || h.indexOf('teoria-') === 0) {
+    const el = document.getElementById(h), card = el && theory.contains(el) ? el : $('#teoria');
+    if (view !== 'teoria') { if (view === 'mesa') backY = window.scrollY; view = 'teoria'; FOLD.forEach(x => { x.hidden = true; }); thbar.hidden = false; theory.hidden = false; }
+    document.body.dataset.view = view;
+    reveal(card);
+  } else if (view !== 'mesa') {
+    view = 'mesa'; FOLD.forEach(x => { x.hidden = false; }); thbar.hidden = true; theory.hidden = true;
+    document.body.dataset.view = view;
+    if (!first) { window.scrollTo(0, backY); if (backEl && backEl.isConnected) { quiet = true; backEl.focus({ preventScroll: true }); quiet = false; } }
+  }
+}
+function go(h, from) {
+  if (view === 'mesa' && from && from.isConnected) backEl = from;
+  if (hashNow() === h) route(h); else location.hash = h;
+}
+window.addEventListener('hashchange', () => route(hashNow()));
+
+$$('.th').forEach(c => { const h = $('h2', c); if (h) { h.id = 'h-' + c.id; c.setAttribute('aria-labelledby', h.id); } }); /* a card is announced by its title when it takes focus */
 render(); drawCal(); tick(); setInterval(tick, 30000);
+route(hashNow());
 })();
 </script>
 
