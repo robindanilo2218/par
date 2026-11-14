@@ -345,6 +345,16 @@ th .q { margin-left: 6px; }
   .cell.on .cl { color: var(--ok); }
 }
 
+.vb { font-family: var(--font-mono); font-size: .78rem; font-weight: 600; padding: 3px 9px; min-height: 32px; border-radius: 6px; border: 1px solid var(--line); background: var(--idle-soft); color: var(--muted); cursor: pointer; white-space: nowrap; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.vb.on { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+.vb.mom { border-style: dashed; }
+.vb:hover { border-color: var(--accent); }
+.t .vb { grid-column: 4; grid-row: 1; align-self: center; }
+.fix .vb.inl { min-height: 28px; padding: 1px 8px; vertical-align: middle; }
+button.tv { border: 1px solid currentColor; cursor: pointer; min-height: 28px; min-width: 2.2rem; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+button.tv.mom { border-style: dashed; }
+button.tv:hover { border-color: var(--accent); }
+
 </style>
 </head>
 <body>
@@ -387,7 +397,7 @@ th .q { margin-left: 6px; }
         <li><b>Lea la ficha de arriba hacia abajo.</b> Primero la ORDEN (alguien pide la salida), luego los PERMISOS (todo lo que debe estar bien). Si se cumplen ambas, ENTONCES la salida sale.</li>
         <li><b>Mire los signos.</b> ✓ cumple y ✗ no cumple: la fila con ✗ es la causa de que no salga. En las órdenes, ● es pedida y ○ no pedida.</li>
         <li><b>«debe estar en 0» significa NO.</b> Esa señal es un freno: si llega (pasa a 1), la salida no arranca; si ya estaba andando, se corta. Cuando vuelve a 0, la salida puede salir otra vez. No es una falla: es una protección o una prioridad.</li>
-        <li><b>Para probar,</b> toque las casillas de «Probar con valores reales» y ponga lo que ve en el PLC. Para fijar muchas señales de una vez use la pestaña Señales. Las filas se actualizan solas.</li>
+        <li><b>Para probar,</b> toque el valor de una fila (por ejemplo «ahora 0») o las casillas de «Probar con valores reales» y ponga lo que ve en el PLC. Para fijar muchas señales de una vez use la pestaña Señales; el cambio se ve en las dos. Las filas se actualizan solas.</li>
         <li><b>Toque cualquier dirección</b> (por ejemplo I8.3) para ver para qué sirve, y el botón «?» para una explicación corta.</li>
       </ol>
       <p>Ojo: 0 y 1 son los valores del bit en el PLC, no del contacto físico. Un paro de emergencia cableado normalmente cerrado vale 1 cuando todo está bien.</p>
@@ -1222,6 +1232,16 @@ if (typeof module !== 'undefined') module.exports = { DB };
     return `<button type="button" class="chip ${v ? 'hi' : 'lo'}" data-node="${esc(id)}" title="${esc(id + ': ' + t + '. Toque para ver su ficha.')}">${esc(id)}${extra || ''}</button>`;
   }
   function nm(id) { const n = E.nodes[id]; return symOf(id) || (n ? n.d : ''); }
+  /* Valor de una señal: si es una entrada o bit externo, es un botón que la cambia ahí mismo (y en todas las pestañas) */
+  function valBtn(id, text, cls) {
+    const n = E.nodes[id], v = E.value(id) ? 1 : 0, t = text != null ? text : String(v);
+    if (!n || !E.isLeaf(n) || id in E.state.force) {
+      const why = n && !E.isLeaf(n) ? ' title="Esta marca se calcula sola con otras señales. Toque su nombre para ver de qué depende y cambiar esas señales."' : '';
+      return `<span class="${cls ? cls + ' muted' : 'now'}"${why}>${esc(t)}</span>`;
+    }
+    const m = sigMode(id);
+    return `<button type="button" class="vb ${v ? 'on' : 'off'}${m === 'p' ? ' mom' : ''}${cls ? ' ' + cls : ''}" data-sig="${esc(id)}" title="${esc(id + ' vale ' + v + '. ' + (m === 'p' ? 'Momentánea: cambia mientras la mantiene presionada.' : 'Toque para ponerla en ' + (v ? 0 : 1) + '. Se cambia también en Señales.'))}">${esc(t)}</button>`;
+  }
 
   /* ---------- Texto de expresiones ---------- */
   function astText(a, top) {
@@ -1375,14 +1395,14 @@ if (typeof module !== 'undefined') module.exports = { DB };
       else if (a.op === 'not' && a.a.op === 'ref') { id = a.a.id; need = 0; }
       const cur = E.ev(a, null);
       if (mode === 'or') {
-        if (id) { const v = E.value(id) ? 1 : 0; return `<li class="t ${v ? 'ok' : 'idle'}" title="${esc(v ? id + ' está pidiendo la salida ahora.' : id + ' no está pidiendo la salida (puede ser otra la que la pida).')}"><span class="mk">${v ? '●' : '○'}</span>${chip(id)}<span class="d">${esc(nm(id))}</span><span class="now">${v}</span></li>`; }
+        if (id) { const v = E.value(id) ? 1 : 0; return `<li class="t ${v ? 'ok' : 'idle'}" title="${esc(v ? id + ' está pidiendo la salida ahora.' : id + ' no está pidiendo la salida (puede ser otra la que la pida).')}"><span class="mk">${v ? '●' : '○'}</span>${chip(id)}<span class="d">${esc(nm(id))}</span>${valBtn(id, String(v))}</li>`; }
         return `<li class="t ${cur ? 'ok' : 'idle'}"><span class="mk">${cur ? '●' : '○'}</span><code>${esc(astText(a, true))}</code></li>`;
       }
       if (id) {
         const v = E.value(id) ? 1 : 0;
         const ok = v === need;
         const tt = ok ? `${id} cumple: vale ${v} y se pide ${need}.` : `${id} NO cumple: vale ${v} y se pide ${need}. Esta fila impide que la salida salga.`;
-        return `<li class="t ${ok ? 'ok' : 'bad'}" title="${esc(tt)}"><span class="mk">${ok ? '✓' : '✗'}</span>${chip(id)}<span class="need">${need ? 'debe estar en 1' : 'debe estar en 0 (freno: si llega, no arranca)'}</span><span class="d">${esc(nm(id))}</span><span class="now">ahora ${v}</span></li>`;
+        return `<li class="t ${ok ? 'ok' : 'bad'}" title="${esc(tt)}"><span class="mk">${ok ? '✓' : '✗'}</span>${chip(id)}<span class="need">${need ? 'debe estar en 1' : 'debe estar en 0 (freno: si llega, no arranca)'}</span><span class="d">${esc(nm(id))}</span>${valBtn(id, 'ahora ' + v)}</li>`;
       }
       return `<li class="t ${cur ? 'ok' : 'bad'}"><span class="mk">${cur ? '✓' : '✗'}</span><code>${esc(astText(a, true))}</code></li>`;
     }).join('');
@@ -1416,7 +1436,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
       if (it.any) {
         return `<li><div class="anyh">Se necesita al menos una de estas:</div><ul class="alts">${it.any.map(x => `<li>${altLabel(x.alt)}${x.fixes.length ? fixHTML(x.fixes) : ''}</li>`).join('')}</ul></li>`;
       }
-      let t = `${chip(it.id)} debe estar en <b>${it.to ? 1 : 0}</b>${it.to ? '' : ' <span class="muted">(apagada: hoy bloquea)</span>'} <span class="muted">(ahora ${E.value(it.id) ? 1 : 0})</span> <span class="d">${esc(nm(it.id))}</span>`;
+      let t = `${chip(it.id)} debe estar en <b>${it.to ? 1 : 0}</b>${it.to ? '' : ' <span class="muted">(apagada: hoy bloquea)</span>'} ${valBtn(it.id, 'ahora ' + (E.value(it.id) ? 1 : 0), 'inl')} <span class="d">${esc(nm(it.id))}</span>`;
       if (it.because && it.because.length) t += '<div class="why">para eso necesita:</div>' + fixHTML(it.because);
       return `<li>${t}</li>`;
     }).join('') + '</ul>';
@@ -1457,7 +1477,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     if (n.perm) c += 'permisos = ' + pyExpr(E.ast(n.perm)) + '\n';
     const cond = n.cmd && n.perm ? 'orden and permisos' : (n.cmd ? 'orden' : 'permisos');
     c += '\nif ' + cond + ':\n    ' + pyName(id) + ' = 1   # la salida sale\nelse:\n    ' + pyName(id) + ' = 0   # la salida no sale\n';
-    return '<details class="treebox"><summary>Ver esta salida como código Python</summary><p class="muted small">Cada nombre es un bit del PLC; el punto se cambia por guion bajo (I8.3 pasa a I8_3). 1 es True y 0 es False.</p><pre class="code"><code>' + esc(c) + '</code></pre></details>';
+    return '<details class="treebox" data-k="' + esc(id + '|py') + '"><summary>Ver esta salida como código Python</summary><p class="muted small">Cada nombre es un bit del PLC; el punto se cambia por guion bajo (I8.3 pasa a I8_3). 1 es True y 0 es False.</p><pre class="code"><code>' + esc(c) + '</code></pre></details>';
   }
 
   /* ---------- Árbol de condiciones ---------- */
@@ -1466,12 +1486,15 @@ if (typeof module !== 'undefined') module.exports = { DB };
     if (!n) return '';
     const v = E.value(id);
     const forced = id in E.state.force;
-    const head = `<span class="tv ${v ? 'hi' : 'lo'}">${v ? 1 : 0}</span>${chip(id)}<span class="d">${esc(nm(id))}</span>${forced ? '<span class="tag f">forzada</span>' : ''}`;
+    const tvSpan = `<span class="tv ${v ? 'hi' : 'lo'}">${v ? 1 : 0}</span>`;
+    const tvBtn = `<button type="button" class="tv ${v ? 'hi' : 'lo'}${sigMode(id) === 'p' ? ' mom' : ''}" data-sig="${esc(id)}" title="${esc(id + ' vale ' + (v ? 1 : 0) + '. Toque para cambiarla. Se cambia también en Señales.')}">${v ? 1 : 0}</button>`;
+    const tail = `${chip(id)}<span class="d">${esc(nm(id))}</span>${forced ? '<span class="tag f">forzada</span>' : ''}`;
+    const head = tvSpan + tail;
     if (E.isLeaf(n) || forced || depth > 7 || path.includes(id)) {
-      return `<div class="tl">${head}${path.includes(id) ? '<span class="tag">interbloqueo, usa valor del scan anterior</span>' : ''}</div>`;
+      return `<div class="tl">${E.isLeaf(n) && !forced ? tvBtn + tail : head}${path.includes(id) ? '<span class="tag">interbloqueo, usa valor del scan anterior</span>' : ''}</div>`;
     }
     const a = E.defAst(id);
-    return `<details class="tn" ${depth < 1 ? 'open' : ''}><summary>${head}<span class="tag">${esc(typeName(n))}</span></summary>${astTree(a, depth + 1, path.concat(id), id)}</details>`;
+    return `<details class="tn" data-k="${esc(app.sel + '|tn|' + path.join('>') + '>' + id)}" ${depth < 1 ? 'open' : ''}><summary>${head}<span class="tag">${esc(typeName(n))}</span></summary>${astTree(a, depth + 1, path.concat(id), id)}</details>`;
   }
   function astTree(a, depth, path, owner) {
     switch (a.op) {
@@ -1544,11 +1567,12 @@ if (typeof module !== 'undefined') module.exports = { DB };
     let h = `<div class="dhead"><div><span class="da">${esc(id)}</span> <span class="ds">${esc(symOf(id))}</span></div>
       <h2>${esc(n.d)}</h2>
       <div class="meta"><span class="pill ${STAT[s][1]} big" title="${esc(STATHELP[s])}">${STAT[s][0]}</span><span class="tag" title="Bloque y renglón del programa donde está escrita esta regla.">${esc(n.src || '')}</span><span class="tag ${confCls(n.c)}" title="${esc(CONFHELP[n.c] || '')}">${confTxt(n.c)}</span></div><p class="muted small">${esc(STATHELP[s])}</p></div>`;
+    h += hlp('Toque el valor de una fila (por ejemplo «ahora 0») para cambiarlo ahí mismo. Las filas se actualizan solas y el cambio también aparece en la pestaña Señales. Las marcas calculadas no se tocan: se calculan con otras señales.');
     h += algoHTML(id);
     h += `<h3>¿Qué falta ahora? ${qm('Es la lista mínima de cambios para que la salida se active. Si dice «Se necesita al menos una de estas», con cumplir UNA opción basta.')}</h3>${hlp('Siga la lista de arriba hacia abajo. Si una fila dice «para eso necesita», esa marca depende de otras: revise primero las de adentro.')}${missingHTML(id)}`;
     if (n.nt && n.nt.length) h += `<h3>Observaciones ${qm('Datos que no caben en la regla: prioridades entre salidas, excepciones y dudas por confirmar en la máquina.')}</h3><ul class="notes">${n.nt.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`;
     h += `<h3>Probar con valores reales ${qm('Aquí cambia valores para ver qué pasaría. Es una simulación en pantalla: no envía nada al PLC ni a la máquina.')}</h3>${hlp('Esto es una simulación: no toca el PLC ni la máquina. Toque una casilla para cambiarla entre 0 y 1 (verde es 1, gris es 0). Ponga los valores que ve en el PLC y las filas de arriba se actualizan solas.')}${statePanel(id)}`;
-    h += `<details class="treebox"><summary>Ver todo el árbol de condiciones</summary>${hlp('Cada línea muestra su valor (verde 1, gris 0). Y: deben cumplirse todas. O: basta una. NO: se invierte. Toque la flecha de una marca para ver de qué depende.')}${treeHTML(id, 0, [])}</details>`;
+    h += `<details class="treebox" data-k="${esc(id + '|tree')}"><summary>Ver todo el árbol de condiciones</summary>${hlp('Cada línea muestra su valor (verde 1, gris 0). Y: deben cumplirse todas. O: basta una. NO: se invierte. Toque la flecha de una marca para ver de qué depende.')}${treeHTML(id, 0, [])}</details>`;
     h += pyHTML(id);
     h += fieldsHTML(id);
     return h;
@@ -1556,7 +1580,10 @@ if (typeof module !== 'undefined') module.exports = { DB };
 
   function renderDetail() {
     if (!app.sel) app.sel = SEC.outs[0];
+    const keep = {};
+    $$('#detail details[data-k]').forEach(d => { keep[d.dataset.k] = d.open; });
     $('#detail').innerHTML = detailHTML(app.sel);
+    $$('#detail details[data-k]').forEach(d => { if (d.dataset.k in keep) d.open = keep[d.dataset.k]; });
   }
 
   /* ---------- Ficha de cualquier marca (ventana) ---------- */
