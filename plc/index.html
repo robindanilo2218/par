@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Salidas Elevador y Empujador</title>
+<title>Salidas del Prefeeder: Elevador, Empujador, Escamador y Extendedor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -362,7 +362,7 @@ button.tv:hover { border-color: var(--accent); }
 
   <header class="top">
     <div>
-      <h1>Salidas del Elevador y del Empujador</h1>
+      <h1>Salidas del Prefeeder: elevador, empujador, escamador y extendedor</h1>
       <div class="sub" id="subtitle"></div>
     </div>
     <div class="ctrls">
@@ -378,7 +378,7 @@ button.tv:hover { border-color: var(--accent); }
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Secciones">
-    <button type="button" role="tab" class="sel" aria-selected="true" data-tab="out" title="Las 21 salidas con su orden, permisos y qué les falta.">Salidas</button>
+    <button type="button" role="tab" class="sel" aria-selected="true" data-tab="out" title="Las 43 salidas con su orden, permisos y qué les falta.">Salidas</button>
     <button type="button" role="tab" aria-selected="false" data-tab="sig" title="Tablero de bits: ponga las señales en 1 o 0 como las ve en el PLC; se usan en todas las pestañas.">Señales</button>
     <button type="button" role="tab" aria-selected="false" data-tab="marks" title="Glosario de todas las entradas, marcas y temporizadores.">Marcas</button>
     <button type="button" role="tab" aria-selected="false" data-tab="faults" title="Dispositivos, bornes, repuestos y fallos de cada bit físico.">Fallos y repuestos</button>
@@ -402,6 +402,19 @@ button.tv:hover { border-color: var(--accent); }
       </ol>
       <p>Ojo: 0 y 1 son los valores del bit en el PLC, no del contacto físico. Un paro de emergencia cableado normalmente cerrado vale 1 cuando todo está bien.</p>
       <details class="gloss">
+        <summary>Teoría básica en 2 minutos (si es la primera vez que lee un programa de PLC)</summary>
+        <ol>
+          <li><b>El PLC repite el programa sin parar</b>, muchas veces por segundo. Cada vuelta mira las entradas, calcula y actualiza las salidas. Por eso, si un permiso cae, la salida se corta sola en la vuelta siguiente.</li>
+          <li><b>Contactos en serie = «Y».</b> Si hay tres contactos uno detrás del otro, deben cumplirse los tres. <b>Contactos en paralelo = «O».</b> Basta con que se cumpla uno.</li>
+          <li><b>Una salida se lee así:</b> SI hay alguna ORDEN (los caminos en «O») Y se cumplen todos los PERMISOS (los contactos en «Y») ENTONCES la salida vale 1, SINO vale 0. Esta guía muestra cada salida siempre con ese molde.</li>
+          <li><b>Contacto negado (NO).</b> Pide que la señal esté en 0. Se usa para frenos: «si llega esta señal, no avances».</li>
+          <li><b>0 y 1 no son «apagado» y «encendido» del aparato</b> sino el estado del bit. Un sensor cableado normalmente cerrado (NC) da 1 cuando todo está bien; por eso a veces «1» es lo normal y «0» es la alarma.</li>
+          <li><b>La memoria con sello</b> sirve para recordar algo: un pulso la enciende y se queda encendida hasta que llega la condición de paro.</li>
+          <li><b>Los temporizadores</b> dan tiempos: SD espera antes de activar; SF mantiene un rato después de apagar. Aquí no corren en tiempo real: usted decide si el tiempo «ya se cumplió» tocando su valor.</li>
+          <li><b>Confianza de cada ficha.</b> «Confirmada»: la ecuación se leyó completa del programa. «Inferida»: se dedujo de la disposición del listado; conviene confirmar en la máquina. «Solo operandos»: se sabe qué señales intervienen, pero no cómo; se puede fijar a mano su valor.</li>
+        </ol>
+      </details>
+      <details class="gloss">
         <summary>Palabras que aparecen</summary>
         <dl>
           <dt>Salida (Q)</dt><dd>Lo que el PLC energiza: una válvula, un contactor, un variador.</dd>
@@ -414,6 +427,14 @@ button.tv:hover { border-color: var(--accent); }
           <dt>Temporizador (T)</dt><dd>Espera o retardo. Por ejemplo T4 es «hidráulica lista».</dd>
           <dt>MCR</dt><dd>Zona del programa que pone en 0 sus salidas cuando su condición es 0, por ejemplo manual o automático.</dd>
           <dt>Enclavamiento</dt><dd>Dos salidas que no pueden estar activas a la vez, como subir y bajar.</dd>
+          <dt>Autorretención («sello»)</dt><dd>Una marca que se enciende con un pedido corto y se mantiene sola hasta que llega la condición de paro. Es el «botón de arranque con sello» de un tablero.</dd>
+          <dt>Pulso (flanco)</dt><dd>Una marca que vale 1 solo un ciclo del PLC, justo cuando otra señal cambia (por ejemplo al pulsar un botón).</dd>
+          <dt>Temporizador SD / SF</dt><dd>SD espera un tiempo antes de activarse (retardo a la conexión). SF sigue activo un tiempo después de apagarse la señal (retardo a la desconexión).</dd>
+          <dt>NA / NC</dt><dd>Contacto normalmente abierto (1 al pulsar) o normalmente cerrado (1 cuando todo está bien, 0 al accionarse).</dd>
+          <dt>Final de carrera / límite</dt><dd>Sensor que avisa que una pieza llegó a un extremo de su recorrido.</dd>
+          <dt>HMI</dt><dd>La pantalla táctil del operador. Sus botones llegan al PLC como marcas M sin contacto físico.</dd>
+          <dt>Escamador</dt><dd>Pieza del extendedor que sube para dejar pasar 1, 2 o 3 láminas en forma de escama, o el resto del bulto empujado. No es la compuerta de desecho.</dd>
+          <dt>Extendedor</dt><dd>Transportador por donde sale el bulto hacia la imprenta. Se inclina, ajusta su largo y centra el bulto con tampers.</dd>
         </dl>
       </details>
     </details>
@@ -573,11 +594,11 @@ else:
 
       <h3>Alcance y supuestos</h3>
       <ul>
-        <li>Alcance: solo las 9 salidas del elevador y las 12 del empujador. Lo demás se cita únicamente cuando una condición lo necesita.</li>
-        <li>La estructura se dedujo del listado de referencias cruzadas (tipo de instrucción y orden de operandos), no de la imagen del KOP. Las 21 condiciones de salida son lógica en serie y están confirmadas. Algunas marcas intermedias son inferidas o solo operandos.</li>
+        <li>Alcance: 43 salidas en cuatro secciones: elevador (9), empujador (12), escamador o compuerta shingle (8) y extendedor (14). Lo demás (transportador de entrada, lámparas, señales a la imprenta) se cita únicamente cuando una condición lo necesita.</li>
+        <li>Elevador y empujador: la estructura se dedujo del listado de referencias cruzadas (tipo de instrucción y orden de operandos). Escamador y extendedor: se leyeron además del texto de los PDF de FC31, FC32, FC38 y FC39, que da los temporizadores y la disposición de los contactos; cuando el paralelo entre contactos se dedujo de esa disposición, la ficha dice «Inferida». Las marcas que dependen de secuencias, flancos o contadores figuran como «Solo operandos».</li>
         <li>FC155 repite lógica de FC34 y FC41, pero OB1 no lo llama; igual pasa con FC37, FC110 y FC136. Esta guía usa FC34 y FC41.</li>
         <li>Observación deducida: la recuperación (M130.x) no figura entre las órdenes que suben la placa Q20.6, pero el retroceso Q28.1 exige la placa arriba (I5.5). Confirmar en máquina.</li>
-        <li>Para cerrar todo lo inferido: exportar el código fuente AWL desde STEP 7 o subir los PDF del KOP de FC41, FC35, FC33, FC34, FC42, FC43 y FC30.</li>
+        <li>Para cerrar todo lo inferido: exportar el código fuente AWL desde STEP 7, o contrastar con la imagen del KOP de cada bloque en la máquina. Los PDF del KOP ya están en Drive; falta cruzarlos con las salidas del elevador y del empujador.</li>
       </ul>
     </div>
   </section>
@@ -1102,12 +1123,246 @@ OUT('Q21.1', 'Empujador: 2º paso adelante', 'M49.2', '', 'FC41 NW49', {
 SF('T54', 'Retardo de 0,1 s a la desconexión del pedido de inclinar abajo', '(M41.1 | M50.3) & !Q16.1', '0,1 s', 'FC41 NW38');
 CALC('Z41B', 'Zona MCR 2 del empujador automático (FC41 NW31): ciclo automático sin paro M115.0', 'M1.5 & !M115.0', 'FC41 NW31');
 
+
+/* =====================================================================
+   EXTENDEDOR y ESCAMADOR (compuerta shingle)   ·   FC31, FC32, FC38, FC39, FC43
+   Fuente de las ecuaciones: listados KOP de FC31/FC32/FC38 (Drive) + referencias cruzadas.
+   ===================================================================== */
+
+/* ---------- Entradas del extendedor y del escamador ---------- */
+IN('I0.3', 'Selector de los pulsadores de tamper (los comparten el extendedor y el escamador)', '0 = los pulsadores I1.0–I1.3 mueven los tampers del EXTENDEDOR · 1 = mueven los de la compuerta SHINGLE', 0);
+IN('I1.0', 'Pulsador tamper IZQUIERDO: ENTRAR', '1 = pulsado (cableado NA). Mueve el tamper del extendedor (I0.3 = 0) o el de la compuerta shingle (I0.3 = 1)', 0);
+IN('I1.1', 'Pulsador tamper IZQUIERDO: SALIR', '1 = pulsado (cableado NA)', 0);
+IN('I1.2', 'Pulsador tamper DERECHO: ENTRAR', '1 = pulsado (cableado NA)', 0);
+IN('I1.3', 'Pulsador tamper DERECHO: SALIR', '1 = pulsado (cableado NA)', 0);
+IN('I1.4', 'Escamador: interruptor ARRIBA (símbolo SHINGLE_GATE_UP_SW)', '1 = escamador arriba. El programa lo usa para PARAR la subida (se exige en 0 para subir); el símbolo dice SW pero se comporta como interruptor de posición', 0);
+IN('I1.5', 'Escamador: interruptor ABAJO (símbolo SHINGLE_GATE_DOWN_SW)', '1 = escamador abajo. El programa lo usa para PARAR la bajada (se exige en 0 para bajar)', 0);
+IN('I1.6', 'Extendedor: pulsador ajuste de largo ADELANTE', '1 = pulsado (cableado NA)', 0);
+IN('I1.7', 'Extendedor: pulsador ajuste de largo ATRÁS', '1 = pulsado (cableado NA)', 0);
+IN('I2.0', 'Extendedor: pulsador de marcha por impulsos (jog) del transportador', '1 = pulsado; mientras se mantiene, el transportador anda', 0);
+IN('I2.1', 'Extendedor: pulsador inclinar ARRIBA', '1 = pulsado. También manda abrir los pasadores de seguridad', 0);
+IN('I2.2', 'Extendedor: pulsador inclinar ABAJO', '1 = pulsado. También manda abrir los pasadores de seguridad', 0);
+IN('I2.3', 'Sensor de «máquina impresora llena» (PRINT_MC_FULL_CHECK)', '1 = detecta; alimenta los temporizadores T19 / T10 del transportador del extendedor', 0);
+IN('I2.4', 'Extendedor: tamper izquierdo, límite ADENTRO', '1 = límite alcanzado; bloquea seguir entrando', 0);
+IN('I2.5', 'Extendedor: tamper izquierdo, límite AFUERA', '1 = límite alcanzado; bloquea seguir saliendo (también cuenta para la posición base M131.7)', 0);
+IN('I2.6', 'Extendedor: tamper derecho, límite ADENTRO', '1 = límite alcanzado; bloquea seguir entrando', 0);
+IN('I2.7', 'Extendedor: tamper derecho, límite AFUERA', '1 = límite alcanzado; bloquea seguir saliendo (también cuenta para M131.7)', 0);
+IN('I3.0', 'Extendedor: fotocélula del final (EXTEND_END_PHOTO)', '1 = bulto llegó al final del extendedor', 0);
+IN('I3.1', 'Extendedor: final de carrera del ajuste de largo ADELANTE', '1 = límite alcanzado; bloquea seguir adelante', 0);
+IN('I3.2', 'Extendedor: final de carrera del ajuste de largo ATRÁS', '1 = límite alcanzado; bloquea seguir atrás', 0);
+IN('I3.3', 'Elevador de bultos de la compuerta shingle: final ABAJO (BUNDLE_LIFT_DOWN_LS)', '1 = abajo (deducido del símbolo)', 1);
+IN('I3.4', 'Elevador de bultos de la compuerta shingle: final ARRIBA (BUNDLE_LIFT_UP_LS)', '1 = arriba (deducido del símbolo)', 0);
+IN('I4.0', 'Extendedor: límite inclinación ARRIBA (cableado NC)', '1 = NO está arriba del todo; 0 = llegó al tope superior. Para subir se exige en 1', 1);
+IN('I4.1', 'Pasador de seguridad IZQUIERDO: cerrado', '1 = pasador cerrado', 0);
+IN('I4.2', 'Pasador de seguridad IZQUIERDO: abierto', '1 = pasador abierto; inclinar arriba o abajo lo exige en 1', 1);
+IN('I4.3', 'Pasador de seguridad DERECHO: cerrado', '1 = pasador cerrado', 0);
+IN('I4.4', 'Pasador de seguridad DERECHO: abierto', '1 = pasador abierto; inclinar arriba o abajo lo exige en 1', 1);
+IN('I4.5', 'Escamador: tamper izquierdo, límite ADENTRO', '1 = límite alcanzado; bloquea seguir entrando', 0);
+IN('I4.6', 'Escamador: tamper izquierdo, límite AFUERA', '1 = límite alcanzado; bloquea seguir saliendo (también cuenta para M131.7)', 0);
+IN('I4.7', 'Escamador: tamper derecho, límite ADENTRO', '1 = límite alcanzado; bloquea seguir entrando', 0);
+IN('I5.0', 'Escamador: tamper derecho, límite AFUERA', '1 = límite alcanzado; bloquea seguir saliendo (también cuenta para M131.7)', 0);
+IN('I8.7', 'Extendedor: señal «OV» del tamper izquierdo (EXTEND_LEFT_SIDE_TAMP_OV)', '1 = OK (deducido: la recuperación la exige en 1; el significado exacto de OV no está confirmado)', 1);
+IN('I9.0', 'Extendedor: señal «OV» del tamper derecho', '1 = OK (deducido, igual que I8.7)', 1);
+IN('I9.1', 'Escamador: señal del tamper izquierdo (SHINGLE_GATE_LEFT_SD_TMP)', '1 = OK (deducido: la recuperación la exige en 1)', 1);
+IN('I9.2', 'Escamador: señal del tamper derecho (SHINGLE_GATE_RIGHT_TMPR_)', '1 = OK (deducido: la recuperación la exige en 1)', 1);
+IN('I10.2', 'Marco en posición de trabajo (FRAME_OK_WORK_POS)', '1 = OK; para inclinar el extendedor ABAJO se exige en 1', 1);
+
+/* HMI sin escritor en el programa */
+IN('M212.0', 'HMI extendedor: inclinar ARRIBA', '1 = botón pulsado (deducido: hace lo mismo que I2.1)', 0);
+IN('M212.1', 'HMI extendedor: inclinar ABAJO', '1 = botón pulsado (deducido: hace lo mismo que I2.2)', 0);
+IN('M212.2', 'HMI extendedor: ajuste de largo ADELANTE', '1 = botón pulsado (deducido de su uso en Q13.4)', 0);
+IN('M212.3', 'HMI extendedor: ajuste de largo ATRÁS', '1 = botón pulsado (deducido de su uso en Q13.5)', 0);
+IN('M212.4', 'HMI extendedor: ABRIR pasadores', '1 = botón pulsado (deducido de su uso en Q20.4)', 0);
+IN('M212.5', 'HMI extendedor: CERRAR pasadores', '1 = botón pulsado (deducido de su uso en Q20.3)', 0);
+IN('M212.6', 'HMI escamador: INHIBIR el empujador lateral (arranca la memoria M56.0)', '1 = botón pulsado (deducido: M56.0 anula la salida Q20.5)', 0);
+IN('M212.7', 'HMI escamador: HABILITAR el empujador lateral (apaga la memoria M56.0)', '1 = botón pulsado (deducido)', 0);
+IN('M13.0', 'HMI compuerta shingle: mover el tamper hacia la IZQUIERDA', '1 = orden activa. Con M13.6 elige el tamper (deducido)', 0);
+IN('M13.1', 'HMI compuerta shingle: mover el tamper hacia la DERECHA', '1 = orden activa. Con M13.6 elige el tamper (deducido)', 0);
+IN('M13.2', 'HMI escamador: INHIBIR el elevador de bultos (arranca la memoria M56.1)', '1 = botón pulsado (deducido: M56.1 anula la salida Q20.2)', 0);
+IN('M13.3', 'HMI escamador: HABILITAR el elevador de bultos (apaga la memoria M56.1)', '1 = botón pulsado (deducido)', 0);
+IN('M13.6', 'HMI compuerta shingle: elegir el tamper', '0 = tamper izquierdo · 1 = tamper derecho (deducido)', 0);
+IN('M99.7', 'Bandera M99.7 (sin escritor en el programa)', '1 = habilita el ajuste AUTOMÁTICO de largo del extendedor; también activa las señales Q17.1–Q17.3 hacia la imprenta (deducido)', 0);
+
+/* ---------- Estado general compartido ---------- */
+CALC('M1.3', 'Seguridad y bomba sanas: paro de emergencia en orden y bomba hidráulica habilitada', 'I8.5 & M2.3', 'FC30 NW9');
+
+/* ---------- Escamador (compuerta shingle): FC32 ---------- */
+SEAL('M56.0', 'HMI: empujador lateral del escamador INHIBIDO (se pone con M212.6; se quita con M212.7 o al pasar a automático)', 'M212.6', '!M212.7 & !M1.5', 'FC32 NW1');
+SEAL('M56.1', 'HMI: elevador de bultos del escamador INHIBIDO (se pone con M13.2; se quita con M13.3 o al pasar a automático)', 'M13.2', '!M13.3 & !M1.5', 'FC32 NW2');
+SEAL('M28.2', 'Ventana de «bulto en la compuerta shingle»: arranca con el pulso M28.1 y termina por T64 / T65', 'M28.1', '!T64 & !T65', 'FC32 NW6');
+OPQ('M28.1', 'Pulso: el bulto lleva 20 ms frente a la fotocélula I3.5 (flanco de M28.0, que pone T62)', 'I3.5, T62, M30.4', 'FC32 NW5');
+OPQ('M28.3', 'Fase siguiente de la ventana: arranca con T63 (3 s) o con el final de carrera I3.4; termina por T64 (2 s)', 'I3.4, M28.2, M27.2, M28.4, T63, T64', 'FC32 NW7');
+OPQ('T64', 'Temporizador de 2 s de la ventana de la compuerta shingle (FC32 NW7)', 'M28.3', 'FC32 NW7');
+SD('T20', 'Filtro de 10 ms para que la señal sea estable: transportador de entrada andando con el elevador de bultos abajo y el bulto frente a I3.5', 'Q13.1 & I3.3 & I3.5', '10 ms', 'FC32 NW10', 2);
+OPQ('M30.1', 'Contador de láminas C0 distinto de cero (cuenta con los pulsos de T20; se carga con M30.3 y MW32)', 'T20, M1.0, M30.3', 'FC32 NW11');
+CALC('M30.0', 'Escamador: PROHÍBE SUBIR (hay bulto entrando y el contador de láminas está activo)', 'T20 & M30.1', 'FC32 NW10', 2);
+OPQ('M30.4', 'Escamador: PROHÍBE BAJAR (pulso de 2 s cuando termina el conteo de láminas M30.3 y M30.5)', 'M30.3, M30.5, T22', 'FC32 NW16');
+
+OUT('Q13.2', 'Escamador: SUBIR', '', '!I1.4 & !M30.0 & !Q13.3 & T4', 'FC32 NW28', {
+  cmdHelp: 'Sin orden propia: sube siempre que ningún permiso se lo impida',
+  nt: ['Lectura literal del programa: ni Q13.2 ni Q13.3 tienen una orden; cada una sale mientras no la frene su interruptor de posición (I1.4 / I1.5) y su marca de bloqueo (M30.0 para subir, M30.4 para bajar).',
+       'Pendiente de confirmar en la máquina: en qué posición descansa el escamador y qué hace M30.4 para dejarlo parado.'] });
+OUT('Q13.3', 'Escamador: BAJAR', '', '!I1.5 & !M30.4 & !Q13.2 & T4', 'FC32 NW29', {
+  cmdHelp: 'Sin orden propia: baja cuando no está subiendo y nada lo frena',
+  nt: ['Q13.2 tiene prioridad: solo baja si Q13.2 no está activa.'] });
+OUT('Q20.2', 'Escamador: válvula del elevador de bultos', '', '!M28.2 & !M56.1', 'FC32 NW32', {
+  cmdHelp: 'Sin orden: está energizada salvo durante la ventana M28.2 o con la inhibición del HMI M56.1',
+  nt: ['Q20.2 también se escribe en FC31 NW33, pero FC32 corre después en OB1 y su ecuación es la que queda; por eso aquí solo se muestra la de FC32.'] });
+OUT('Q20.5', 'Escamador: válvula del empujador lateral', '', 'I3.6 & !M28.3 & !M56.0', 'FC32 NW33', {
+  cmdHelp: 'Sin orden: está energizada con el extendedor abajo, salvo durante M28.3 o con la inhibición del HMI M56.0',
+  nt: ['Exige el extendedor abajo (I3.6 = 1).'] });
+
+/* ---------- Tampers: pulsadores y marcas (FC38) ---------- */
+CALC('M70.0', 'Pulsador: tamper izquierdo del EXTENDEDOR entrar (I0.3 = 0)', '!I0.3 & I1.0 & !I1.1 & !I2.4', 'FC38 NW1');
+CALC('M70.1', 'Pulsador: tamper izquierdo del EXTENDEDOR salir (I0.3 = 0)', '!I0.3 & I1.1 & !I1.0 & !I2.5', 'FC38 NW2');
+CALC('M70.2', 'Pulsador: tamper derecho del EXTENDEDOR entrar (I0.3 = 0)', '!I0.3 & I1.2 & !I1.3 & !I2.6', 'FC38 NW3');
+CALC('M70.3', 'Pulsador: tamper derecho del EXTENDEDOR salir (I0.3 = 0)', '!I0.3 & I1.3 & !I1.2 & !I2.7', 'FC38 NW4');
+OPQ('M70.7', 'Pulso: arranca el posicionado automático de tampers (flanco de subida de M12.3)', 'M12.3', 'FC38 NW5');
+OPQ('M71.0', 'Comparación de posición: tamper izquierdo del extendedor ya está en su posición (usa palabras de DB30 / DB52)', 'M12.3', 'FC38 NW8');
+OPQ('M72.0', 'Comparación de posición: tamper derecho del extendedor ya está en su posición', 'M12.3', 'FC38 NW9');
+OPQ('M76.0', 'Comparación de posición: tamper izquierdo de la compuerta shingle ya está en su posición', 'M12.3', 'FC38 NW25');
+OPQ('M77.0', 'Comparación de posición: tamper derecho de la compuerta shingle ya está en su posición', 'M12.3', 'FC38 NW26');
+SEAL('M71.1', 'AUTO: tamper izquierdo del extendedor SALE hasta su límite', 'M70.7', 'M12.3 & !I2.5 & !M71.2', 'FC38 NW10');
+SEAL('M71.2', 'AUTO: tamper izquierdo del extendedor ENTRA hasta su posición', 'I2.5', 'M12.3 & !M71.0 & !I2.4', 'FC38 NW11');
+SEAL('M72.1', 'AUTO: tamper derecho del extendedor SALE hasta su límite', 'M70.7', 'M12.3 & !I2.7 & !M72.2', 'FC38 NW12');
+SEAL('M72.2', 'AUTO: tamper derecho del extendedor ENTRA hasta su posición', 'I2.7', 'M12.3 & !M72.0 & !I2.6', 'FC38 NW13');
+CALC('M70.6', 'Tampers posicionados (todas las posiciones cumplidas y ningún movimiento automático en curso)', 'M12.3 & M71.0 & M72.0 & !M71.1 & !M72.1 & M76.0 & M77.0 & !M76.1 & !M77.1', 'FC38 NW14');
+CALC('M75.0', 'Pulsador / HMI: tamper izquierdo de la COMPUERTA SHINGLE entrar (I0.3 = 1)', '((I1.0 & I0.3) | (M13.1 & !M13.6)) & !I1.1 & !I4.5', 'FC38 NW19', 2);
+CALC('M75.1', 'Pulsador / HMI: tamper izquierdo de la COMPUERTA SHINGLE salir', '((I1.1 & I0.3) | (M13.0 & !M13.6)) & !I1.0 & !I4.6', 'FC38 NW20', 2);
+CALC('M75.2', 'Pulsador / HMI: tamper derecho de la COMPUERTA SHINGLE entrar', '((I1.2 & I0.3) | (M13.0 & M13.6)) & !I4.7', 'FC38 NW21', 2);
+CALC('M75.3', 'Pulsador / HMI: tamper derecho de la COMPUERTA SHINGLE salir', '((I1.3 & I0.3 & !I1.2) | (M13.1 & M13.6)) & !I5.0', 'FC38 NW22', 2);
+SEAL('M76.1', 'AUTO: tamper izquierdo de la compuerta shingle SALE hasta su límite', 'M70.7', 'M12.3 & !I4.6 & !M76.2', 'FC38 NW27');
+SEAL('M76.2', 'AUTO: tamper izquierdo de la compuerta shingle ENTRA hasta su posición', 'I4.6', 'M12.3 & !M76.0 & !I4.5', 'FC38 NW28');
+SEAL('M77.1', 'AUTO: tamper derecho de la compuerta shingle SALE hasta su límite', 'M70.7', 'M12.3 & !I5.0 & !M77.2', 'FC38 NW29');
+SEAL('M77.2', 'AUTO: tamper derecho de la compuerta shingle ENTRA hasta su posición (el programa corta con I4.5 y no con I4.7)', 'I5.0', 'M12.3 & !M77.0 & !I4.5', 'FC38 NW30');
+SEAL('M130.2', 'RECUPERACIÓN: tamper izquierdo del extendedor SALE', '(M130.0 & I8.7) | M130.1', '!I2.5', 'FC43 NW4');
+SEAL('M130.3', 'RECUPERACIÓN: tamper derecho del extendedor SALE', '(M130.0 & I9.0) | M130.1', '!I2.7', 'FC43 NW5');
+SEAL('M130.4', 'RECUPERACIÓN: tamper izquierdo de la compuerta shingle SALE', '(M130.0 & I9.1) | M130.1', '!I4.6', 'FC43 NW6');
+SEAL('M130.5', 'RECUPERACIÓN: tamper derecho de la compuerta shingle SALE', '(M130.0 & I9.2) | M130.1', '!I5.0', 'FC43 NW7');
+
+/* Temporizadores anti-inversión de los motores de tamper (SF 1 s: siguen en 1 un segundo después de parar el motor) */
+SF('T80', 'Espera de 1 s antes de invertir el giro: extendedor, tamper izquierdo ENTRANDO acaba de parar', 'Q24.1', '1 s', 'FC38 NW15', 2);
+SF('T81', 'Espera de 1 s antes de invertir el giro: extendedor, tamper izquierdo SALIENDO acaba de parar', 'Q24.2', '1 s', 'FC38 NW16', 2);
+SF('T82', 'Espera de 1 s antes de invertir el giro: extendedor, tamper derecho ENTRANDO acaba de parar', 'Q24.3', '1 s', 'FC38 NW17', 2);
+SF('T83', 'Espera de 1 s antes de invertir el giro: extendedor, tamper derecho SALIENDO acaba de parar', 'Q24.4', '1 s', 'FC38 NW18', 2);
+SF('T85', 'Espera de 1 s antes de invertir el giro: escamador, tamper izquierdo ENTRANDO acaba de parar', 'Q24.5', '1 s', 'FC38 NW32', 2);
+SF('T86', 'Espera de 1 s antes de invertir el giro: escamador, tamper izquierdo SALIENDO acaba de parar', 'Q24.6', '1 s', 'FC38 NW33', 2);
+SF('T87', 'Espera de 1 s antes de invertir el giro: escamador, tamper derecho ENTRANDO acaba de parar', 'Q24.7', '1 s', 'FC38 NW34', 2);
+SF('T88', 'Espera de 1 s antes de invertir el giro: escamador, tamper derecho SALIENDO acaba de parar', 'Q25.0', '1 s', 'FC38 NW35', 2);
+
+OUT('Q24.5', 'Escamador: motor del tamper izquierdo ENTRA', 'M75.0|M76.2', '!I4.5 & !T86', 'FC38 NW32', {
+  cmdHelp: 'Pulsador / HMI M75.0 o posicionado automático M76.2',
+  nt: ['T86 evita invertir el giro de golpe: después de parar Q24.6 hay que esperar 1 s.'] });
+OUT('Q24.6', 'Escamador: motor del tamper izquierdo SALE', 'M75.1|M76.1|M130.4', '!I4.6 & !T85', 'FC38 NW33', {
+  cmdHelp: 'Pulsador / HMI M75.1, posicionado automático M76.1 o recuperación M130.4' });
+OUT('Q24.7', 'Escamador: motor del tamper derecho ENTRA', 'M75.2|M77.2', '!I4.7 & !T88', 'FC38 NW34', {
+  cmdHelp: 'Pulsador / HMI M75.2 o posicionado automático M77.2' });
+OUT('Q25.0', 'Escamador: motor del tamper derecho SALE', 'M75.3|M77.1|M130.5', '!I5.0 & !T87', 'FC38 NW35', {
+  cmdHelp: 'Pulsador / HMI M75.3, posicionado automático M77.1 o recuperación M130.5' });
+
+/* ---------- Extendedor: FC31 ---------- */
+OPQ('M10.1', 'Transportador del extendedor ENCENDIDO: memoria que cambia de estado con cada pulso del botón I0.4 (un pulso la enciende, el siguiente la apaga); se apaga si cae M1.3 o I3.6, o si se inclina arriba (Q13.7)', 'I0.4, M1.3, I3.6, !Q13.7', 'FC31 NW2');
+SEAL('M10.2', 'AUTO: transportador del extendedor en marcha (arranca con el pulso M1.6; para al llegar el bulto a I3.0 o al salir de automático)', 'M1.6', 'M1.3 & M1.5 & !I3.0', 'FC31 NW6');
+SF('T19', 'Retardo de 0,5 s a la desconexión del sensor «máquina impresora llena» I2.3', 'I2.3', '0,5 s', 'FC31 NW3');
+SD('T10', 'Máquina impresora llena y bulto en el final del extendedor, 0,2 s', 'T19 & I2.3 & I3.0', '0,2 s', 'FC31 NW4');
+SD('T11', 'Ningún bulto en el extendedor ni en la entrada, con el transportador encendido (tiempo en DB53.DBW10)', 'M10.1 & !I3.0 & !I3.5 & !I3.7 & !I8.2', 'DB53.DBW10', 'FC31 NW5');
+CALC('Z31A', 'Transportador del extendedor: orden encendida (M10.1) sin T10 ni T11 vencidos', 'M10.1 & !T10 & !T11', 'FC31 NW7', 2);
+
+OUT('Q13.6', 'Extendedor: transportador adelante', 'Z31A|I2.0|M10.2', 'I3.6 & T4', 'FC31 NW7', {
+  c: 2,
+  cmdHelp: 'Alguna orden: transportador encendido Z31A (botón I0.4), jog I2.0 o automático M10.2',
+  nt: ['Exige el extendedor abajo (I3.6 = 1) y la hidráulica lista (T4).',
+       'La agrupación Z31A / I2.0 / M10.2 en paralelo se deduce de la disposición del listado; el resultado de la ecuación no cambia si alguno de esos tres es la única orden.'] });
+
+CALC('Z31B', 'Pulso de subida con el botón RESET I0.2: dura 0,2 s (se corta con T39)', 'I0.2 & !T39', 'FC31 NW25', 2);
+OPQ('T39', 'Temporizador 0,2 s: Q13.7 lleva 0,2 s encendida con alguna orden de subir (I0.2, I2.1 o M212.0)', 'Q13.7, I0.2, I2.1, M212.0', 'FC31 NW26');
+OUT('Q13.7', 'Extendedor: inclinar ARRIBA', 'Z31B|I2.1|M212.0', '!I2.2 & I4.2 & I4.4 & I4.0 & !Q16.0 & T4', 'FC31 NW25', {
+  c: 2,
+  cmdHelp: 'Pulsador I2.1, HMI M212.0, o un empujón de 0,2 s con el botón RESET I0.2',
+  nt: ['Exige los pasadores abiertos (I4.2 e I4.4 = 1), no estar en el tope superior (I4.0 = 1), y que no se pida bajar (Q16.0 y I2.2 en 0).',
+       'El empujón con RESET I0.2 se deduce de que I0.2 y T39 aparecen en la misma ecuación (grupo en paralelo).'] });
+OUT('Q16.0', 'Extendedor: inclinar ABAJO', 'I2.2|M212.1', '!I2.1 & I4.2 & I4.4 & !I3.6 & I10.2 & !Q13.7 & T4', 'FC31 NW27', {
+  cmdHelp: 'Pulsador I2.2 o HMI M212.1',
+  nt: ['Exige los pasadores abiertos, el marco en posición de trabajo (I10.2 = 1) y que el extendedor NO esté ya abajo (I3.6 en 0).'] });
+
+CALC('Z31E', 'Pasadores del extendedor: alguno no está abierto del todo (I4.2 o I4.4 en 0)', '!I4.2 | !I4.4', 'FC31 NW28');
+OUT('Q20.4', 'Extendedor: válvula ABRIR pasadores de seguridad', 'I2.1|I2.2|M212.0|M212.1|M212.4|Z31E', '', 'FC31 NW28', {
+  cmdHelp: 'Cualquier pedido de inclinar (I2.1, I2.2, M212.0, M212.1), el HMI M212.4, o algún pasador sin abrir del todo',
+  nt: ['Sin permisos: basta cualquiera de las órdenes.',
+       'Lectura literal del programa. Junto con Q20.3 conviene verificar en la máquina cómo quedan los pasadores en reposo.'] });
+
+CALC('Z31F', 'Pedido de cerrar pasadores: extendedor en el tope superior, algún pasador sin cerrar, o HMI M212.5', '!I4.0 | !I4.1 | !I4.3 | M212.5', 'FC31 NW29', 2);
+SD('T18', 'Pasadores: espera de 1 s antes de cerrarlos (con pedido de cerrar, sin inclinar y sin Q20.4)', 'Z31F & !I2.1 & !I2.2 & !Q20.4', '1 s', 'FC31 NW29', 2);
+OUT('Q20.3', 'Extendedor: válvula CERRAR pasadores de seguridad', 'Z31F', '!I2.1 & !I2.2 & !Q20.4 & T18', 'FC31 NW29', {
+  c: 2,
+  cmdHelp: 'Pedido de cerrar Z31F: extendedor arriba, algún pasador sin cerrar, o HMI M212.5',
+  nt: ['Sale 1 s después de cumplirse todo (T18) y solo si no se está inclinando ni abriendo los pasadores.',
+       'Con los pasadores abiertos y sin pedido de inclinar, el programa pide cerrarlos a 1 s: verificar en la máquina cómo descansan los pasadores.',
+       'La salida se toma como T18 (retardo a la conexión); su estructura exacta dentro del renglón se deduce del listado.'] });
+
+CALC('Z31C', 'Ajuste de largo ADELANTE por pulsador (I1.6 sin I1.7)', 'I1.6 & !I1.7', 'FC31 NW30', 2);
+CALC('Z31D', 'Ajuste de largo ADELANTE automático (M78.2 con M99.7 en 1)', 'M78.2 & M99.7', 'FC31 NW30', 2);
+CALC('Z31G', 'Ajuste de largo ATRÁS por pulsador (I1.7 sin I1.6)', 'I1.7 & !I1.6', 'FC31 NW31', 2);
+CALC('Z31H', 'Ajuste de largo ATRÁS automático (M78.3 con M99.7 en 1)', 'M78.3 & M99.7', 'FC31 NW31', 2);
+OPQ('M78.2', 'Orden AUTO: ajuste de largo del extendedor ADELANTE (compara la medida con la consigna en DB30; se apaga al llegar a I3.1)', 'M78.0, I3.1, M70.7', 'FC38 NW44');
+OPQ('M78.3', 'Orden AUTO: ajuste de largo del extendedor ATRÁS (se apaga al llegar a I3.2)', 'M78.0, I3.2, M70.7', 'FC38 NW44');
+OUT('Q13.4', 'Extendedor: ajuste de largo ADELANTE', 'Z31C|Z31D|M212.2', '!I3.1 & !Q13.5 & T4', 'FC31 NW30', {
+  c: 2,
+  cmdHelp: 'Pulsador I1.6, automático M78.2 (con M99.7 = 1) o HMI M212.2',
+  nt: ['Se frena en el final de carrera I3.1, con Q13.5 activa o sin hidráulica.'] });
+OUT('Q13.5', 'Extendedor: ajuste de largo ATRÁS', 'Z31G|Z31H|M212.3', '!I3.2 & !Q13.4 & T4', 'FC31 NW31', {
+  c: 2,
+  cmdHelp: 'Pulsador I1.7, automático M78.3 (con M99.7 = 1) o HMI M212.3',
+  nt: ['Se frena en el final de carrera I3.2, con Q13.4 activa o sin hidráulica.'] });
+
+OPQ('M11.2', 'Empujador trasero del extendedor pedido (memoria que cambia de estado con cada pulso del botón I0.5, con temporizadores T12 / T13)', 'I0.5, M11.1, M11.4, M12.0, M12.1, M99.0', 'FC31 NW12');
+OPQ('M11.5', 'Tamper lateral del extendedor pedido (memoria que cambia de estado con cada pulso del botón I0.6, con temporizadores T14 / T15)', 'I0.6, M11.4, M12.0, M12.1', 'FC31 NW17');
+OPQ('M12.3', 'Modo «tampers en posición» (memoria que cambia de estado al mantener 2 s el botón I0.7; se apaga con M70.6, RESET I0.2 o paro de emergencia)', 'I0.7, I0.2, I8.5, M11.1, M11.4, M70.6, M166.1', 'FC31 NW24');
+OPQ('T119', 'Pulso de 0,3 s al llegar un bulto al final del extendedor (flanco de Q13.6 con I3.0)', 'Q13.6, I3.0', 'FC31 NW34');
+OUT('Q20.0', 'Extendedor: válvula del empujador trasero', 'M11.2|M12.3', 'I3.6', 'FC31 NW32', {
+  cmdHelp: 'Empujador trasero pedido (M11.2, botón I0.5) o modo «tampers en posición» M12.3',
+  nt: ['Exige el extendedor abajo (I3.6 = 1).'] });
+OUT('Q20.1', 'Extendedor: válvula del tamper lateral', 'M11.5|M12.3', 'I3.6 & !T119', 'FC31 NW33', {
+  c: 2,
+  cmdHelp: 'Tamper lateral pedido (M11.5, botón I0.6) o modo «tampers en posición» M12.3',
+  nt: ['Exige el extendedor abajo y se corta 0,3 s (T119) cuando llega un bulto al final.',
+       'En este mismo renglón también se escriben Q29.1 (reserva) y Q20.2; Q20.2 la sobrescribe FC32.'] });
+
+OUT('Q24.1', 'Extendedor: motor del tamper izquierdo ENTRA', 'M70.0|M71.2', '!I2.4 & !T81', 'FC38 NW15', {
+  cmdHelp: 'Pulsador M70.0 (I1.0 con I0.3 = 0) o posicionado automático M71.2',
+  nt: ['T81 evita invertir el giro de golpe: después de parar Q24.2 hay que esperar 1 s.'] });
+OUT('Q24.2', 'Extendedor: motor del tamper izquierdo SALE', 'M70.1|M71.1|M130.2', '!I2.5 & !T80', 'FC38 NW16', {
+  cmdHelp: 'Pulsador M70.1, posicionado automático M71.1 o recuperación M130.2' });
+OUT('Q24.3', 'Extendedor: motor del tamper derecho ENTRA', 'M70.2|M72.2', '!I2.6 & !T83', 'FC38 NW17', {
+  cmdHelp: 'Pulsador M70.2 o posicionado automático M72.2' });
+OUT('Q24.4', 'Extendedor: motor del tamper derecho SALE', 'M70.3|M72.1|M130.3', '!I2.7 & !T82', 'FC38 NW18', {
+  cmdHelp: 'Pulsador M70.3, posicionado automático M72.1 o recuperación M130.3' });
+
+OUT('Q17.0', 'Señal «extendedor arriba» hacia la imprenta', '', '!I4.0 & I4.1 & I4.3', 'FC39 NW1', {
+  cmdHelp: 'Sin orden: se activa cuando el extendedor llegó al tope superior (I4.0 = 0) con ambos pasadores cerrados',
+  nt: ['I4.0 es NC: en 0 significa «llegó arriba», por eso aparece con ! en el permiso.'] });
+
 /* ---------- Elementos citados pero fuera de este alcance: fichas mínimas (completar al ampliar) ---------- */
 const STUB = {
-  'I2.5': ['Extendedor: límite izquierdo afuera (solo interviene en la posición base M131.7)', ''],
-  'I2.7': ['Extendedor: límite derecho afuera (solo interviene en la posición base M131.7)', ''],
-  'I4.6': ['Compuerta shingle: límite izquierdo afuera (solo interviene en M131.7)', ''],
-  'I5.0': ['Compuerta shingle: límite derecho afuera (solo interviene en M131.7)', ''],
+  'T65': ['Temporizador T65 (FC32 NW6): el programa solo lo lee, nada lo arranca; vale 0', 'FC32 NW6'],
+  'T62': ['Temporizador de 20 ms de la fotocélula I3.5: al cumplirse pone la memoria M28.0', 'FC32 NW3'],
+  'T63': ['Temporizador de 3 s de la ventana M28.2', 'FC32 NW6'],
+  'T22': ['Temporizador de 2 s del pulso M30.4', 'FC32 NW16'],
+  'M27.2': ['Marca leída por FC32 NW7 (se exige en 0); no se identificó su escritor', 'FC32 NW7'],
+  'M28.4': ['Marca de FC32 NW8 que bloquea M28.3; se mantiene hasta que M30.3 la apaga', 'FC32 NW8'],
+  'M1.0': ['Marca M1.0: habilita los contadores de láminas C0 / C1 / C10 de FC32; significado exacto sin confirmar', 'FC32 NW11'],
+  'M30.3': ['Conteo de láminas en curso: se enciende con el pulso M30.2 (el bulto deja de verse en I3.5) y se apaga con M30.4', 'FC32 NW13'],
+  'M30.5': ['Contador C1 de láminas distinto de cero (FC32 NW14)', 'FC32 NW14'],
+  'I0.4': ['Extendedor: pulsador marcha / paro del transportador; actúa a través de la memoria M10.1 (esa memoria no se simula aquí)', 'FC31 NW1'],
+  'I0.5': ['Extendedor: pulsador del empujador trasero; actúa a través de M11.1 / M11.2', 'FC31 NW9'],
+  'I0.6': ['Extendedor: pulsador del tamper lateral; actúa a través de M11.4 / M11.5', 'FC31 NW13'],
+  'I0.7': ['Extendedor: pulsador «tampers en posición», mantenido 2 s; actúa a través de M12.3', 'FC31 NW21'],
+  'M78.0': ['Ajuste automático de largo del extendedor en curso (autorretención de FC38 NW40)', 'FC38 NW40'],
+  'M11.1': ['Empujador trasero del extendedor encendido (memoria que cambia de estado con el botón I0.5)', 'FC31 NW10'],
+  'M11.4': ['Tamper lateral del extendedor encendido (memoria que cambia de estado con el botón I0.6)', 'FC31 NW14'],
+  'M12.0': ['Marca de FC31 NW20 (temporización de los empujes del extendedor)', 'FC31 NW20'],
+  'M12.1': ['Marca de FC31 NW20 (temporización de los empujes del extendedor)', 'FC31 NW20'],
+  'M166.1': ['Marca de FC37 (bloque que OB1 no llama): sin escritor activo, vale 0', 'FC37 NW2'],
   'I3.7': ['Transportador de entrada: fotocélula de bulto', ''],
   'I7.0': ['Elevador: fotocélula de reinicio de conteo', ''],
   'M0.2': ['Marca interna de FC30 NW2', 'FC30 NW2'],
@@ -1159,11 +1414,21 @@ const DB = {
     order: 'OB1 llama en este orden: FC100, FC101, FC102, FC30, FC31, FC32, FC33, FC34, FC35, FC36, FC38, FC40, FC41, FC42, FC43, FC39',
     sections: [
       { id: 'LIFT', name: 'Elevador',
+        intro: 'Sube y baja el bulto y lo centra. Al bajar después del empuje abre la compuerta de desecho: mientras el transportador gira para meter otra estiba, saca las 2 o 3 láminas que quedaron (protección inferior, golpeadas o sucias; desecho tolerado).',
         blocks: 'FC35 (salidas), FC33 (manual), FC34 (automático), FC42 (centrado), FC43 (recuperación), FC30 (bomba y modos)',
         outs: ['Q16.3', 'Q16.4', 'Q16.5', 'Q12.2', 'Q12.3', 'Q12.4', 'Q12.5', 'Q12.7', 'Q13.0'] },
       { id: 'PUSH', name: 'Empujador',
+        intro: 'Empuja el bulto desde el elevador hacia el extendedor en varios pasos (1.º paso, 2.º paso y avance final), con inclinación y placa.',
         blocks: 'FC41 (secuencia y salidas), FC35 (variador), FC33 (manual), FC34 (inclinación), FC43 (recuperación)',
-        outs: ['Q16.1', 'Q16.2', 'Q28.0', 'Q28.1', 'Q28.4', 'Q28.3', 'Q25.1', 'Q25.2', 'Q20.6', 'Q20.7', 'Q21.0', 'Q21.1'] }
+        outs: ['Q16.1', 'Q16.2', 'Q28.0', 'Q28.1', 'Q28.4', 'Q28.3', 'Q25.1', 'Q25.2', 'Q20.6', 'Q20.7', 'Q21.0', 'Q21.1'] },
+      { id: 'ESC', name: 'Escamador (compuerta shingle)',
+        intro: 'Pieza del extendedor que se desplaza hacia arriba para dejar pasar 1, 2 o 3 láminas en forma de escama, o el resto del bulto que empujó el empujador. No es la compuerta de desecho del elevador.',
+        blocks: 'FC32 (subir/bajar, válvulas), FC38 (tampers), FC43 (recuperación)',
+        outs: ['Q13.2', 'Q13.3', 'Q20.2', 'Q20.5', 'Q24.5', 'Q24.6', 'Q24.7', 'Q25.0'] },
+      { id: 'EXT', name: 'Extendedor',
+        intro: 'Transportador por donde sale el bulto hacia la imprenta: inclina arriba/abajo con pasadores de seguridad, ajusta su largo y centra con tampers laterales.',
+        blocks: 'FC31 (transportador, inclinación, pasadores, largo), FC38 (tampers), FC39 (señal arriba), FC43 (recuperación)',
+        outs: ['Q13.6', 'Q13.7', 'Q16.0', 'Q13.4', 'Q13.5', 'Q20.0', 'Q20.1', 'Q20.3', 'Q20.4', 'Q24.1', 'Q24.2', 'Q24.3', 'Q24.4', 'Q17.0'] }
     ],
     nodes: N
   }]
@@ -1281,6 +1546,11 @@ if (typeof module !== 'undefined') module.exports = { DB };
     auto: { n: 'Automático: orden de subir M51.4', s: { 'M1.5': 1, 'M51.4': 1, 'I7.2': 0 } },
     rec: { n: 'Recuperación (M130.1) fuera de base', s: { 'M130.1': 1, 'I7.2': 0, 'I6.5': 0, 'I6.4': 0, 'I5.5': 1 } },
     nohyd: { n: 'Falla: sin hidráulica (T5 cumplido) y pulsando SUBIR', s: { 'T5': 1, 'M91.0': 1 } },
+    exjog: { n: 'Extendedor: transportador en jog (I2.0)', s: { 'I2.0': 1 } },
+    extilt: { n: 'Extendedor: pulsar INCLINAR ARRIBA (I2.1)', s: { 'I2.1': 1 } },
+    extamp: { n: 'Extendedor: tamper izquierdo ENTRAR (I1.0)', s: { 'I1.0': 1 } },
+    estamp: { n: 'Escamador: tamper izquierdo ENTRAR (I0.3 = 1 con I1.0)', s: { 'I0.3': 1, 'I1.0': 1 } },
+    esbun: { n: 'Escamador: bulto entrando (I3.5, entrada andando, conteo activo)', s: { 'Q13.1': 1, 'I3.5': 1, 'M30.1': 1 } },
     estop: { n: 'Falla: paro de emergencia abierto y pulsando SUBIR', s: { 'I8.5': 0, 'M91.0': 1 } }
   };
   function resetState() {
@@ -1385,7 +1655,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     }).join('');
     $('#outList').innerHTML = items;
     $('#summary').innerHTML = `<span class="pill on" title="${esc(STATHELP.on)}">${st.on} ON</span><span class="pill blk" title="${esc(STATHELP.blocked)}">${st.blocked} bloqueadas</span><span class="pill no" title="${esc(STATHELP.noorder)}">${st.noorder + st.off} sin orden / OFF</span>`;
-    $('#secBlocks').textContent = SEC.blocks ? 'Bloques fuente: ' + SEC.blocks : '';
+    $('#secBlocks').innerHTML = (SEC.intro ? '<b>Qué es:</b> ' + esc(SEC.intro) + '<br>' : '') + (SEC.blocks ? 'Bloques fuente: ' + esc(SEC.blocks) : '');
   }
 
   function termRows(list, mode) {
