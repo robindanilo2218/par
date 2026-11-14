@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salidas Elevador y Empujador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Diseño: panel de diagnóstico. Lista de salidas a la izquierda, ficha algorítmica a la derecha; en teléfono van apiladas. */
+:root {
+  --paper: #eef2f5;
+  --panel: #ffffff;
+  --ink: #14202b;
+  --muted: #566677;
+  --line: #d3dbe2;
+  --accent: #0b6e7f;
+  --accent-ink: #ffffff;
+  --accent-soft: #dff1f4;
+  --ok: #17754a;
+  --ok-soft: #dcf3e6;
+  --warn: #8a5300;
+  --warn-soft: #fff1d6;
+  --bad: #b3261e;
+  --bad-soft: #fde6e4;
+  --idle-soft: #e7ecf0;
+  --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e151c; --panel: #151f29; --ink: #e5ecf2; --muted: #95a5b5; --line: #29363f;
+    --accent: #5cc0d3; --accent-ink: #072a31; --accent-soft: #123640;
+    --ok: #52c78d; --ok-soft: #12362a; --warn: #f2b84b; --warn-soft: #3a2b0e;
+    --bad: #ff8179; --bad-soft: #43201e; --idle-soft: #1e2a35;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e151c; --panel: #151f29; --ink: #e5ecf2; --muted: #95a5b5; --line: #29363f;
+  --accent: #5cc0d3; --accent-ink: #072a31; --accent-soft: #123640;
+  --ok: #52c78d; --ok-soft: #12362a; --warn: #f2b84b; --warn-soft: #3a2b0e;
+  --bad: #ff8179; --bad-soft: #43201e; --idle-soft: #1e2a35;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--font-body); -webkit-text-size-adjust: 100%; }
+[hidden] { display: none !important; }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: 1.45rem; }
+h2 { font-size: 1.2rem; }
+h3 { font-size: 1.02rem; margin: 22px 0 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+h4 { font-size: .92rem; margin: 0 0 8px; }
+h4 small, h3 small { font: 400 .78rem var(--font-body); color: var(--muted); margin-left: 6px; }
+p { margin: 8px 0; }
+code, .mono { font-family: var(--font-mono); font-size: .86em; }
+.muted { color: var(--muted); }
+.small, .sm { font-size: .82rem; }
+.nw { white-space: nowrap; }
+a { color: var(--accent); }
+button, select, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 14px 16px 40px; }
+
+/* Encabezado */
+.top { display: flex; flex-direction: column; gap: 12px; padding-bottom: 12px; }
+.top .sub { color: var(--muted); font-size: .85rem; margin-top: 2px; }
+.ctrls { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.ctrls label { display: flex; flex-direction: column; gap: 3px; font-size: .74rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.ctrls > * { min-width: 0; }
+.ctrls select { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: .95rem; text-transform: none; letter-spacing: 0; min-width: 0; }
+.ctrls .btn { align-self: end; }
+
+.btn { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn.pri { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+
+/* Pestañas */
+.tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: 2px solid var(--line); margin: 0 -16px 14px; padding: 0 16px; scrollbar-width: thin; }
+.tabs button { background: none; border: 0; border-bottom: 3px solid transparent; margin-bottom: -2px; padding: 10px 14px; cursor: pointer; white-space: nowrap; color: var(--muted); font-weight: 500; }
+.tabs button.sel { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.tabs button:hover { color: var(--ink); }
+
+/* Pestaña Salidas */
+.cols { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+.side { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.side ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+#summary { display: flex; flex-wrap: wrap; gap: 6px; }
+.blocks { font-size: .76rem; color: var(--muted); margin-top: 8px; }
+.outbtn { width: 100%; display: grid; grid-template-columns: 4.1rem 1fr auto; gap: 8px; align-items: center; text-align: left; background: var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--line); border-radius: 6px; padding: 8px 10px; cursor: pointer; }
+.outbtn:hover { border-color: var(--accent); border-left-color: inherit; }
+.outbtn.on { border-left-color: var(--ok); }
+.outbtn.blk { border-left-color: var(--warn); }
+.outbtn.no { border-left-color: var(--muted); }
+.outbtn.sel { background: var(--accent-soft); border-color: var(--accent); }
+.oa { font-family: var(--font-mono); font-weight: 600; font-size: .9rem; }
+.onm { font-size: .88rem; line-height: 1.3; }
+.os { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+.outbtn.on .os { color: var(--ok); }
+.outbtn.blk .os { color: var(--warn); }
+
+.pill { display: inline-flex; align-items: center; font-size: .74rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; border: 1px solid transparent; }
+.pill.on { background: var(--ok-soft); color: var(--ok); }
+.pill.blk { background: var(--warn-soft); color: var(--warn); }
+.pill.no { background: var(--idle-soft); color: var(--muted); }
+.pill.big { font-size: .82rem; padding: 3px 12px; }
+
+#detail, .card-pane { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-width: 0; }
+.dhead .da { font-family: var(--font-mono); font-weight: 600; font-size: 1.05rem; color: var(--accent); }
+.dhead .ds { font-family: var(--font-mono); font-size: .78rem; color: var(--muted); }
+.dhead h2 { margin: 4px 0 8px; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+.tag { font-size: .72rem; padding: 2px 8px; border-radius: 4px; background: var(--idle-soft); color: var(--muted); border: 1px solid var(--line); }
+.tag.c1 { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.tag.c2 { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.tag.c3 { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.tag.f { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+
+/* Bloque algorítmico */
+.algo { margin-top: 16px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--paper); }
+.algo .ln { margin: 8px 0; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: baseline; }
+.kw { font-family: var(--font-mono); font-size: .8rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 1px 7px; border-radius: 4px; }
+.lead { font-weight: 600; }
+.help { color: var(--muted); font-size: .85rem; }
+.sep { color: var(--muted); }
+.res { padding-top: 8px; border-top: 1px dashed var(--line); font-family: var(--font-mono); font-size: .86rem; }
+.now2 { padding: 1px 8px; border-radius: 4px; font-weight: 600; }
+.now2.on { background: var(--ok-soft); color: var(--ok); }
+.now2.off { background: var(--idle-soft); color: var(--muted); }
+
+.terms { list-style: none; margin: 4px 0 8px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.t { display: grid; grid-template-columns: 1.4rem auto 1fr auto; gap: 4px 8px; align-items: baseline; padding: 6px 8px; border-radius: 6px; background: var(--panel); border: 1px solid var(--line); border-left-width: 4px; }
+.t.ok { border-left-color: var(--ok); }
+.t.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.t.idle { border-left-color: var(--line); }
+.t .mk { font-weight: 700; text-align: center; }
+.t.ok .mk { color: var(--ok); }
+.t.bad .mk { color: var(--bad); }
+.t.idle .mk { color: var(--muted); }
+.t .d { grid-column: 3; font-size: .85rem; color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.t .need { grid-column: 3; font-size: .74rem; color: var(--muted); }
+.t .now { grid-column: 4; grid-row: 1; font-family: var(--font-mono); font-size: .78rem; color: var(--muted); white-space: nowrap; }
+.t code { grid-column: 2 / 5; }
+.d { overflow-wrap: anywhere; }
+
+.chip { font-family: var(--font-mono); font-size: .8rem; font-weight: 600; padding: 1px 8px; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+.chip.hi { border-color: var(--ok); color: var(--ok); }
+.chip.lo { color: var(--muted); }
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.neg { font-size: .7rem; font-weight: 700; color: var(--bad); }
+
+.ok-box, .warn-box, .info-box { padding: 10px 12px; border-radius: 6px; margin: 8px 0; font-size: .92rem; }
+.ok-box { background: var(--ok-soft); color: var(--ok); }
+.warn-box { background: var(--warn-soft); color: var(--warn); }
+.info-box { background: var(--accent-soft); color: var(--accent); }
+.fix { list-style: none; margin: 6px 0; padding: 0 0 0 4px; display: flex; flex-direction: column; gap: 8px; }
+.fix .fix { padding-left: 14px; border-left: 2px solid var(--line); margin-left: 4px; }
+.fix > li { padding: 6px 8px; border-radius: 6px; background: var(--paper); border: 1px solid var(--line); }
+.why { font-size: .78rem; color: var(--muted); margin: 6px 0 2px; }
+.anyh { font-weight: 600; font-size: .88rem; }
+.alts { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.alts > li { padding: 4px 6px; border-left: 3px solid var(--accent); background: var(--panel); border-radius: 0 4px 4px 0; }
+.notes { margin: 4px 0; padding-left: 18px; }
+.notes li { margin: 4px 0; font-size: .9rem; }
+.formula { font-family: var(--font-mono); font-size: .84rem; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; overflow-wrap: anywhere; }
+
+/* Probar con valores reales */
+.grp { margin: 12px 0; }
+.sws { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+.sw { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 0 8px; text-align: left; padding: 6px 10px; border-radius: 6px; cursor: pointer; border: 1px solid var(--line); background: var(--panel); }
+.sw .sa { font-family: var(--font-mono); font-weight: 600; font-size: .82rem; }
+.sw .sn { grid-column: 1; font-size: .72rem; color: var(--muted); overflow-wrap: anywhere; line-height: 1.25; }
+.sw b { grid-column: 2; grid-row: 1 / 3; align-self: center; font-family: var(--font-mono); min-width: 2.2rem; text-align: center; padding: 3px 6px; border-radius: 4px; }
+.sw.on { border-color: var(--ok); }
+.sw.on b { background: var(--ok-soft); color: var(--ok); }
+.sw.off b { background: var(--idle-soft); color: var(--muted); }
+.sw:hover { border-color: var(--accent); }
+
+/* Árbol */
+.treebox { margin-top: 14px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; background: var(--paper); }
+.treebox > summary { cursor: pointer; font-weight: 600; }
+.tn { margin: 4px 0 4px 0; }
+.tn > summary { cursor: pointer; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; padding: 3px 0; }
+.tn .tn, .tn .tl, .tn .tg { margin-left: 12px; }
+.tl { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; padding: 3px 0 3px 4px; }
+.tv { font-family: var(--font-mono); font-size: .76rem; font-weight: 700; min-width: 1.5rem; text-align: center; border-radius: 4px; padding: 0 5px; }
+.tv.hi { background: var(--ok-soft); color: var(--ok); }
+.tv.lo { background: var(--idle-soft); color: var(--muted); }
+.tg { display: grid; grid-template-columns: 2.4rem 1fr; gap: 6px; align-items: start; border-left: 2px solid var(--line); padding-left: 6px; margin-top: 2px; }
+.gl { font-family: var(--font-mono); font-size: .7rem; font-weight: 700; text-align: center; border-radius: 4px; padding: 2px 0; margin-top: 4px; }
+.gl.and { background: var(--accent-soft); color: var(--accent); }
+.gl.or { background: var(--warn-soft); color: var(--warn); }
+.gl.no { background: var(--bad-soft); color: var(--bad); }
+
+pre.code { margin: 8px 0 0; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-family: var(--font-mono); font-size: .82rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+pre.code code { font-size: inherit; }
+
+/* Fichas editables */
+.fichas { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+.frm { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.frm label { display: flex; flex-direction: column; gap: 3px; font-size: .76rem; color: var(--muted); }
+.frm input, .frm textarea, #fbody input, #fbody textarea, .tools textarea, .tools input, .mfilters input, .mfilters select {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; font-size: .9rem; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; }
+.mono-area { font-family: var(--font-mono); font-size: .8rem; line-height: 1.45; }
+
+/* Tablas */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: .86rem; }
+th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 8px 10px; background: var(--paper); position: sticky; top: 0; }
+td { padding: 7px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+#mbody tr { cursor: pointer; }
+#mbody tr:hover td { background: var(--accent-soft); }
+#fbody td input, #fbody td textarea { min-width: 120px; }
+#fbody .hint { color: var(--muted); margin-top: 2px; }
+.mfilters { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px; }
+.mfilters .count { align-self: center; color: var(--muted); font-size: .85rem; }
+
+/* Páginas de texto (Estándar y Roles) */
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px; max-width: 920px; }
+.doc > h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.doc ul, .doc ol { padding-left: 20px; margin: 6px 0; }
+.doc li { margin: 4px 0; }
+.legend { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 8px 0; }
+.legend > div { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: var(--paper); }
+.legend b { display: block; font-size: .9rem; }
+.legend span { font-size: .84rem; color: var(--muted); }
+.role { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 6px; padding: 10px 12px; margin: 10px 0; background: var(--paper); }
+.role h4 { margin-bottom: 4px; font-size: 1rem; }
+.role p { margin: 4px 0; font-size: .9rem; }
+.role .sk { font-size: .84rem; color: var(--muted); }
+.formula-big { font-family: var(--font-mono); font-size: .95rem; padding: 10px 12px; background: var(--accent-soft); color: var(--accent); border-radius: 6px; margin: 8px 0; overflow-wrap: anywhere; }
+.srcs { margin: 6px 0; padding-left: 18px; font-size: .88rem; }
+.srcs li { margin: 6px 0; }
+
+/* Ventana de ficha */
+#card { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+#card .backdrop { position: absolute; inset: 0; background: rgba(8, 14, 20, .55); border: 0; cursor: pointer; }
+#card .sheet { position: relative; width: 100%; max-width: 760px; max-height: 88%; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 12px 12px 0 0; padding: 16px; box-shadow: 0 -8px 30px rgba(0, 0, 0, .25); }
+#card .close { position: sticky; top: 0; float: right; z-index: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { background: var(--panel); border: 0; padding: 7px 14px; cursor: pointer; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button.sel { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+#xmsg.ok, #addmsg.ok { color: var(--ok); }
+#xmsg.err, #addmsg.err { color: var(--bad); }
+#xmsg, #addmsg { min-height: 1.4em; font-size: .88rem; margin: 6px 0; }
+
+@media (min-width: 700px) {
+  .ctrls { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; }
+  .mfilters { grid-template-columns: 2fr 1fr auto; }
+  .frm { grid-template-columns: repeat(2, 1fr); }
+  .frm .wide { grid-column: 1 / -1; }
+  .legend { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 960px) {
+  .cols { grid-template-columns: 340px minmax(0, 1fr); }
+  .side { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; }
+  #card { align-items: center; }
+  #card .sheet { border-radius: 12px; max-height: 84%; }
+  .legend { grid-template-columns: repeat(3, 1fr); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .outbtn, .chip, .sw, .btn { transition: border-color .12s, background-color .12s; }
+}
+
+/* Ayuda */
+.hlp { font-size: .84rem; color: var(--muted); background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; padding: 7px 10px; margin: 8px 0; }
+.hlp b { color: var(--ink); }
+.nohelp .hlp, .nohelp .q { display: none; }
+.q { display: inline-flex; align-items: center; justify-content: center; width: 1.35rem; height: 1.35rem; margin-left: 4px; padding: 0; border-radius: 50%; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); font: 600 .75rem/1 var(--font-body); cursor: pointer; vertical-align: middle; text-transform: none; letter-spacing: 0; }
+.q:hover { background: var(--accent); color: var(--accent-ink); }
+h3 .q, h4 .q { font-family: var(--font-body); }
+th .q { margin-left: 6px; }
+#tip { position: fixed; z-index: 40; max-width: min(320px, 92vw); background: var(--ink); color: var(--paper); padding: 9px 12px; border-radius: 8px; font-size: .85rem; line-height: 1.4; box-shadow: 0 6px 24px rgba(0, 0, 0, .3); pointer-events: none; }
+.howto { padding: 4px 12px 10px; margin: 8px 0 14px; }
+.howto > summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+.howto ol { margin: 6px 0; padding-left: 20px; }
+.howto li { margin: 6px 0; font-size: .9rem; color: var(--ink); }
+.gloss { margin-top: 8px; }
+.gloss > summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
+.gloss dl { display: grid; grid-template-columns: 1fr; gap: 2px 12px; margin: 8px 0 0; }
+.gloss dt { font-weight: 600; color: var(--ink); margin-top: 6px; }
+.gloss dd { margin: 0; }
+@media (min-width: 700px) { .gloss dl { grid-template-columns: 11rem 1fr; } .gloss dt { margin-top: 0; } }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1>Salidas del Elevador y del Empujador</h1>
+      <div class="sub" id="subtitle"></div>
+    </div>
+    <div class="ctrls">
+      <label title="Elija la máquina cuya lógica quiere revisar.">Máquina<select id="selMachine"></select></label>
+      <label title="Elija la parte de la máquina: cada sección tiene sus propias salidas.">Sección<select id="selSection"></select></label>
+      <label id="scenLabel" title="Carga un caso de ejemplo, como «pulsar SUBIR», para ver qué salidas se activan o se bloquean.">Situación de prueba<select id="selScen"></select></label>
+    </div>
+    <div class="row">
+      <button type="button" class="btn" id="btnReset" title="Deja todas las entradas en su valor normal de reposo y borra lo que haya cambiado.">Restablecer</button>
+      <button type="button" class="btn" id="btnHelp" aria-pressed="true" title="Muestra u oculta los textos de ayuda y los botones «?».">Ayuda: activada</button>
+    </div>
+    <p class="hlp">Esta pantalla es una simulación: nada de lo que toque aquí cambia el PLC ni la máquina. «Situación de prueba» carga un caso de ejemplo; «Restablecer» vuelve todo al reposo.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button type="button" role="tab" class="sel" aria-selected="true" data-tab="out" title="Las 21 salidas con su orden, permisos y qué les falta.">Salidas</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="marks" title="Glosario de todas las entradas, marcas y temporizadores.">Marcas</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="faults" title="Dispositivos, bornes, repuestos y fallos de cada bit físico.">Fallos y repuestos</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="std" title="Cómo leer las reglas, cómo agregar otra máquina y qué se supone.">Estándar</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="roles" title="Qué papeles y habilidades hacen falta para mantener esta guía.">Roles y habilidades</button>
+  </nav>
+
+  <!-- ===== Salidas ===== -->
+  <section id="tab-out" class="tabp">
+    <p class="muted">Elija una salida. La ficha dice qué orden y qué permisos necesita, qué falta en este momento y deja probar valores como los ve en el PLC.</p>
+    <details class="howto hlp" open>
+      <summary>Cómo usar esta pantalla (30 segundos)</summary>
+      <ol>
+        <li><b>Elija una salida</b> de la lista. La barra de color dice cómo está: verde es activa (ON), ámbar es que hay orden pero falta un permiso (bloqueada), gris es que nadie la pide (normal en reposo).</li>
+        <li><b>Lea la ficha de arriba hacia abajo.</b> Primero la ORDEN (alguien pide la salida), luego los PERMISOS (todo lo que debe estar bien). Si se cumplen ambas, ENTONCES la salida sale.</li>
+        <li><b>Mire los signos.</b> ✓ cumple y ✗ no cumple: la fila con ✗ es la causa de que no salga. En las órdenes, ● es pedida y ○ no pedida.</li>
+        <li><b>«debe estar en 0» significa NO.</b> Esa señal es un freno: si llega (pasa a 1), la salida no arranca; si ya estaba andando, se corta. Cuando vuelve a 0, la salida puede salir otra vez. No es una falla: es una protección o una prioridad.</li>
+        <li><b>Para probar,</b> toque las casillas de «Probar con valores reales» y ponga lo que ve en el PLC. Las filas se actualizan solas.</li>
+        <li><b>Toque cualquier dirección</b> (por ejemplo I8.3) para ver para qué sirve, y el botón «?» para una explicación corta.</li>
+      </ol>
+      <p>Ojo: 0 y 1 son los valores del bit en el PLC, no del contacto físico. Un paro de emergencia cableado normalmente cerrado vale 1 cuando todo está bien.</p>
+      <details class="gloss">
+        <summary>Palabras que aparecen</summary>
+        <dl>
+          <dt>Salida (Q)</dt><dd>Lo que el PLC energiza: una válvula, un contactor, un variador.</dd>
+          <dt>Entrada (I)</dt><dd>Señal que llega al PLC: un sensor, un final de carrera, un pulsador.</dd>
+          <dt>Marca (M)</dt><dd>Bit interno del programa, como una nota intermedia entre entradas y salidas.</dd>
+          <dt>Orden</dt><dd>El pedido de que algo arranque: botón, automático o recuperación.</dd>
+          <dt>Permiso</dt><dd>Condición que debe estar bien para poder arrancar.</dd>
+          <dt>Freno (NO)</dt><dd>Señal que debe estar en 0. Si llega, la salida no arranca.</dd>
+          <dt>Bloqueada</dt><dd>Hay orden, pero falta un permiso.</dd>
+          <dt>Temporizador (T)</dt><dd>Espera o retardo. Por ejemplo T4 es «hidráulica lista».</dd>
+          <dt>MCR</dt><dd>Zona del programa que pone en 0 sus salidas cuando su condición es 0, por ejemplo manual o automático.</dd>
+          <dt>Enclavamiento</dt><dd>Dos salidas que no pueden estar activas a la vez, como subir y bajar.</dd>
+        </dl>
+      </details>
+    </details>
+    <div class="cols">
+      <aside class="side">
+        <h2>Salidas</h2>
+        <div id="summary"></div>
+        <p class="hlp">Verde: activa. Ámbar: bloqueada, hay orden y falta un permiso. Gris: nadie la pide, es lo normal.</p>
+        <ul id="outList"></ul>
+        <p class="blocks" id="secBlocks"></p>
+      </aside>
+      <article id="detail" aria-live="polite"></article>
+    </div>
+  </section>
+
+  <!-- ===== Marcas ===== -->
+  <section id="tab-marks" class="tabp" hidden>
+    <p class="muted">Todas las entradas, marcas, temporizadores y salidas de la máquina. Toque una fila para ver qué significa, cuándo se activa y qué otras condiciones la usan. Las que dicen «Ficha mínima» se citan en la lógica pero quedan fuera de este alcance.</p>
+    <div class="mfilters">
+      <input id="mq" type="search" placeholder="Buscar por dirección, símbolo o texto" aria-label="Buscar">
+      <select id="mt" aria-label="Filtrar por tipo">
+        <option value="">Todos los tipos</option>
+        <option value="Q">Salidas (Q)</option>
+        <option value="I">Entradas (I)</option>
+        <option value="M">Marcas (M y zonas)</option>
+        <option value="T">Temporizadores (T)</option>
+        <option value="conf">Por confirmar</option>
+      </select>
+      <span class="count" id="mcount"></span>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Dirección <button type="button" class="q" data-tip="Nombre del bit en el PLC. I es entrada, Q es salida, M es marca interna y T es temporizador." aria-label="Ayuda">?</button></th><th>Símbolo</th><th>Para qué sirve</th><th>Tipo <button type="button" class="q" data-tip="Qué clase de elemento es: entrada física, marca calculada, memoria, temporizador o salida." aria-label="Ayuda">?</button></th><th>Origen <button type="button" class="q" data-tip="Bloque (FC) y renglón (NW) del programa donde está escrita su regla." aria-label="Ayuda">?</button></th><th>Confianza <button type="button" class="q" data-tip="Qué tan segura es la regla. Confirmada: leída sin ambigüedad. Inferida: deducida. Solo operandos: se sabe qué bits intervienen, no cómo." aria-label="Ayuda">?</button></th></tr></thead>
+        <tbody id="mbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== Fallos y repuestos ===== -->
+  <section id="tab-faults" class="tabp" hidden>
+    <p class="muted">Una fila por cada entrada y salida física que usa la sección elegida. Complete dispositivo, borne, repuesto, cantidad y fallos conocidos. Los datos se guardan solo en este navegador: use los botones de abajo para copiarlos y guardarlos aparte.</p>
+    <p id="fcount" class="muted"></p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Bit</th><th>Qué es y qué revisar</th><th>Dispositivo <button type="button" class="q" data-tip="El aparato real: válvula, sensor, contactor, final de carrera." aria-label="Ayuda">?</button></th><th>Borne <button type="button" class="q" data-tip="Dónde se conecta: regleta, módulo y canal. Ejemplo: X3:14." aria-label="Ayuda">?</button></th><th>N.º de parte <button type="button" class="q" data-tip="Código del repuesto, tal como se pide al proveedor o aparece en la bodega." aria-label="Ayuda">?</button></th><th>Bodega <button type="button" class="q" data-tip="Cuántas piezas de ese repuesto hay disponibles ahora." aria-label="Ayuda">?</button></th><th>Fallos y qué se hizo</th></tr></thead>
+        <tbody id="fbody"></tbody>
+      </table>
+    </div>
+    <h3>Respaldo</h3>
+    <div class="tools">
+      <div class="row">
+        <button type="button" class="btn" id="btnCopyJson">Copiar JSON</button>
+        <button type="button" class="btn" id="btnCopyCsv">Copiar CSV (Excel)</button>
+        <button type="button" class="btn" id="btnImport">Importar lo pegado abajo</button>
+      </div>
+      <textarea id="xbox" class="mono-area" rows="6" aria-label="Recuadro de respaldo" placeholder="Aquí aparece lo copiado. Para importar, pegue un JSON copiado antes y toque Importar."></textarea>
+      <p id="xmsg"></p>
+    </div>
+  </section>
+
+  <!-- ===== Estándar ===== -->
+  <section id="tab-std" class="tabp" hidden>
+    <div class="doc">
+      <h3>Cómo se lee cada salida</h3>
+      <p>Toda salida de este documento tiene la misma forma: una <b>orden</b> (alguien o algo pide que se active) y unos <b>permisos</b> (todo lo que debe estar bien para que realmente salga).</p>
+      <div class="formula-big">SALIDA = (orden 1 O orden 2 O …) Y permiso 1 Y permiso 2 Y …</div>
+      <p><b>Qué significa NO.</b> Una condición escrita con NO debe estar en 0. Es un freno: si esa señal llega (pasa a 1), la salida no arranca, y si ya estaba andando se corta. En cuanto vuelve a 0, la salida puede salir de nuevo.</p>
+      <p>Si falta la orden, la salida no sale y nadie se queja: es normal. Si hay orden pero falta un permiso, la salida queda <b>bloqueada</b> y el permiso que falla es la causa. La ficha de cada salida marca en rojo justo ese permiso.</p>
+
+      <h3>Del KOP al «si, entonces, sino» y a Python</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>En el KOP / AWL</th><th>En palabras</th><th>En Python</th></tr></thead>
+        <tbody>
+          <tr><td>Contactos en serie (A)</td><td>Y: todos deben cumplirse</td><td class="mono">a and b</td></tr>
+          <tr><td>Contactos en paralelo (O)</td><td>O: basta con uno</td><td class="mono">a or b</td></tr>
+          <tr><td>Contacto normalmente cerrado (AN)</td><td>NO: debe estar en 0</td><td class="mono">not a</td></tr>
+          <tr><td>Bobina (=)</td><td>La salida copia el resultado</td><td class="mono">Q = 1 o Q = 0</td></tr>
+          <tr><td>Set (S) y Reset (R)</td><td>Memoria: se queda activa hasta el reset; el reset manda</td><td class="mono">if set: m = 1<br>if reset: m = 0</td></tr>
+          <tr><td>Temporizador SD</td><td>Debe estar activa sostenida todo el tiempo</td><td class="mono">cumplido = entrada and tiempo_ok</td></tr>
+          <tr><td>Temporizador SF</td><td>Sigue activo un tiempo después de que cae la entrada</td><td class="mono">sale = entrada or retardo_corriendo</td></tr>
+        </tbody>
+      </table></div>
+      <p>Ejemplo real: así se escribe <b>Q16.4</b> (bajar el elevador). Cada nombre es un bit del PLC y el punto pasa a guion bajo.</p>
+      <pre class="code"><code># Q16.4  Bajar elevador (lento)
+orden = M40_1 or M52_3 or M131_0
+permisos = I8_3 and not Q16_3 and not M2_7 and T4
+
+if orden and permisos:
+    Q16_4 = 1   # la salida sale
+else:
+    Q16_4 = 0   # la salida no sale</code></pre>
+      <p class="muted small">La ficha de cada salida trae su propio código Python listo para leer.</p>
+
+      <h3>Tipos de elemento</h3>
+      <div class="legend">
+        <div><b>Entrada</b><span>Bit que viene de afuera: sensor, pulsador, botón de pantalla. Se cambia a mano en la prueba.</span></div>
+        <div><b>Marca calculada</b><span>Resultado de una condición Y/O/NO de otras marcas. No se escribe, se calcula.</span></div>
+        <div><b>Con autorretención</b><span>Se activa con un arranque y se mantiene sola mientras se cumpla su condición.</span></div>
+        <div><b>Set / reset</b><span>Se enciende con una condición y se apaga con otra; si coinciden, gana el reset.</span></div>
+        <div><b>Temporizador</b><span>SD espera a que la condición dure; SF mantiene la salida un rato al terminar.</span></div>
+        <div><b>Sin lógica confirmada</b><span>Se conocen los bits que intervienen, no cómo se combinan. Se lee su valor en el PLC.</span></div>
+      </div>
+
+      <h3>Niveles de confianza</h3>
+      <div class="legend">
+        <div><b><span class="tag c1">Confirmada</span></b><span>Estructura leída del listado de referencias cruzadas: solo contactos en serie y paralelo, sin ambigüedad.</span></div>
+        <div><b><span class="tag c2">Inferida</span></b><span>Deducida de textos y del orden de los operandos. Falta verla en el KOP.</span></div>
+        <div><b><span class="tag c3">Solo operandos</span></b><span>Se sabe qué bits están en el renglón, pero no cómo se combinan.</span></div>
+      </div>
+
+      <h3>Reglas de esta máquina que explican «no sale y no sé por qué»</h3>
+      <ul>
+        <li><b>Hidráulica lista (T4).</b> Casi todas las salidas del elevador piden T4. T4 es el temporizador de 0,5 s de M2.3 mientras no haya T5; M2.3 se activa con M1.6 y se borra si se pierde I8.5 o I8.6.</li>
+        <li><b>Zonas MCR.</b> Con M1.5 = 0 (manual) trabaja la zona de FC33 y la del centrado manual; con M1.5 = 1 (automático) trabaja la de FC34. En el empujador, la zona Z41A depende además de M50.6, y las zonas Z41A y Z41B piden M115.0 en 0. Fuera de la zona activa, una bobina escribe 0.</li>
+        <li><b>Orden de ejecución.</b> OB1 llama los bloques en este orden: FC100, 101, 102, 30, 31, 32, 33, 34, 35, 36, 38, 40, 41, 42, 43, 39. Una condición que se calcula más adelante se lee con el valor del ciclo anterior. El simulador copia esa regla.</li>
+        <li><b>Prioridades.</b> Pares como subir y bajar, o placa arriba y abajo, se bloquean entre sí: la que se evalúa primero gana.</li>
+        <li><b>Seguridad.</b> La MCR de software no reemplaza el paro de emergencia cableado: la seguridad real debe estar en circuitos externos y el PLC solo vigila su estado.</li>
+      </ul>
+
+      <h3>Agregar otra máquina o sección</h3>
+      <p>Cada máquina es un bloque de datos (JSON) con sus secciones y sus elementos. Cargue la plantilla, cámbiela y toque Agregar. Las condiciones se escriben con <span class="mono">&amp;</span> (Y), <span class="mono">|</span> (O), <span class="mono">!</span> (NO) y paréntesis. Tipos de elemento: <span class="mono">in</span>, <span class="mono">calc</span>, <span class="mono">seal</span>, <span class="mono">lat</span>, <span class="mono">sd</span>, <span class="mono">sf</span>, <span class="mono">opq</span>, <span class="mono">out</span>.</p>
+      <div class="row">
+        <button type="button" class="btn" id="btnTpl">Cargar plantilla</button>
+        <button type="button" class="btn pri" id="btnAdd">Agregar máquina</button>
+        <button type="button" class="btn" id="btnDelUser">Quitar las agregadas</button>
+      </div>
+      <textarea id="addjson" class="mono-area" rows="14" aria-label="JSON de la máquina" placeholder="Toque «Cargar plantilla» para ver el formato."></textarea>
+      <p id="addmsg"></p>
+      <p class="muted small">Lo agregado se guarda en este navegador. Para conservarlo, copie el JSON a un archivo propio.</p>
+
+      <h3>Lista para documentar otra máquina</h3>
+      <ol>
+        <li>Lista de entradas y salidas con dirección, símbolo, dispositivo, borne y plano.</li>
+        <li>Una ficha por salida: orden, permisos y qué falta cuando no sale.</li>
+        <li>Glosario de cada marca intermedia: para qué sirve, quién la escribe, quién la usa.</li>
+        <li>Zonas MCR, orden de ejecución y temporizadores que cambian el comportamiento.</li>
+        <li>Fallos conocidos, repuesto y cantidad en bodega por cada bit físico.</li>
+        <li>Registro de cambios con fecha, autor y motivo cada vez que se toca el programa.</li>
+      </ol>
+
+      <h3>Alcance y supuestos</h3>
+      <ul>
+        <li>Alcance: solo las 9 salidas del elevador y las 12 del empujador. Lo demás se cita únicamente cuando una condición lo necesita.</li>
+        <li>La estructura se dedujo del listado de referencias cruzadas (tipo de instrucción y orden de operandos), no de la imagen del KOP. Las 21 condiciones de salida son lógica en serie y están confirmadas. Algunas marcas intermedias son inferidas o solo operandos.</li>
+        <li>FC155 repite lógica de FC34 y FC41, pero OB1 no lo llama; igual pasa con FC37, FC110 y FC136. Esta guía usa FC34 y FC41.</li>
+        <li>Observación deducida: la recuperación (M130.x) no figura entre las órdenes que suben la placa Q20.6, pero el retroceso Q28.1 exige la placa arriba (I5.5). Confirmar en máquina.</li>
+        <li>Para cerrar todo lo inferido: exportar el código fuente AWL desde STEP 7 o subir los PDF del KOP de FC41, FC35, FC33, FC34, FC42, FC43 y FC30.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== Roles y habilidades ===== -->
+  <section id="tab-roles" class="tabp" hidden>
+    <div class="doc">
+      <h3>Qué papeles hay que cubrir</h3>
+      <p>Para que una guía como esta sirva de estándar no basta con saber programar: hay que cubrir varios papeles a la vez. Esta lista es una síntesis propia a partir de las fuentes de abajo, pensada para quien documenta y mantiene la máquina.</p>
+
+      <div class="role">
+        <h4>1. Ingeniero de automatización (la verdad de la lógica)</h4>
+        <p>Decide qué condiciones son reales. Lee el KOP o el AWL, contrasta con el listado de referencias cruzadas y marca cada condición como confirmada, inferida o por confirmar.</p>
+        <p class="sk">Habilidades: leer KOP y AWL (A, AN, O, =, S, R, SD, SF), zonas MCR, orden de ejecución del ciclo, álgebra booleana básica.</p>
+      </div>
+      <div class="role">
+        <h4>2. Documentador técnico</h4>
+        <p>Mantiene la lista de entradas y salidas como contrato: cada bit usado en el programa debe estar descrito. Escribe frases cortas, con nombres estables, y lleva el registro de cambios.</p>
+        <p class="sk">Habilidades: redacción precisa, convención de nombres, control de versiones, revisión por pares.</p>
+      </div>
+      <div class="role">
+        <h4>3. Técnico de diagnóstico</h4>
+        <p>Es quien más usa la guía. Parte de «qué falta», verifica el bit en línea y luego sale al campo: LED del módulo, sensor, final de carrera, contactos NC o NA, fusible, bobina.</p>
+        <p class="sk">Habilidades: forzar y observar bits sin dejar forzados, medir con multímetro, probar de afuera hacia adentro, anotar el hallazgo.</p>
+      </div>
+      <div class="role">
+        <h4>4. Analista de mantenimiento y repuestos</h4>
+        <p>Convierte los fallos repetidos en una lista corta de repuestos con número de parte y cantidad mínima en bodega, para que una parada no dependa de la memoria de alguien.</p>
+        <p class="sk">Habilidades: modos de falla por dispositivo, criticidad, rotación de repuestos, análisis de causas.</p>
+      </div>
+      <div class="role">
+        <h4>5. Responsable de seguridad de máquina</h4>
+        <p>Vigila que ninguna condición de software se use como seguridad. Paros de emergencia y resguardos van cableados; el PLC solo lee su estado.</p>
+        <p class="sk">Habilidades: circuitos de seguridad, enclavamientos, pruebas de falla segura.</p>
+      </div>
+      <div class="role">
+        <h4>6. Diseñador de información</h4>
+        <p>Ordena lo que se lee: primero el resumen y el estado, después el detalle; el color solo para estado, y una forma de escribir las condiciones que se repite en todas las máquinas.</p>
+        <p class="sk">Habilidades: jerarquía visual, lenguaje simple, pruebas con quien usa la guía en piso.</p>
+      </div>
+      <div class="role">
+        <h4>7. Gestor de configuración y datos</h4>
+        <p>Cuida que cada máquina tenga su bloque de datos con versión, que el respaldo exista fuera del navegador y que toda corrección al programa se refleje aquí.</p>
+        <p class="sk">Habilidades: respaldo, versionado, JSON, revisión de cambios.</p>
+      </div>
+
+      <h3>Habilidades, ordenadas para empezar</h3>
+      <ol>
+        <li><b>Leer lógica de contactos.</b> Serie es Y, paralelo es O, contacto cerrado es NO. Con esto se entiende cualquier renglón de salida.</li>
+        <li><b>Leer referencias cruzadas.</b> Muestran quién escribe y quién lee cada bit; es la forma más rápida de seguir una condición hasta su origen.</li>
+        <li><b>Temporizadores y memorias.</b> Saber si una condición necesita tiempo, retención o un reset que manda.</li>
+        <li><b>Probar con método.</b> Forzar un bit a la vez, observar qué cambia y devolverlo a su estado.</li>
+        <li><b>Escribir lo aprendido.</b> Una condición que no queda escrita se vuelve a descubrir en la próxima falla.</li>
+        <li><b>Python básico.</b> Las condiciones de esta guía se traducen directo a <span class="mono">and</span>, <span class="mono">or</span> y <span class="mono">not</span>; es un buen primer ejercicio y ayuda a automatizar listados y reportes.</li>
+      </ol>
+
+      <h3>Fuentes consultadas</h3>
+      <ul class="srcs">
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/establishing-plc-documentation-isa-50601-implementation-guide">Documentación de PLC según ISA-5.06.01</a>: lista de entradas y salidas, definición de enclavamientos, referencias cruzadas y control de versiones.</li>
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/creating-cause-effect-tables-for-plc-process-control-projects">Tablas de causa y efecto</a>: relación entre condiciones de entrada y acciones de salida, y cómo verificarlas forzando valores.</li>
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/plc-troubleshooting-methodology-industrial-automation-field-guide">Metodología de diagnóstico de PLC</a>: diagnóstico por capas y errores de orden de ejecución.</li>
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/plc-software-documentation-templates-and-best-practices">Plantillas de documentación de software de PLC</a>: estructura, orden de ejecución y registro de revisiones.</li>
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/plc-programming-standards-and-best-practices-for-maintainable-industrial-code">Estándares de programación de PLC</a>: nombres, estructura y documento de estándares vivo.</li>
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/industrial-plc-programming-standards-safety-and-best-practices-for-machine-control">Estándares y seguridad en control de máquinas</a>: la seguridad principal va en circuitos cableados.</li>
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/s7-200-jump-instruction-output-behavior-during-program-jump">Zonas MCR frente a saltos</a>: en S7-300 las salidas de una zona desactivada se fuerzan a 0.</li>
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/plc-programming-tutorial-ladder-logic-and-iec-61131-3-reference">Tutorial de lógica de contactos e IEC 61131-3</a>: equivalencias entre KOP y mnemónicos de Siemens (A, AN, =, S, R, SD, SF).</li>
+        <li><a href="https://industrialmonitordirect.com/blogs/knowledgebase/iec-61131-3-plc-programming-languages-a-practical-guide-for-beginners">Lenguajes IEC 61131-3 para principiantes</a>: por qué la lógica de contactos es la base de mantenimiento y diagnóstico.</li>
+      </ul>
+    </div>
+  </section>
+
+</div>
+
+<!-- Ventana de ficha de cualquier marca -->
+<div id="card" hidden role="dialog" aria-modal="true" aria-label="Ficha de la marca">
+  <button type="button" class="backdrop" id="cardBack" aria-label="Cerrar la ficha"></button>
+  <div class="sheet">
+    <button type="button" class="btn close" id="cardClose">Cerrar</button>
+    <div id="cardBody"></div>
+  </div>
+</div>
+
+<script>
+const SYM = {"I0.0":"MANUAL_AUTO_SW","I0.1":"AUTOMATIC_START_SW","I0.2":"MANUAL_RESET_SW","I0.3":"TAMPER_SELECT_SHINGLE_GA","I0.4":"EXTEND_CONV_RUN_SW","I0.5":"EXTEND_BACK_PUSH_ON_SW","I0.6":"EXTEND_SIDE_TAMPER_ON_SW","I0.7":"EXTEND_TAMPER_SET_ON_SW","I1.0":"EXTEND_LEFT_TAMPER_IN_SW","I1.1":"EXTEND_LEFT_TAMPER_OUT_S","I1.2":"EXTEND_RIGHT_TAMPER_IN_S","I1.3":"EXTEND_RIGHT_TAMPER_OUT_","I1.4":"SHINGLE_GATE_UP_SW","I1.5":"SHINGLE_GATE_DOWN_SW","I1.6":"EXTEND_LENGHT_FWD_SW","I1.7":"EXTEND_LENGHT_BWD_SW","I2.0":"EXTEND_CONV_JOG_SW","I2.1":"EXTEND_TILT_UP_SW","I2.2":"EXTEND_TILT_DOWN_SW","I2.3":"PRINT_MC_FULL_CHECK_SENS","I2.4":"EXTEND_LEFT_IN_LIMIT","I2.5":"EXTEND_LEFT_OUT_LIMIT","I2.6":"EXTEND_RIGHT_IN_LIMIT","I2.7":"EXTEND_RIGHT_OUT_LIMIT","I3.0":"EXTEND_END_PHOTO","I3.1":"EXTEND_LENGHT_FWD_LS","I3.2":"EXTEND_LENGHT_REV_LS","I3.3":"BUNDLE_LIFT_DOWN_LS","I3.4":"BUNDLE_LIFT_UP_LS","I3.5":"SHINGLE_GATE_IN_CHK_PHOT","I3.6":"EXTEND_TILT_DOWN_LS","I3.7":"INLET_CONV_BUNDLE_PHOTO","I4.0":"EXTEND_TILT_UP_LS","I4.1":"EXTEND_SAFETY_PIN_CL_LFT","I4.2":"EXTEND_SAFETY_PIN_OP_LFT","I4.3":"EXTEND_SAFETY_PIN_CL_RIG","I4.4":"EXTEND_SAFETY_PIN_OP_RIG","I4.5":"SHINGLE_GATE_LEFT_IN_LIM","I4.6":"SHINGLE_GATE_LEFT_OUT_LI","I4.7":"SHINGLE_GATE_RIGHT_IN_LI","I5.0":"SHINGLE_GATE_RIGHT_OUT_L","I5.1":"BLOCK_PUSHER_1ST_FWD_LS","I5.2":"BLOCK_PUSHER_1ST_REV_LS","I5.3":"BLOCK_PUSHER_2ND_FWD_LS","I5.4":"BLOCK_PUSHER_2ND_REV_LS","I5.5":"BLOCK_PUSHER_PLATE_UP_LI","I5.6":"BLOCK_PUSHER_REV_CHK_PHO","I6.0":"BLOCK_PUSHER_TILT_SAFETY","I6.1":"BLOCK_PUSHER_FWD_OV_LIMI","I6.2":"BLOCK_PUSHER_FWD_LS","I6.3":"BLOCK_PUSHER_REV_OV_LIMI","I6.4":"BLOCK_PUSHER_REV_LS","I6.5":"BLOCK_PUSHER_TILT_UP_LIM","I6.6":"BLOCK_PUSHER_TILT_DOWN_L","I6.7":"LIFT_TOP_OVER_PHOTO","I7.0":"LIFT_COUNT_RESET_PHOTO","I7.1":"LIFT_UP_LS","I7.2":"LIFT_DOWN_LS","I7.3":"LIFT_BUNDLE_IN_PHOTO","I7.4":"SEPARATION_CENTERING_LS","I7.5":"SEPARATION_RIGHT_MOVE_LS","I7.6":"WASTE_GATE_CLOSE_LS","I7.7":"WASTE_OUT_CHECK_PHOTO","I8.0":"LIFT_SAFETY_PPHOTO","I8.1":"SEPARATION_CONV_IN_PHOTO","I8.2":"SEPARATION_CONV_STOP_PHO","I8.3":"LIFT_SAFETY_PIN_OK","I8.5":"EMERGENCY_STOP","I8.6":"HYDRAULIC_PUMP_MOTOR_OVR","I8.7":"EXTEND_LEFT_SIDE_TAMP_OV","I9.0":"EXTEND_RIGT_SIDE_TAMP_OV","I9.1":"SHINGLE_GATE_LEFT_SD_TMP","I9.2":"SHINGLE_GATE_RIGHT_TMPR_","I9.3":"BLOCK_PUSHER_CB_OVR","I9.4":"BLOCK_PUSHER_INV_ERROR","I9.5":"SEPARATION_CONV_BRAKER_O","I9.6":"SEPARATION_INV_ERROR","I10.2":"FRAME_OK_WORK_POS","I11.4":"BACKSTOP_UP_LS","I11.5":"BACKSTOP_DOWN_LS","Q12.0":"INLET_BACKSTOP_UP","Q12.1":"INLET_BACKSTOP_DOWN","Q12.2":"MAIN_LIFT_CONV_FWD","Q12.3":"MAIN_LIFT_COV_REV","Q12.4":"MAIN_LIFT_CENTERING_LEFT","Q12.5":"MAIN_LIFT_CENTERING_RIGH","Q12.6":"WASTE_CONV_FWD","Q12.7":"WASTE_GATE_CLOSE","Q13.0":"WASTE_GATE_OPEN_","Q13.1":"INLET_CONV_FWD","Q13.2":"SHINGLE_GATE_UP","Q13.3":"SHINGLE_GATE_DOWN","Q13.4":"EXTEND_ADJUST_FWD","Q13.5":"EXTEND_ADJUST_REV","Q13.6":"EXTEND_CONV_FWD","Q13.7":"EXTEND_TILT_UP","Q16.0":"EXTEND_TILT_DOWN","Q16.1":"BLOCK_PUSHER_TILT_UP","Q16.2":"BLOCK_PUSHER_TILT_DOWN","Q16.3":"MAIN_LIFT_UP_SLOW","Q16.4":"MAIN_LIFT_DOWN_SLOW","Q16.5":"MAIN_LIFT_DOWN_FAST","Q16.6":"VACUUM_&_CILINDER_UP","Q16.7":"BLOWER","Q17.0":"EXTEND_UP_SIGNAL","Q17.1":"PREFEEDER_STOP_SIGNAL","Q17.2":"PREFEEDER_EMERGENCY","Q17.3":"DATA_REQUENCY_READY","Q20.0":"EXTEND_BACK_PUSHER_VALVE","Q20.1":"EXTEND_SIDE_TAMPER_VALVE","Q20.2":"SHINGLE_GATE_BUNDLE_LIFT","Q20.3":"EXTEND_SAFETY_PIN_CL_VAL","Q20.4":"EXTEND_SAFETY_PIN_OP_VAL","Q20.5":"SHINGLE_GATE_SIDE_PUSHER","Q20.6":"BLOCK_PUSHER_PLATE_UP","Q20.7":"BLOCK_PUSHER_1ST_STEP_FW","Q21.0":"BLOCK_PUSHER_1ST_STEP_RE","Q21.1":"BLOCK_PUSHER_2ND_FWD","Q21.2":"AUTO_START_LAMP","Q21.3":"ALARM_RESET_LAMP","Q21.4":"EXTEND_CONV_RUN_LAMP","Q21.5":"EXTEND_BACK_PUSHER_LAMP","Q21.6":"EXTEND_SIDE_TAMPER_LAMP","Q21.7":"EXTEND_TAMPER_SET_LAMP","Q24.0":"HYDRAULIC_PUMP_MC","Q24.1":"EXTEND_LFTS_TAMP_IN_MC","Q24.2":"EXTEND_LFTSD_TAMP_OUT_MC","Q24.3":"EXTEND_RGTSD_TAMPER_IN_M","Q24.4":"EXTEND_RGTSD_TAMPER_OU_M","Q24.5":"SHI_GATE_LFTSD_TAMP_IN_M","Q24.6":"SHI_GATE_LFTSD_TAMP_OU_M","Q24.7":"SHI_GATE_RGTSD_TAMP_IN_M","Q25.0":"SHI_GATE_RGTSD_TAMP_OU_M","Q25.1":"BLOCK_PUSHER_INV_MC","Q25.2":"BLOCK_PUSHER_NRAKE_MC","Q25.3":"SEPARATION_INVERTER_MC","Q28.0":"BLOCK_PUSHER_FWD","Q28.1":"BLOCK_PUSHER_REV","Q28.3":"BLOCK_PUSHER_RM_MIDDLE","Q28.4":"BLOCK_PUSHER_RL_LOW","Q28.6":"SEPARATION_FWD","Q28.7":"SEPARATION_REV","Q29.1":"SPARE9","Q29.2":"SPARE10","Q29.4":"ALARM_SOUND_SELECT","Q29.5":"RUN_SOUND_SELECT","Q29.6":"ALARM_LAMP_SELECT","Q29.7":"RUN_LAMP_SELECT"};
+/* ===== Motor lógico (sin DOM) ===== */
+function parseExpr(src) {
+  const toks = [];
+  const re = /\s*([&|!()]|[A-Za-z][A-Za-z0-9_.]*|[01])/y;
+  let m, pos = 0;
+  src = String(src);
+  while (pos < src.length) {
+    re.lastIndex = pos;
+    m = re.exec(src);
+    if (!m) { if (/^\s*$/.test(src.slice(pos))) break; throw new Error('Expresión inválida: ' + src); }
+    toks.push(m[1]); pos = re.lastIndex;
+  }
+  let i = 0;
+  const peek = () => toks[i];
+  function pOr() { const a = [pAnd()]; while (peek() === '|') { i++; a.push(pAnd()); } return a.length === 1 ? a[0] : { op: 'or', a }; }
+  function pAnd() { const a = [pUn()]; while (peek() === '&') { i++; a.push(pUn()); } return a.length === 1 ? a[0] : { op: 'and', a }; }
+  function pUn() {
+    const t = toks[i++];
+    if (t === '!') return { op: 'not', a: pUn() };
+    if (t === '(') { const e = pOr(); if (toks[i++] !== ')') throw new Error('Falta ) en: ' + src); return e; }
+    if (t === '1' || t === '0') return { op: 'const', v: t === '1' };
+    if (t === undefined || '&|)'.includes(t)) throw new Error('Expresión incompleta: ' + src);
+    return { op: 'ref', id: t };
+  }
+  const e = pOr();
+  if (i < toks.length) throw new Error('Sobra texto en: ' + src);
+  return e;
+}
+
+function astRefs(a, out = new Set()) {
+  if (!a) return out;
+  if (a.op === 'ref') out.add(a.id);
+  else if (a.op === 'not') astRefs(a.a, out);
+  else if (a.a) a.a.forEach(x => astRefs(x, out));
+  return out;
+}
+
+function ordOf(n) {
+  if (!n || !n.src) return -1;
+  const m = /FC(\d+)\s+NW(\d+)/.exec(n.src);
+  return m ? (+m[1]) * 1000 + (+m[2]) : -1;
+}
+
+function createEngine(db, symtab) {
+  const nodes = db.nodes;
+  const cache = new Map();
+  const ast = s => { let a = cache.get(s); if (!a) { a = parseExpr(s); cache.set(s, a); } return a; };
+  const state = { leaf: {}, force: {}, mem: {}, elapsed: {}, hold: {} };
+  let last = {};
+  let vals = {}, prev = {}, visiting = new Set();
+
+  const isLeaf = n => !n || n.k === 'in' || n.k === 'opq';
+  const ordCache = {};
+  const ord = id => (id in ordCache ? ordCache[id] : (ordCache[id] = ordOf(nodes[id])));
+
+  function defAst(id) {
+    const n = nodes[id];
+    switch (n.k) {
+      case 'calc': return ast(n.e);
+      case 'sd': case 'sf': return ast(n.in);
+      case 'seal': return { op: 'and', a: [{ op: 'or', a: [ast(n.start), { op: 'ref', id: '__mem__' + id }] }, ast(n.cond)] };
+      case 'lat': return { op: 'and', a: [{ op: 'or', a: [ast(n.set), { op: 'ref', id: '__mem__' + id }] }, { op: 'not', a: ast(n.rst) }] };
+      case 'out': return ast('(' + (n.cmd || '1') + ') & (' + (n.perm || '1') + ')');
+    }
+    return null;
+  }
+
+  function leafVal(id) {
+    const n = nodes[id];
+    if (id in state.leaf) return !!state.leaf[id];
+    return !!(n && n.def);
+  }
+
+  function ev(a, from) {
+    switch (a.op) {
+      case 'const': return a.v;
+      case 'not': return !ev(a.a, from);
+      case 'and': for (const x of a.a) if (!ev(x, from)) return false; return true;
+      case 'or': { let r = false; for (const x of a.a) if (ev(x, from)) r = true; return r; }
+      case 'ref': return ref(a.id, from);
+    }
+  }
+
+  function ref(id, from) {
+    if (id.startsWith('__mem__')) return !!state.mem[id.slice(7)];
+    const n = nodes[id];
+    if (!n) return leafVal(id);
+    if (isLeaf(n) || id in state.force) return val(id);
+    // referencia hacia adelante en el orden de scan → valor del scan anterior
+    if (from != null && ord(id) > ord(from)) return !!prev[id];
+    return val(id);
+  }
+
+  function val(id) {
+    if (id in vals) return vals[id];
+    const n = nodes[id];
+    if (!n) return (vals[id] = leafVal(id));
+    if (state.force[id] != null) return (vals[id] = !!state.force[id]);
+    if (isLeaf(n)) return (vals[id] = leafVal(id));
+    if (visiting.has(id)) return !!prev[id];
+    visiting.add(id);
+    let v;
+    switch (n.k) {
+      case 'calc': v = ev(ast(n.e), id); break;
+      case 'out': v = ev(defAst(id), id); break;
+      case 'sd': v = ev(ast(n.in), id) && (id in state.elapsed ? !!state.elapsed[id] : true); break;
+      case 'sf': v = ev(ast(n.in), id) || !!state.hold[id]; break;
+      case 'seal': v = (ev(ast(n.start), id) || !!state.mem[id]) && ev(ast(n.cond), id); break;
+      case 'lat': v = !ev(ast(n.rst), id) && (ev(ast(n.set), id) || !!state.mem[id]); break;
+      default: v = false;
+    }
+    visiting.delete(id);
+    return (vals[id] = v);
+  }
+
+  function run() {
+    prev = last;
+    const ids = Object.keys(nodes);
+    for (let p = 0; p < 6; p++) {
+      vals = {}; visiting = new Set();
+      ids.forEach(val);
+      let same = true;
+      for (const k of ids) if (!!vals[k] !== !!prev[k]) { same = false; break; }
+      if (same) break;
+      prev = vals;
+    }
+    last = vals;
+    return vals;
+  }
+
+  function value(id) { return id in last ? !!last[id] : leafVal(id); }
+
+  // Estado de una salida: ON / BLOQ (orden activa y permisos faltan) / SIN (sin orden)
+  function outStatus(id) {
+    const n = nodes[id];
+    if (value(id)) return 'on';
+    if (!n.cmd) return 'off';
+    const c = ev(ast(n.cmd), id);
+    return c ? 'blocked' : 'noorder';
+  }
+
+  // Qué debe cambiar para que la expresión valga `want`
+  function fixes(a, want, from, depth = 0) {
+    if (ev(a, from) === want) return [];
+    switch (a.op) {
+      case 'ref': {
+        const n = nodes[a.id];
+        if (!n || isLeaf(n) || a.id in state.force) return [{ id: a.id, to: want }];
+        if (!want || depth >= 3) return [{ id: a.id, to: want }];
+        const d = defAst(a.id);
+        const sub = d ? fixes(d, true, a.id, depth + 1) : [];
+        return [{ id: a.id, to: true, because: sub }];
+      }
+      case 'not': return fixes(a.a, !want, from, depth);
+      case 'and':
+        if (want) return a.a.filter(x => ev(x, from) !== true).flatMap(x => fixes(x, true, from, depth));
+        return [{ any: a.a.map(x => ({ alt: x, fixes: fixes(x, false, from, depth) })) }];
+      case 'or':
+        if (want) return [{ any: a.a.map(x => ({ alt: x, fixes: fixes(x, true, from, depth) })) }];
+        return a.a.filter(x => ev(x, from)).flatMap(x => fixes(x, false, from, depth));
+    }
+    return [];
+  }
+
+  function missing(id) {
+    const n = nodes[id];
+    const a = defAst(id);
+    return a ? fixes(a, true, id, 0) : [];
+  }
+
+  // usado por
+  const usedBy = {};
+  function buildUsedBy() {
+    for (const k of Object.keys(nodes)) {
+      const n = nodes[k];
+      const srcs = [n.e, n.in, n.start, n.cond, n.set, n.rst, n.cmd, n.perm].filter(Boolean);
+      const refs = new Set();
+      srcs.forEach(s => astRefs(ast(s), refs));
+      if (n.inv) n.inv.split(',').forEach(s => refs.add(s.trim().replace(/^!/, '')));
+      refs.forEach(r => { if (r !== k) (usedBy[r] = usedBy[r] || new Set()).add(k); });
+    }
+  }
+  buildUsedBy();
+
+  return { ast, state, run, value, outStatus, missing, fixes, defAst, ev, nodes, usedBy, ord, isLeaf, leafVal, astRefs, get last() { return last; } };
+}
+
+if (typeof module !== 'undefined') module.exports = { parseExpr, astRefs, createEngine, ordOf };
+
+/* ===== Base de datos de la máquina (formato estándar v1) =====
+   k: in (entrada/bit externo) | calc | seal (autorretención) | lat (set/reset) | sd/sf (temporizador) | out (salida con orden+permisos) | opq (bit cuya estructura interna no está confirmada)
+   c: confianza 1 = confirmada, 2 = inferida, 3 = solo operandos
+*/
+const N = {};
+const IN = (id, d, on1, def = 0, x = {}) => { N[id] = Object.assign({ k: 'in', d, on1, def }, x); };
+const CALC = (id, d, e, src, c = 1, x = {}) => { N[id] = Object.assign({ k: 'calc', d, e, src, c }, x); };
+const SEAL = (id, d, start, cond, src, c = 2, x = {}) => { N[id] = Object.assign({ k: 'seal', d, start, cond, src, c }, x); };
+const LAT = (id, d, set, rst, src, c = 1, x = {}) => { N[id] = Object.assign({ k: 'lat', d, set, rst, src, c }, x); };
+const SD = (id, d, inn, pt, src, c = 1, x = {}) => { N[id] = Object.assign({ k: 'sd', d, in: inn, pt, src, c }, x); };
+const SF = (id, d, inn, pt, src, c = 1, x = {}) => { N[id] = Object.assign({ k: 'sf', d, in: inn, pt, src, c }, x); };
+const OPQ = (id, d, inv, src, x = {}) => { N[id] = Object.assign({ k: 'opq', d, inv, src, c: 3, def: 0 }, x); };
+const OUT = (id, d, cmd, perm, src, x = {}) => { N[id] = Object.assign({ k: 'out', d, cmd, perm, src, c: 1 }, x); };
+
+/* ---------- Entradas físicas (1 = señal presente en el borne) ---------- */
+IN('I0.0', 'Selector manual / automático', '1 = posición automático (deducido: M1.5 lo exige en 1)', 0);
+IN('I0.1', 'Pulsador de arranque automático', '1 = pulsado', 0);
+IN('I0.2', 'Pulsador de reset / recuperación', '1 = pulsado', 0);
+IN('I3.5', 'Fotocélula de verificación de entrada de la compuerta shingle', '1 = bulto detectado (deducido)', 0);
+IN('I3.6', 'Final de carrera inclinación ABAJO del extendedor (sección Extender)', '1 = extendedor abajo; el avance del empujador lo exige en 1', 1);
+IN('I5.1', 'Empujador: final de carrera 1er paso adelante', '1 = 1er paso adelante alcanzado', 0);
+IN('I5.2', 'Empujador: final de carrera 1er paso atrás', '1 = 1er paso atrás alcanzado', 0);
+IN('I5.3', 'Empujador: final de carrera 2º paso adelante', '1 = 2º paso adelante alcanzado', 0);
+IN('I5.5', 'Empujador: límite placa ARRIBA', '1 = placa arriba; el retroceso lo exige en 1', 0);
+IN('I5.6', 'Empujador: fotocélula de verificación de retroceso', '1 = detecta (deducido)', 0);
+IN('I6.0', 'Empujador: seguridad de inclinación', '1 = OK (se exige en 1 para mover la inclinación)', 1);
+IN('I6.1', 'Empujador: sobrecarrera adelante', '1 = sobrecarrera alcanzada', 0);
+IN('I6.2', 'Empujador: final de carrera adelante', '1 = al final adelante; bloquea el avance', 0);
+IN('I6.3', 'Empujador: sobrecarrera atrás', '1 = sobrecarrera alcanzada', 0);
+IN('I6.4', 'Empujador: final de carrera atrás (reposo)', '1 = empujador atrás; bloquea el retroceso', 1);
+IN('I6.5', 'Empujador: límite inclinación ARRIBA', '1 = inclinado arriba', 0);
+IN('I6.6', 'Empujador: límite inclinación ABAJO', '1 = inclinado abajo', 1);
+IN('I6.7', 'Elevador: fotocélula de sobrecarrera superior', '1 = libre (se exige en 1 para subir)', 1);
+IN('I7.1', 'Elevador: final de carrera ARRIBA', '1 = elevador arriba; bloquea la subida', 0);
+IN('I7.2', 'Elevador: final de carrera ABAJO', '1 = elevador abajo', 1);
+IN('I7.3', 'Elevador: fotocélula de bulto presente', '1 = bulto en el elevador (deducido)', 0);
+IN('I7.4', 'Separación: final de carrera de centrado', '1 = centrado alcanzado (deducido)', 0);
+IN('I7.5', 'Separación: final de carrera de movimiento a la derecha', '1 = límite derecho alcanzado (deducido)', 0);
+IN('I7.6', 'Compuerta de desecho: final de carrera CERRADA', '1 = compuerta cerrada', 1);
+IN('I7.7', 'Compuerta de desecho: fotocélula de verificación de salida', '1 = detecta (deducido)', 0);
+IN('I8.0', 'Elevador: fotocélula de seguridad', '1 = libre (se exige en 1 para mover en manual)', 1);
+IN('I8.2', 'Separación: fotocélula de paro del transportador', '1 = detecta (deducido)', 0);
+IN('I8.3', 'Elevador: pasador de seguridad OK', '1 = OK (se exige en 1 para subir/bajar)', 1);
+IN('I8.5', 'Paro de emergencia', '1 = circuito sano (cableado NC); en 0 se cae todo', 1);
+IN('I8.6', 'Guardamotor / térmico de la bomba hidráulica', '1 = OK (cableado NC, deducido)', 1);
+IN('I9.3', 'Guardamotor del empujador', '1 = OK (cableado NC, deducido)', 1);
+IN('I9.4', 'Variador del empujador sin falla', '1 = sin falla (el símbolo dice ERROR pero el programa lo exige en 1)', 1);
+IN('I9.5', 'Guardamotor del transportador de separación', '1 = OK (deducido)', 1);
+IN('I9.6', 'Variador de separación sin falla', '1 = sin falla (deducido)', 1);
+IN('I11.4', 'Tope trasero (backstop) ARRIBA', '1 = tope arriba', 0);
+IN('I11.5', 'Tope trasero (backstop) ABAJO', '1 = tope abajo', 0);
+
+/* ---------- Botones del panel / HMI (sin escritor en el programa) ---------- */
+IN('M91.0', 'HMI manual: elevador SUBIR', '1 = botón pulsado (deducido de M40.0)', 0);
+IN('M91.1', 'HMI manual: elevador BAJAR', '1 = botón pulsado (deducido de M40.1)', 0);
+IN('M91.2', 'HMI manual: transportador del elevador ADELANTE', '1 = botón pulsado (deducido de M40.5)', 0);
+IN('M91.3', 'HMI manual: transportador del elevador ATRÁS', '1 = botón pulsado (deducido de M40.6)', 0);
+IN('M91.4', 'HMI manual: empujador inclinar ARRIBA', '1 = botón pulsado (deducido de M41.0)', 0);
+IN('M91.5', 'HMI manual: empujador inclinar ABAJO', '1 = botón pulsado (deducido de M41.1)', 0);
+IN('M91.6', 'HMI manual: empujador AVANZAR', '1 = botón pulsado (deducido de M41.2)', 0);
+IN('M91.7', 'HMI manual: empujador RETROCEDER (también sube la placa)', '1 = botón pulsado (deducido de M41.3 y M41.4)', 0);
+IN('M182.0', 'HMI: centrado a la IZQUIERDA (manual)', '1 = botón pulsado (deducido de M40.2)', 0);
+IN('M182.1', 'HMI: centrado a la DERECHA (manual)', '1 = botón pulsado (deducido de M40.3)', 0);
+IN('M166.2', 'HMI: forzar recuperación (sin escritor en el programa)', '1 = recuperación forzada', 0);
+IN('M115.0', 'Paro/falla del empujador (sin escritor en el programa)', '1 = apaga la zona automática del empujador (FC41)', 0);
+IN('M99.0', 'Bandera de FC111 (pulso)', '1 solo durante el pulso; en marcha normal 0', 0);
+IN('M251.5', 'Alarma de FC40 que inhibe el centrado', '1 = alarma activa', 0);
+
+/* ---------- Estado general y bomba hidráulica (FC30) ---------- */
+OPQ('M1.5', 'Ciclo AUTOMÁTICO en marcha (autorretención). Con M1.5 = 1 trabajan FC34 y el empujador automático; con M1.5 = 0 trabaja el manual (FC33)',
+  'I0.0, I0.1, I8.5, I8.6, M1.4, !M2.2, !M229.3, T70', 'FC30 NW16');
+OPQ('M1.6', 'Pulso de un ciclo al arrancar el automático (flanco de subida de M1.5)', 'M1.5', 'FC30 NW19');
+OPQ('M2.0', 'Pulso de arranque automático (flanco de subida de M1.5)', 'M1.5', 'FC30 NW24');
+IN('T5', 'Temporizador T5 de la bomba (preselección en MW120/MW121): al cumplirse apaga la bomba (inferido)', '1 = tiempo cumplido, la bomba se corta', 0, { t: 'T' });
+LAT('M2.3', 'Bomba hidráulica habilitada (se activa con M1.6 y cae con paro de emergencia o térmico)', 'M1.6', '!I8.5 | !I8.6', 'FC30 NW7');
+CALC('Q24.0', 'Contactor de la bomba hidráulica', 'M2.3 & !T5', 'FC30 NW10');
+SD('T4', 'HIDRÁULICA LISTA: la bomba lleva 0,5 s en marcha. Casi todas las salidas hidráulicas la exigen', 'M2.3 & !T5', '0,5 s', 'FC30 NW10', 2);
+SD('T91', 'Confirmación de elevador abajo (anti-rebote)', 'I7.2', '0,7 s', 'FC30 NW6');
+CALC('M2.7', 'ELEVADOR ABAJO confirmado (I7.2 estable 0,7 s)', 'I7.2 & T91', 'FC30 NW6');
+CALC('M50.7', 'Ciclo habilitado (no hay pulso M99.0)', '!M99.0', 'FC34 NW7');
+
+/* ---------- Manual (FC33): zona MCR activa solo con M1.5 = 0 ---------- */
+CALC('M40.0', 'Orden MANUAL: subir elevador', 'M91.0 & !M91.1 & !I7.1 & I8.0 & !M1.5', 'FC33 NW4');
+CALC('M40.1', 'Orden MANUAL: bajar elevador', 'M91.1 & !M91.0 & !M2.7 & I8.0 & !M1.5', 'FC33 NW5');
+CALC('M40.5', 'Orden MANUAL: transportador del elevador adelante', 'M91.2 & !M91.3 & !M1.5', 'FC33 NW6');
+CALC('M40.6', 'Orden MANUAL: transportador del elevador atrás (solo con elevador abajo)', 'M91.3 & !M91.2 & M2.7 & !M1.5', 'FC33 NW7');
+CALC('M41.0', 'Orden MANUAL: inclinar empujador arriba', 'M91.4 & !M91.5 & !I6.5 & I6.0 & !M1.5', 'FC33 NW8');
+CALC('M41.1', 'Orden MANUAL: inclinar empujador abajo', 'M91.5 & !M91.4 & !I6.6 & I6.0 & !M1.5', 'FC33 NW9');
+CALC('M41.3', 'Orden MANUAL: empujador retroceder', 'M91.7 & !M91.6 & !I6.3 & !I6.4 & !M1.5', 'FC33 NW11');
+CALC('M41.4', 'Orden MANUAL: placa del empujador arriba (acompaña al retroceso)', 'M91.7 & !I6.3 & !I6.4 & !M1.5', 'FC33 NW12');
+OPQ('M41.2', 'Orden MANUAL: empujador avanzar. Mínimo seguro: M91.6 pulsado, M91.7 no, inclinación abajo (I6.6) y sin límites adelante (I6.1/I6.2); además intervienen los finales de paso (I5.x) y los topes (I11.x)',
+  'M91.6, !M91.7, I6.6, !I6.1, !I6.2, I5.1, I5.2, I5.3, I11.4, I11.5, M43.0, !Q28.0, !Q28.1, !M1.5', 'FC33 NW10');
+OPQ('M41.5', 'Orden MANUAL: avance del empujador por pasos (rama de FC33 NW10)', 'I5.1, I5.2, I11.4, M43.0, !M1.5', 'FC33 NW10');
+OPQ('M41.6', 'Orden MANUAL: avance del empujador por pasos, con tope abajo (rama de FC33 NW10)', 'I5.3, I11.5, I5.2, I6.6, !M1.5', 'FC33 NW10');
+SD('T30', 'Espera de 1 s entre órdenes de centrado manual', '!M40.4', '1 s', 'FC42 NW6');
+OPQ('M40.4', 'Pulso: final de carrera de centrado alcanzado mientras se pulsa un botón de centrado', 'I7.4, M182.0, M182.1', 'FC42 NW5');
+CALC('M40.2', 'Orden MANUAL: centrar a la izquierda', '!M1.5 & M182.0 & !M182.1 & T30', 'FC42 NW3');
+CALC('M40.3', 'Orden MANUAL: centrar a la derecha', '!M1.5 & !I7.5 & M182.1 & !M182.0 & T30', 'FC42 NW4');
+SD('T31', 'Compuerta de desecho fuera de cerrada durante 0,5 s', '!I7.6', '0,5 s', 'FC33 NW25');
+SD('T33', 'Compuerta de desecho cerrada 1 s', 'I7.6 & !M42.4', '1 s', 'FC33 NW24');
+SD('T34', 'Bulto presente y salida libre con la compuerta pedida cerrada, 1 s', 'I7.3 & !I7.7 & !M42.1', '1 s', 'FC33 NW23');
+SF('T32', 'Pulso de apertura manual de la compuerta de desecho (se mantiene 1,5 s)', 'M42.1 & I7.6', '1,5 s', 'FC33 NW20');
+OPQ('M42.1', 'Compuerta de desecho MANUAL: biestable abrir/cerrar (cambia con cada pulso de M182.3)', 'M42.0, M42.1', 'FC33 NW19');
+OPQ('M42.4', 'Pulso: la compuerta manual pasó de abierta a cerrada (flanco de bajada de M42.1)', 'M42.1', 'FC33 NW21');
+OPQ('M42.2', 'Orden MANUAL: cerrar compuerta de desecho (autorretenida)', 'M42.4, M42.2, T34, !T33, I7.3, !I7.7', 'FC33 NW22');
+CALC('M42.3', 'Orden MANUAL: transportador de desecho (la compuerta pedida abierta y fuera de cerrada 0,5 s)', 'M42.1 & T31 & !M1.5', 'FC33 NW25');
+
+/* ---------- Automático del elevador (FC34): zona MCR activa con M1.5 = 1 ---------- */
+SD('T40', 'Tiempo de marcha del transportador del elevador al arrancar', 'I8.0', '6 s', 'FC34 NW3', 2);
+SD('T58', 'Bulto fuera de la fotocélula del elevador durante el tiempo de DB53.DBW8', '!I7.3', 'DB53.DBW8', 'FC34 NW13');
+SEAL('M50.0', 'Orden AUTO: transportador del elevador adelante al arrancar el ciclo', 'M2.0', 'M1.5 & !T40 & M2.7 & !T58', 'FC34 NW3');
+SEAL('M50.1', 'Orden AUTO: inclinar empujador arriba al arrancar', 'M2.0 & M2.7', 'M1.5 & !I6.5 & I7.3', 'FC34 NW4');
+OPQ('M50.2', 'Orden AUTO: transportador del elevador adelante (alimentación del bulto, usa T41/T42 y centrado M66.7)',
+  'M1.5, I6.4, I6.5, !I7.3, I7.6, I8.2, M2.7, M66.7, M52.1, T41, T42', 'FC34 NW5');
+OPQ('M60.7', 'Marca de FC42 NW13 (bulto en fotocélula de seguridad), lee FC34 NW6', 'I8.0, M83.3', 'FC42 NW13');
+SEAL('M50.3', 'Orden AUTO: inclinar empujador abajo', '!I7.3 | M60.7', 'M1.5 & I6.0 & !I6.6 & !M51.6', 'FC34 NW6');
+OPQ('M51.4', 'Orden AUTO: subir elevador (ciclo automático)', 'M1.5, !I6.4, !I6.5, !I7.1, !M50.6, !M51.6, T45, M80.1, M80.6', 'FC34 NW11');
+OPQ('M53.3', 'Orden AUTO: subir elevador (ciclo automático)', 'M1.5, I5.6, I6.4, I6.6, I6.7, I7.0, !I7.1, !I7.3, I7.6, !M50.6, !M51.6, !M53.4, T58, M80.1, M80.6', 'FC34 NW12');
+SEAL('M51.6', 'Fase de DESCARGA: empujador adelante con elevador arriba (dura hasta que todo regresa)', 'I6.2 & I7.1', 'M1.5 & !M51.7', 'FC34 NW14');
+CALC('M51.7', 'Todo en reposo: empujador atrás, inclinación arriba, elevador abajo y compuerta cerrada', 'I6.4 & I6.5 & I7.2 & I7.6', 'FC34 NW15');
+OPQ('M52.0', 'Pulso: inicio de la fase de descarga (flanco de subida de M51.6)', 'M51.6', 'FC34 NW16');
+SEAL('M52.2', 'Orden AUTO: inclinar empujador arriba durante la descarga', 'M51.6', 'M1.5 & !I6.5', 'FC34 NW18');
+SEAL('M52.3', 'Orden AUTO: bajar elevador tras el empuje', 'M52.0', 'M1.5 & !I7.2 & I8.0', 'FC34 NW19');
+SD('T48', 'Tiempo de apertura de la compuerta de desecho (fuera de cerrada)', '!I7.6', '3 s', 'FC34 NW20', 2);
+SEAL('M52.7', 'Orden AUTO: abrir compuerta de desecho', 'M52.0', 'M1.5 & !T48', 'FC34 NW20');
+SD('T59', 'Bulto sobre el elevador con salida libre, 3 s', 'M51.6 & M2.7 & I7.3 & !I7.7', '3 s', 'FC34 NW21');
+SD('T49', 'Compuerta de desecho cerrada 1 s', 'I7.6', '1 s', 'FC34 NW22', 2);
+SEAL('M53.0', 'Orden AUTO: cerrar compuerta de desecho', 'M51.6 & T59', 'M1.5 & M2.7 & I7.3 & !I7.7 & !T49', 'FC34 NW22');
+IN('T50', 'Retardo de 0,1 s del transportador de desecho (lo arranca también el transportador del elevador)', '1 = cumplido', 0, { t: 'T' });
+OPQ('M54.1', 'Orden AUTO: transportador de desecho (también mueve el transportador del elevador)', 'M1.5, I7.2, I7.3, I7.6, I7.7, M51.6, M54.0, T59, T50, T51', 'FC34 NW24');
+OPQ('M80.3', 'Elevador en zona de bajada rápida (FC36 NW6, compara MW100 contra el umbral)', 'MW100', 'FC36 NW6');
+OPQ('M66.3', 'Orden AUTO: centrar hacia la derecha (set si PIW384 > PIW386; reset con M1.6, falta M1.7 o M66.7)', 'I9.5, I9.6, M1.5, I8.2, M66.2, T113, M1.6, M1.7, M66.7', 'FC42 NW21');
+OPQ('M66.4', 'Orden AUTO: centrar hacia la izquierda (set si PIW384 < PIW386; reset con M1.6, falta M1.7 o M66.7)', 'I9.5, I9.6, M1.5, I8.2, M66.2, T114, M1.6, M1.7, M66.7', 'FC42 NW22');
+OPQ('M67.1', 'Búsqueda de centrado (orden de barrido)', 'Z42B, !I7.4, !I8.2, !M1.5, M1.6, M50.3, M116.1, M130.1, M166.0, !M251.5', 'FC42 NW36');
+CALC('Z42B', 'Zona MCR del centrado (FC42 NW35): paro de emergencia, guardamotor y variador de separación OK', 'I8.5 & I9.5 & I9.6', 'FC42 NW35');
+OPQ('T117', 'Tiempo máximo de la búsqueda de centrado (20 s)', 'M67.1', 'FC42 NW38');
+CALC('M67.2', 'Orden de barrido: centrar hacia la derecha', 'Z42B & M67.1 & !I7.4 & !M67.3', 'FC42 NW37');
+SEAL('M67.3', 'Orden de barrido: centrar hacia la izquierda (autorretenida)', 'M67.1 & I7.5', 'Z42B & !I7.4 & !M251.5 & !T117', 'FC42 NW38');
+
+/* ---------- Recuperación (FC43) ---------- */
+SD('T108', 'Pulsar reset 3 s en manual con el extendedor abajo', 'I0.2 & I3.6 & !M1.5', '3 s', 'FC43 NW1');
+OPQ('M130.1', 'Pulso: inicio de la recuperación (flanco de subida de M130.0)', 'M130.0', 'FC43 NW3');
+OPQ('M131.7', 'Máquina en posición base (extendedor, shingle, empujador y compuerta en reposo)', 'I2.5, I2.7, I4.6, I5.0, I6.3, I6.4, I6.5, I6.6, I7.6, M2.7', 'FC43 NW13');
+SEAL('M130.0', 'RECUPERACIÓN en curso (solo en manual, con hidráulica lista y sin estar ya en base)', 'T108 & !M1.5', 'T4 & !M131.7 & I8.5', 'FC43 NW2');
+SEAL('M130.6', 'Orden de RECUPERACIÓN: empujador retroceder', 'M130.1 | M166.2', '!I6.3 & !I6.4 & I9.3 & I9.4', 'FC43 NW8');
+SEAL('M130.7', 'Orden de RECUPERACIÓN: empujador inclinar arriba', 'M130.1 | M166.2', '!I6.5 & T4', 'FC43 NW9');
+SEAL('M131.0', 'Orden de RECUPERACIÓN: bajar elevador', 'M130.1 | M166.2', '!M2.7 & T4', 'FC43 NW10');
+SD('T109', 'Compuerta de desecho cerrada 1 s', 'I7.6', '1 s', 'FC43 NW12');
+SEAL('M131.1', 'Orden de RECUPERACIÓN: cerrar compuerta de desecho', 'M130.1', 'M130.0 & T4 & !T109', 'FC43 NW11');
+
+/* ---------- Empujador automático (FC41): zona MCR M1.5 · M50.6 · no M115.0 ---------- */
+OPQ('M50.6', 'Ciclo AUTOMÁTICO del empujador en marcha (autorretención; arranca con T46)', 'M1.5, I3.7, I6.1, I6.2, I6.6, I6.7, I7.0, I7.1, I7.2, I7.3, M2.7, M50.7, M51.0, T46', 'FC41 NW8');
+CALC('Z41A', 'Zona MCR del empujador automático (FC41 NW16): ciclo auto y empujador en marcha, sin paro M115.0', 'M1.5 & M50.6 & !M115.0', 'FC41 NW16');
+OPQ('M204.3', 'Pulso de un ciclo al iniciar el automático (flanco de subida de M1.5)', 'M1.5', 'FC41 NW6');
+SD('T44', 'Tiempo máximo de retroceso automático (1 s sin que la fotocélula I5.6 lo vea)', 'M51.1 & Q28.1 & !I5.6 & !M0.2 & !M51.4 & !M51.6', '1 s', 'FC41 NW13', 2);
+SEAL('M51.0', 'Fase AUTO de retorno: placa arriba (empieza al llegar adelante o con M52.0)', 'I6.2 | I6.1 | M52.0', 'M1.5 & !T44 & !I6.3 & !I6.4', 'FC41 NW9');
+SEAL('M51.1', 'Orden AUTO: empujador retroceder (necesita placa arriba I5.5)', 'M51.0 | (M151.0 & I5.5)', 'M1.5 & !I6.3 & !I6.4 & !T44', 'FC41 NW10');
+SEAL('M151.0', 'Orden AUTO: placa arriba al iniciar o descargar', 'M204.3 | M51.6', 'M1.5 & !I6.3 & !I6.4', 'FC41 NW11');
+OPQ('M38.0', 'Secuencia del empujador, PASO 0: empujador atrás, listo. Se pone con I6.4, Q28.1, M39.7 o el pulso M204.3', 'I6.4, Q28.1, M39.7, M204.3', 'FC41 NW2');
+OPQ('M38.1', 'Secuencia del empujador, PASO 1: 1er paso alcanzado, el empujador avanza (set/reset en FC41 NW17–19)', 'M38.0, I5.1, I5.2', 'FC41 NW17');
+OPQ('M38.2', 'Secuencia del empujador, PASO 2 (set/reset en FC41 NW19–22)', 'M38.1, I5.2, I5.3, T129', 'FC41 NW19');
+OPQ('M38.3', 'Secuencia del empujador, PASO 3 (set/reset en FC41 NW22–25)', 'M38.2, I5.3, I5.5, T129', 'FC41 NW22');
+OPQ('M38.4', 'Secuencia del empujador, PASO 4 (set/reset en FC41 NW25–27)', 'M38.3, I5.3, I5.5, I11.5, M166.7', 'FC41 NW25');
+OPQ('M38.5', 'Secuencia del empujador, PASO 5 (set/reset en FC41 NW27)', 'M38.4, I11.5', 'FC41 NW27');
+OPQ('M49.0', 'Orden AUTO: 1er paso (cilindro) adelante', 'Z41A, M38.0, I6.6, !I5.1, !T100', 'FC41 NW17');
+OPQ('M49.1', 'Orden AUTO: empujador avanza (paso 1)', 'Z41A, M38.1, I5.1, I5.2, I11.4, M47.0, T101, !I0.2, Q28.0', 'FC41 NW18');
+OPQ('M49.2', 'Orden AUTO: 2º paso adelante', 'Z41A, !M38.2, !M38.3, !M38.4, !M38.5, I5.2, !I6.1, !I6.2, M47.1, T102, !I0.2', 'FC41 NW21');
+OPQ('M49.3', 'Orden AUTO: placa arriba y 1er paso atrás (paso 3)', 'Z41A, !M38.3, !M38.4, !M38.5, I5.3, !I5.5, M47.2, T103, T129, M166.7, !I0.2', 'FC41 NW24');
+OPQ('M49.5', 'Orden AUTO: avance final del empujador (paso 5), velocidad baja o media', 'Z41A, M38.5, !I3.5, I3.6, I6.1, I6.2, I11.5, Q13.1, Q28.1', 'FC41 NW28');
+OPQ('M49.7', 'Orden AUTO: 1er paso atrás', 'Z41B, !I5.2, M49.6, T105', 'FC41 NW32');
+CALC('M48.4', 'Velocidad: avance con el 1er final de paso alcanzado → entrada de velocidad baja', 'Z41A & M49.1 & I5.1', 'FC41 NW20', 2);
+CALC('M48.5', 'Velocidad: avance antes del 1er final de paso → entrada de velocidad media', 'Z41A & M49.1 & !I5.1', 'FC41 NW20', 2);
+SF('T74', 'Retardo de 0,3 s en el contactor NRAKE del empujador', 'Q28.0 | Q28.1', '0,3 s', 'FC41 NW42');
+
+/* ---------- SALIDAS: ELEVADOR (FC35 y FC42) ---------- */
+OUT('Q16.3', 'Subir elevador (lento)', 'M40.0|M53.3|M51.4', 'I8.3 & I6.7 & !I7.1 & !Q16.4 & !Q28.0 & !Q28.1 & T4', 'FC35 NW2', {
+  cmdHelp: 'Alguna orden de subir: manual M40.0 o automática M53.3 / M51.4',
+  nt: ['No sube si el empujador se está moviendo (Q28.0 / Q28.1).', 'Si Q16.4 (bajar) está activa tiene prioridad la que se evalúa primero: subir se evalúa antes que bajar.'] });
+OUT('Q16.4', 'Bajar elevador (lento, presente en toda la bajada)', 'M40.1|M52.3|M131.0', 'I8.3 & !Q16.3 & !M2.7 & T4', 'FC35 NW3', {
+  cmdHelp: 'Alguna orden de bajar: manual M40.1, automática M52.3 o recuperación M131.0',
+  nt: ['No necesita M80.3: la bajada lenta siempre acompaña a la rápida.'] });
+OUT('Q16.5', 'Bajar elevador (rápido)', 'M40.1|M52.3|M131.0', 'I8.3 & M80.3 & !Q16.3 & !M2.7 & T4', 'FC35 NW4', {
+  cmdHelp: 'Misma orden de bajar que Q16.4',
+  nt: ['Se suma a Q16.4 solo mientras M80.3 = 1 (zona de bajada rápida según la altura MW100).'] });
+OUT('Q12.2', 'Transportador del elevador adelante', 'M40.5|M42.3|M50.0|M50.2|T50|M54.1', '!Q12.3 & M2.7 & T4', 'FC35 NW5', {
+  cmdHelp: 'Alguna orden de adelante: manual M40.5, desecho manual M42.3, automática M50.0 / M50.2 / M54.1 o el retardo T50',
+  nt: ['Exige el elevador abajo (M2.7): con el elevador arriba nunca corre el transportador.', 'Las órdenes de desecho (M42.3, M54.1, T50) también lo hacen correr.'] });
+OUT('Q12.3', 'Transportador del elevador atrás', 'M40.6', '!Q12.2 & T4', 'FC35 NW6', {
+  cmdHelp: 'Solo la orden manual M40.6 (que a su vez exige elevador abajo)' });
+OUT('Q12.4', 'Centrado del elevador a la izquierda', 'M40.2|M66.4|M67.3', '!Q12.5 & T4 & Z42B', 'FC42 NW39', {
+  cmdHelp: 'Alguna orden de centrar a la izquierda: manual M40.2, automática M66.4 o barrido M67.3',
+  nt: ['Está dentro de la zona MCR de FC42 (NW35–43): si falla E-stop, guardamotor o variador de separación (I8.5, I9.5, I9.6) la salida se escribe en 0 aunque haya orden.'] });
+OUT('Q12.5', 'Centrado del elevador a la derecha', 'M40.3|M66.3|M67.2', '!Q12.4 & T4 & Z42B', 'FC42 NW40', {
+  cmdHelp: 'Alguna orden de centrar a la derecha: manual M40.3, automática M66.3 o barrido M67.2',
+  nt: ['Misma zona MCR que Q12.4.'] });
+OUT('Q12.7', 'Compuerta de desecho: cerrar', 'M42.2|M53.0|M131.1', '!Q13.0 & T4', 'FC35 NW7', {
+  cmdHelp: 'Alguna orden de cerrar: manual M42.2, automática M53.0 o recuperación M131.1' });
+OUT('Q13.0', 'Compuerta de desecho: abrir', 'T32|M52.7', '!Q12.7 & T4', 'FC35 NW8', {
+  cmdHelp: 'Pulso de apertura manual T32 o automática M52.7' });
+
+/* ---------- SALIDAS: EMPUJADOR (FC41 y FC35) ---------- */
+OUT('Q16.1', 'Empujador: inclinar arriba', 'M41.0|M50.1|M52.2|M130.7', '!Q16.2 & T4', 'FC41 NW37', {
+  cmdHelp: 'Alguna orden de inclinar arriba: manual M41.0, automática M50.1 / M52.2 o recuperación M130.7' });
+OUT('Q16.2', 'Empujador: inclinar abajo', 'T54', 'T4', 'FC41 NW39', {
+  cmdHelp: 'T54 (retardo de 0,1 s a la desconexión) se activa con M41.1 manual o M50.3 automática, si Q16.1 no está activa' });
+OUT('Q28.0', 'Empujador: avanzar (variador)', 'M41.2|M41.5|M41.6|M49.1|M48.4|M48.5|M49.5', 'I3.6 & !I6.2 & I8.5 & I9.3 & I9.4 & !Q28.1 & T4', 'FC41 NW40', {
+  cmdHelp: 'Alguna orden de avanzar: manual M41.2 / M41.5 / M41.6 o automática M49.1 / M48.4 / M48.5 / M49.5',
+  nt: ['Exige el extendedor abajo (I3.6) y que el empujador no esté en el final adelante (I6.2).', 'A diferencia del retroceso, el avance sí exige hidráulica lista (T4).'] });
+OUT('Q28.1', 'Empujador: retroceder (variador)', 'M41.3|M51.1|M130.6', 'I5.5 & !I6.4 & I8.5 & I9.3 & I9.4 & !Q28.0', 'FC41 NW41', {
+  cmdHelp: 'Alguna orden de retroceder: manual M41.3, automática M51.1 o recuperación M130.6',
+  nt: ['Exige la placa arriba (I5.5). La placa (Q20.6) sube con M41.4 / M51.0 / M49.3 / M151.0; la recuperación M130.x no está en ese grupo (deducido de la lógica leída, confirmar en máquina).', 'No exige T4: el retroceso no depende de la hidráulica.'] });
+OUT('Q28.4', 'Variador del empujador: entrada de velocidad BAJA (RL)', 'M41.2|M41.6|M48.4|M49.5|Q28.1', 'I8.5 & I9.3 & I9.4', 'FC41 NW44', {
+  cmdHelp: 'Avance manual M41.2 / M41.6, automático M48.4 / M49.5, o retroceso (Q28.1)',
+  nt: ['RL, RM y avance/retroceso son entradas de velocidad múltiple del variador: la combinación define la velocidad.'] });
+OUT('Q28.3', 'Variador del empujador: entrada de velocidad MEDIA (RM)', 'M48.5|M49.5|Q28.1', 'I8.5 & I9.3 & I9.4', 'FC41 NW45', {
+  cmdHelp: 'Avance automático M48.5 / M49.5, o retroceso (Q28.1)' });
+OUT('Q25.1', 'Contactor de potencia del variador del empujador', '', 'I8.5 & I9.3 & I9.4', 'FC35 NW12', {
+  cmdHelp: 'Sin orden: se energiza siempre que el circuito de seguridad esté sano',
+  nt: ['Es el permiso de potencia del variador: si cae, ni el avance ni el retroceso pueden funcionar.'] });
+OUT('Q25.2', 'Contactor NRAKE del empujador', 'T74', 'I9.3 & I9.4', 'FC41 NW43', {
+  cmdHelp: 'T74: se activa con avance o retroceso y se mantiene 0,3 s después',
+  nt: ['El significado de NRAKE sale del nombre del símbolo; confirmar su función en la máquina.'] });
+OUT('Q20.6', 'Placa del empujador: subir', 'M41.4|M51.0|M49.3|M151.0', 'I9.3 & I9.4', 'FC41 NW46', {
+  cmdHelp: 'Alguna orden de placa arriba: manual M41.4, automática M51.0 / M49.3 / M151.0' });
+OUT('Q20.7', 'Empujador: 1er paso adelante', 'M49.0', '!Q21.0', 'FC41 NW48', {
+  cmdHelp: 'Orden automática M49.0' });
+OUT('Q21.0', 'Empujador: 1er paso atrás', 'M49.7|M41.3|Q28.1|M49.3', '!Q20.7', 'FC41 NW47', {
+  cmdHelp: 'Automática M49.7 / M49.3, retroceso manual M41.3 o retroceso del empujador (Q28.1)' });
+OUT('Q21.1', 'Empujador: 2º paso adelante', 'M49.2', '', 'FC41 NW49', {
+  cmdHelp: 'Orden automática M49.2' });
+
+SF('T54', 'Retardo de 0,1 s a la desconexión del pedido de inclinar abajo', '(M41.1 | M50.3) & !Q16.1', '0,1 s', 'FC41 NW38');
+CALC('Z41B', 'Zona MCR 2 del empujador automático (FC41 NW31): ciclo automático sin paro M115.0', 'M1.5 & !M115.0', 'FC41 NW31');
+
+/* ---------- Elementos citados pero fuera de este alcance: fichas mínimas (completar al ampliar) ---------- */
+const STUB = {
+  'I2.5': ['Extendedor: límite izquierdo afuera (solo interviene en la posición base M131.7)', ''],
+  'I2.7': ['Extendedor: límite derecho afuera (solo interviene en la posición base M131.7)', ''],
+  'I4.6': ['Compuerta shingle: límite izquierdo afuera (solo interviene en M131.7)', ''],
+  'I5.0': ['Compuerta shingle: límite derecho afuera (solo interviene en M131.7)', ''],
+  'I3.7': ['Transportador de entrada: fotocélula de bulto', ''],
+  'I7.0': ['Elevador: fotocélula de reinicio de conteo', ''],
+  'M0.2': ['Marca interna de FC30 NW2', 'FC30 NW2'],
+  'M1.4': ['(Inferido) condiciones de arranque automático cumplidas', 'FC30 NW12'],
+  'M1.7': ['Aviso previo al arranque terminado (M1.5 y T6, 5 s)', 'FC30 NW23'],
+  'M2.2': ['Marca que impide el automático (FC30 NW18)', 'FC30 NW18'],
+  'M229.3': ['Marca sin escritor en el programa (HMI o comunicación)', ''],
+  'M116.1': ['Marca sin escritor en el programa (HMI o comunicación)', ''],
+  'M166.0': ['Marca de FC37 (bloque que OB1 no llama)', 'FC37 NW3'],
+  'M166.7': ['Marca sin escritor en el programa (HMI o comunicación)', ''],
+  'M39.7': ['Marca sin escritor en el programa (HMI o comunicación)', ''],
+  'M42.0': ['Pulso del botón HMI M182.3 (compuerta de desecho manual)', 'FC33 NW18'],
+  'M43.0': ['Marca de FC33 NW10 (avance manual del empujador)', 'FC33 NW10'],
+  'M47.0': ['(Inferido) alarma de tiempo excedido del paso 1 (T101, 10 s); se borra con reset I0.2', 'FC41 NW18'],
+  'M47.1': ['(Inferido) alarma de tiempo excedido del paso 2 (T102, 3 s); se borra con reset I0.2', 'FC41 NW21'],
+  'M47.2': ['(Inferido) alarma de tiempo excedido del paso 3 (T103, 3 s); se borra con reset I0.2', 'FC41 NW24'],
+  'M49.6': ['(Inferido) orden AUTO de fin de avance; habilita M49.7 y M48.0', 'FC41 NW28'],
+  'M52.1': ['Pulso de FC34 NW17 (flanco de M51.7)', 'FC34 NW17'],
+  'M53.4': ['(Inferido) elevador listo para recibir: abajo, sin bulto y fotocélulas libres', 'FC34 NW8'],
+  'M54.0': ['Pulso de FC34 NW23 (flanco de I7.2)', 'FC34 NW23'],
+  'M66.2': ['(Inferido) centrado automático habilitado', 'FC42 NW20'],
+  'M66.7': ['(Inferido) centrado automático terminado', 'FC42 NW29'],
+  'M80.1': ['Altura del elevador: comparación 1 (FC36 NW4)', 'FC36 NW4'],
+  'M80.6': ['Altura del elevador: comparación 6 (FC36 NW9)', 'FC36 NW9'],
+  'M83.3': ['Marca de FC42 NW12', 'FC42 NW12'],
+  'MW100': ['Altura medida del elevador (palabra)', ''],
+  'Q13.1': ['Transportador de entrada adelante (otra sección)', 'FC32 NW27'],
+  'T100': ['Temporizador 1 s del paso 0 → 1', 'FC41 NW17'],
+  'T101': ['Temporizador 10 s del paso 1 (tiempo máximo)', 'FC41 NW18'],
+  'T102': ['Temporizador 3 s del paso 2 (tiempo máximo)', 'FC41 NW21'],
+  'T103': ['Temporizador 3 s del paso 3 (tiempo máximo)', 'FC41 NW24'],
+  'T105': ['Temporizador 2 s del retorno del 1er paso', 'FC41 NW32'],
+  'T113': ['Temporizador 0,5 s del centrado automático', 'FC42 NW25'],
+  'T114': ['Temporizador 0,5 s del centrado automático', 'FC42 NW24'],
+  'T129': ['Temporizador 4 s de los pasos 2 y 3', 'FC41 NW23'],
+  'T41': ['Temporizador de FC34 NW5 (tiempo en DB53.DBW8)', 'FC34 NW5'],
+  'T42': ['Temporizador de FC34 NW5 (tiempo en DB55.DBW6)', 'FC34 NW5'],
+  'T45': ['Temporizador 0,5 s de FC34 NW10', 'FC34 NW10'],
+  'T46': ['Temporizador 1,5 s de arranque del ciclo del empujador', 'FC41 NW7'],
+  'T51': ['Temporizador 8 s del transportador de desecho', 'FC34 NW24'],
+  'T70': ['Temporizador del arranque automático (FC30 NW16)', 'FC30 NW16']
+};
+
+const DB = {
+  version: 1,
+  machines: [{
+    id: 'IMP10', name: 'Imprenta 10 Prefeeder (WSA / Ward)', plc: 'SIMATIC S7-300 · CPU 314', project: 'prefeederward10',
+    lang: 'KOP/LAD (STEP 7 clásico)',
+    order: 'OB1 llama en este orden: FC100, FC101, FC102, FC30, FC31, FC32, FC33, FC34, FC35, FC36, FC38, FC40, FC41, FC42, FC43, FC39',
+    sections: [
+      { id: 'LIFT', name: 'Elevador',
+        blocks: 'FC35 (salidas), FC33 (manual), FC34 (automático), FC42 (centrado), FC43 (recuperación), FC30 (bomba y modos)',
+        outs: ['Q16.3', 'Q16.4', 'Q16.5', 'Q12.2', 'Q12.3', 'Q12.4', 'Q12.5', 'Q12.7', 'Q13.0'] },
+      { id: 'PUSH', name: 'Empujador',
+        blocks: 'FC41 (secuencia y salidas), FC35 (variador), FC33 (manual), FC34 (inclinación), FC43 (recuperación)',
+        outs: ['Q16.1', 'Q16.2', 'Q28.0', 'Q28.1', 'Q28.4', 'Q28.3', 'Q25.1', 'Q25.2', 'Q20.6', 'Q20.7', 'Q21.0', 'Q21.1'] }
+    ],
+    nodes: N
+  }]
+};
+
+if (typeof module !== 'undefined') module.exports = { DB };
+
+/* ===== Interfaz ===== */
+(function () {
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const qm = t => `<button type="button" class="q" data-tip="${esc(t)}" aria-label="Ayuda">?</button>`;
+  const hlp = h => `<div class="hlp">${h}</div>`;
+
+  /* ---------- Persistencia ligera (puede no existir) ---------- */
+  let store = { fields: {}, userMachines: [], help: true };
+  try { const raw = localStorage.getItem('plcguia.v1'); if (raw) store = Object.assign(store, JSON.parse(raw)); } catch (e) { /* sin almacenamiento */ }
+  function save() { try { localStorage.setItem('plcguia.v1', JSON.stringify(store)); } catch (e) { /* ignorar */ } }
+
+  /* ---------- Máquinas y motores ---------- */
+  const machines = [];
+  const engines = {};
+  function prepare(m) {
+    const unknown = new Set();
+    Object.values(m.nodes).forEach(n => {
+      [n.e, n.in, n.start, n.cond, n.set, n.rst, n.cmd, n.perm].filter(Boolean).forEach(s => astRefs(parseExpr(s)).forEach(r => { if (!m.nodes[r]) unknown.add(r); }));
+      if (n.inv) n.inv.split(',').forEach(s => { const r = s.trim().replace(/^!/, ''); if (r && !m.nodes[r]) unknown.add(r); });
+    });
+    unknown.forEach(u => {
+      const st = (typeof STUB !== 'undefined' && m.id === 'IMP10') ? STUB[u] : null;
+      m.nodes[u] = { k: 'in', d: st ? st[0] : '(sin describir; completar al ampliar el documento)', src: st ? st[1] : '', def: 0, stub: true, on1: '' };
+    });
+    m.prepared = true;
+  }
+  function loadMachines() {
+    machines.length = 0;
+    DB.machines.concat(store.userMachines || []).forEach(m => { if (!m.prepared) prepare(m); machines.push(m); });
+  }
+  function engineFor(m) {
+    if (!engines[m.id]) {
+      const e = createEngine(m);
+      if (m.id === 'IMP10') e.state.mem['M2.3'] = true;
+      engines[m.id] = e;
+    }
+    return engines[m.id];
+  }
+
+  const app = { mi: 0, sid: null, sel: null, tab: 'out', scen: 'rest' };
+  let M, E, SEC;
+  const symOf = id => (typeof SYM !== 'undefined' && SYM[id]) || '';
+  const nodeOf = id => E.nodes[id];
+  const typeName = n => ({ in: 'Entrada / bit externo', calc: 'Marca calculada', seal: 'Marca con autorretención', lat: 'Marca set/reset', sd: 'Temporizador (retardo a la conexión)', sf: 'Temporizador (retardo a la desconexión)', out: 'Salida', opq: 'Marca (lógica interna sin confirmar)' }[n.k] || n.k);
+  const fieldKey = id => M.id + '|' + id;
+  const fld = id => store.fields[fieldKey(id)] || {};
+  const confTxt = c => ({ 1: 'Confirmada', 2: 'Inferida', 3: 'Solo operandos' }[c] || '');
+  const confCls = c => ({ 1: 'c1', 2: 'c2', 3: 'c3' }[c] || 'c0');
+
+  function chip(id, extra) {
+    const n = E.nodes[id];
+    const v = E.value(id);
+    const t = n ? n.d : '';
+    return `<button type="button" class="chip ${v ? 'hi' : 'lo'}" data-node="${esc(id)}" title="${esc(id + ': ' + t + '. Toque para ver su ficha.')}">${esc(id)}${extra || ''}</button>`;
+  }
+  function nm(id) { const n = E.nodes[id]; return symOf(id) || (n ? n.d : ''); }
+
+  /* ---------- Texto de expresiones ---------- */
+  function astText(a, top) {
+    switch (a.op) {
+      case 'const': return a.v ? '1' : '0';
+      case 'ref': return a.id;
+      case 'not': return 'NO ' + astText(a.a);
+      case 'and': { const s = a.a.map(x => astText(x)).join(' Y '); return top ? s : '(' + s + ')'; }
+      case 'or': { const s = a.a.map(x => astText(x)).join(' O '); return top ? s : '(' + s + ')'; }
+    }
+    return '';
+  }
+  function defText(id) {
+    const n = E.nodes[id];
+    switch (n.k) {
+      case 'calc': return astText(E.ast(n.e), true);
+      case 'out': return '(' + (n.cmd ? astText(E.ast(n.cmd), true) : 'sin orden') + ') Y (' + (n.perm ? astText(E.ast(n.perm), true) : 'sin permisos') + ')';
+      case 'seal': return '(' + astText(E.ast(n.start), true) + ' O ya activa) Y (' + astText(E.ast(n.cond), true) + ')';
+      case 'lat': return 'SET: ' + astText(E.ast(n.set), true) + ' · RESET: ' + astText(E.ast(n.rst), true) + ' (el reset manda)';
+      case 'sd': return 'Sostener ' + astText(E.ast(n.in), true) + ' durante ' + n.pt;
+      case 'sf': return astText(E.ast(n.in), true) + ' y se mantiene ' + n.pt + ' después de caer';
+    }
+    return '';
+  }
+
+  /* ---------- Escenarios ---------- */
+  const SCEN = {
+    rest: { n: 'Reposo, todo en orden (manual)', s: {} },
+    up: { n: 'Manual: pulsar SUBIR elevador', s: { 'M91.0': 1 } },
+    down: { n: 'Manual: pulsar BAJAR (elevador arriba)', s: { 'M91.1': 1, 'I7.1': 1, 'I7.2': 0 } },
+    conv: { n: 'Manual: transportador del elevador ADELANTE', s: { 'M91.2': 1 } },
+    cen: { n: 'Manual: centrar a la izquierda', s: { 'M182.0': 1 } },
+    tilt: { n: 'Manual: empujador inclinar ARRIBA', s: { 'M91.4': 1 } },
+    pf: { n: 'Manual: empujador AVANZAR (M41.2 = 1)', s: { 'M41.2': 1 } },
+    pr: { n: 'Manual: empujador RETROCEDER, placa abajo', s: { 'M91.7': 1, 'I6.4': 0, 'I6.2': 1, 'I5.5': 0 } },
+    pr2: { n: 'Manual: empujador RETROCEDER, placa arriba', s: { 'M91.7': 1, 'I6.4': 0, 'I6.2': 1, 'I5.5': 1 } },
+    auto: { n: 'Automático: orden de subir M51.4', s: { 'M1.5': 1, 'M51.4': 1, 'I7.2': 0 } },
+    rec: { n: 'Recuperación (M130.1) fuera de base', s: { 'M130.1': 1, 'I7.2': 0, 'I6.5': 0, 'I6.4': 0, 'I5.5': 1 } },
+    nohyd: { n: 'Falla: sin hidráulica (T5 cumplido) y pulsando SUBIR', s: { 'T5': 1, 'M91.0': 1 } },
+    estop: { n: 'Falla: paro de emergencia abierto y pulsando SUBIR', s: { 'I8.5': 0, 'M91.0': 1 } }
+  };
+  function resetState() {
+    const st = E.state;
+    st.leaf = {}; st.force = {}; st.mem = {}; st.elapsed = {}; st.hold = {};
+    if (M.id === 'IMP10') st.mem['M2.3'] = true;
+  }
+  function applyScenario(key) {
+    resetState();
+    const sc = SCEN[key];
+    if (sc && M.id === 'IMP10') Object.entries(sc.s).forEach(([k, v]) => { E.state.leaf[k] = v; });
+    E.run();
+  }
+
+  /* ---------- Estado de salidas ---------- */
+  const STAT = { on: ['ON', 'on'], blocked: ['Bloqueada', 'blk'], noorder: ['Sin orden', 'no'], off: ['OFF', 'no'] };
+  const STATHELP = {
+    on: 'ON: la salida está activada ahora. Hay orden y todos los permisos están bien.',
+    blocked: 'Bloqueada: alguien pide la salida, pero falta un permiso. Abra la ficha y busque la fila roja.',
+    noorder: 'Sin orden: nadie pide esta salida en este momento. Es lo normal en reposo, no es una falla.',
+    off: 'OFF: la salida está apagada.'
+  };
+  const TYPEHELP = {
+    in: 'Señal que llega de afuera del PLC: un sensor, un final de carrera, un pulsador o un botón de la pantalla. Usted la cambia a mano en la prueba.',
+    calc: 'Resultado de una regla escrita con Y, O y NO sobre otras marcas. No se escribe a mano: se calcula sola.',
+    seal: 'Marca que se activa con un arranque y se mantiene sola mientras se siga cumpliendo su condición (autorretención).',
+    lat: 'Marca de memoria: se enciende con una condición (set) y se apaga con otra (reset). Si coinciden, gana el reset.',
+    sd: 'Temporizador: la condición debe mantenerse todo el tiempo indicado antes de que la marca se active.',
+    sf: 'Temporizador: la marca sigue activa el tiempo indicado después de que la condición cae.',
+    out: 'Salida del PLC: lo que realmente energiza un aparato (válvula, contactor, variador).',
+    opq: 'Marca cuya regla interna no está confirmada. Se sabe qué bits intervienen, no cómo. Lea su valor en el PLC y póngalo aquí.'
+  };
+  const CONFHELP = { 1: 'Confirmada: la regla se leyó directamente de las referencias cruzadas, sin ambigüedad.', 2: 'Inferida: se dedujo de textos y del orden de los operandos. Falta verla en el KOP.', 3: 'Solo operandos: se conocen los bits del renglón, no cómo se combinan.' };
+
+  function renderControls() {
+    $('#selMachine').innerHTML = machines.map((m, i) => `<option value="${i}" ${i === app.mi ? 'selected' : ''}>${esc(m.name)}</option>`).join('');
+    $('#selSection').innerHTML = M.sections.map(s => `<option value="${esc(s.id)}" ${s.id === app.sid ? 'selected' : ''}>${esc(s.name)} (${s.outs.length} salidas)</option>`).join('');
+    $('#subtitle').textContent = `${M.plc} · proyecto ${M.project || '—'} · ${M.lang || ''}`;
+    const sc = $('#selScen');
+    if (M.id === 'IMP10') {
+      sc.hidden = false; $('#scenLabel').hidden = false;
+      sc.innerHTML = Object.entries(SCEN).map(([k, v]) => `<option value="${k}" ${k === app.scen ? 'selected' : ''}>${esc(v.n)}</option>`).join('');
+    } else { sc.hidden = true; $('#scenLabel').hidden = true; }
+  }
+
+  function renderList() {
+    const st = { on: 0, blocked: 0, noorder: 0, off: 0 };
+    const items = SEC.outs.map(id => {
+      const s = E.outStatus(id); st[s]++;
+      const n = E.nodes[id];
+      return `<li><button type="button" class="outbtn ${STAT[s][1]} ${id === app.sel ? 'sel' : ''}" data-out="${esc(id)}" title="${esc(id + ': ' + n.d + '. ' + STATHELP[s])}">
+        <span class="oa">${esc(id)}</span><span class="onm">${esc(n.d)}</span><span class="os">${STAT[s][0]}</span></button></li>`;
+    }).join('');
+    $('#outList').innerHTML = items;
+    $('#summary').innerHTML = `<span class="pill on" title="${esc(STATHELP.on)}">${st.on} ON</span><span class="pill blk" title="${esc(STATHELP.blocked)}">${st.blocked} bloqueadas</span><span class="pill no" title="${esc(STATHELP.noorder)}">${st.noorder + st.off} sin orden / OFF</span>`;
+    $('#secBlocks').textContent = SEC.blocks ? 'Bloques fuente: ' + SEC.blocks : '';
+  }
+
+  function termRows(list, mode) {
+    return list.map(a => {
+      let id = null, need = 1, txt = '';
+      if (a.op === 'ref') id = a.id;
+      else if (a.op === 'not' && a.a.op === 'ref') { id = a.a.id; need = 0; }
+      const cur = E.ev(a, null);
+      if (mode === 'or') {
+        if (id) { const v = E.value(id) ? 1 : 0; return `<li class="t ${v ? 'ok' : 'idle'}" title="${esc(v ? id + ' está pidiendo la salida ahora.' : id + ' no está pidiendo la salida (puede ser otra la que la pida).')}"><span class="mk">${v ? '●' : '○'}</span>${chip(id)}<span class="d">${esc(nm(id))}</span><span class="now">${v}</span></li>`; }
+        return `<li class="t ${cur ? 'ok' : 'idle'}"><span class="mk">${cur ? '●' : '○'}</span><code>${esc(astText(a, true))}</code></li>`;
+      }
+      if (id) {
+        const v = E.value(id) ? 1 : 0;
+        const ok = v === need;
+        const tt = ok ? `${id} cumple: vale ${v} y se pide ${need}.` : `${id} NO cumple: vale ${v} y se pide ${need}. Esta fila impide que la salida salga.`;
+        return `<li class="t ${ok ? 'ok' : 'bad'}" title="${esc(tt)}"><span class="mk">${ok ? '✓' : '✗'}</span>${chip(id)}<span class="need">${need ? 'debe estar en 1' : 'debe estar en 0 (freno: si llega, no arranca)'}</span><span class="d">${esc(nm(id))}</span><span class="now">ahora ${v}</span></li>`;
+      }
+      return `<li class="t ${cur ? 'ok' : 'bad'}"><span class="mk">${cur ? '✓' : '✗'}</span><code>${esc(astText(a, true))}</code></li>`;
+    }).join('');
+  }
+
+  function algoHTML(id) {
+    const n = E.nodes[id];
+    const hasCmd = !!n.cmd, hasPerm = !!n.perm;
+    const cmdT = hasCmd ? (E.ast(n.cmd).op === 'or' ? E.ast(n.cmd).a : [E.ast(n.cmd)]) : [];
+    const perT = hasPerm ? (E.ast(n.perm).op === 'and' ? E.ast(n.perm).a : [E.ast(n.perm)]) : [];
+    const anyCmd = hasCmd ? E.ev(E.ast(n.cmd), null) : true;
+    const allPerm = hasPerm ? E.ev(E.ast(n.perm), null) : true;
+    let h = '<div class="algo">';
+    if (hasCmd) {
+      h += `<div class="ln"><b class="kw">SI</b> <span class="lead">hay ORDEN (basta con una):</span> ${qm('La orden es el pedido de arrancar: un botón, el programa automático o la recuperación. Con que UNA fila esté activa (●) ya hay orden. Las filas vacías (○) no pidieron nada y no son un problema.')} ${n.cmdHelp ? `<span class="help">${esc(n.cmdHelp)}</span>` : ''}</div><ul class="terms or">${termRows(cmdT, 'or')}</ul>`;
+    } else if (n.cmdHelp) {
+      h += `<div class="ln"><b class="kw">SI</b> <span class="help">${esc(n.cmdHelp)}</span></div>`;
+    }
+    if (hasPerm) {
+      h += `<div class="ln"><b class="kw">${hasCmd ? 'Y' : 'SI'}</b> <span class="lead">se cumplen todos los PERMISOS:</span> ${qm('Los permisos son lo que debe estar bien para poder arrancar con seguridad. TODOS deben cumplirse. La fila roja con ✗ es la que está impidiendo que la salida salga.')}</div>${perT.some(a => a.op === 'not') ? hlp('Las filas que dicen «debe estar en 0» son frenos (NO): si esa señal llega (pasa a 1), la salida no arranca; si ya estaba andando, se corta. Cuando la señal vuelve a 0, la salida puede salir otra vez.') : ''}<ul class="terms and">${termRows(perT, 'and')}</ul>`;
+    }
+    const on = E.value(id);
+    h += `<div class="ln res"><b class="kw">ENTONCES</b> ${esc(id)} = 1 <span class="sep">·</span> <b class="kw">SINO</b> ${esc(id)} = 0 <span class="sep">→</span> <span class="now2 ${on ? 'on' : 'off'}">hoy ${on ? 1 : 0}</span> ${qm('El resultado final. Si hay orden y todos los permisos están bien, la salida se activa (1). En cualquier otro caso se apaga (0). Se recalcula en cada ciclo del PLC, por eso si un permiso falla la salida se corta sola.')}</div>`;
+    h += '</div>';
+    return h;
+  }
+
+  function fixHTML(list) {
+    if (!list.length) return '';
+    return '<ul class="fix">' + list.map(it => {
+      if (it.any) {
+        return `<li><div class="anyh">Se necesita al menos una de estas:</div><ul class="alts">${it.any.map(x => `<li>${altLabel(x.alt)}${x.fixes.length ? fixHTML(x.fixes) : ''}</li>`).join('')}</ul></li>`;
+      }
+      let t = `${chip(it.id)} debe estar en <b>${it.to ? 1 : 0}</b>${it.to ? '' : ' <span class="muted">(apagada: hoy bloquea)</span>'} <span class="muted">(ahora ${E.value(it.id) ? 1 : 0})</span> <span class="d">${esc(nm(it.id))}</span>`;
+      if (it.because && it.because.length) t += '<div class="why">para eso necesita:</div>' + fixHTML(it.because);
+      return `<li>${t}</li>`;
+    }).join('') + '</ul>';
+  }
+  function altLabel(a) {
+    if (a.op === 'ref') return `${chip(a.id)} <span class="d">${esc(nm(a.id))}</span>`;
+    if (a.op === 'not' && a.a.op === 'ref') return `NO ${chip(a.a.id)} <span class="d">${esc(nm(a.a.id))}</span>`;
+    return `<code>${esc(astText(a, true))}</code>`;
+  }
+
+  function missingHTML(id) {
+    const s = E.outStatus(id);
+    if (s === 'on') return '<div class="ok-box">Todas las condiciones se cumplen: la salida está activa.</div>';
+    const f = E.missing(id);
+    const head = s === 'blocked'
+      ? '<div class="warn-box"><b>Hay orden pero la salida no sale.</b> Falta cumplir:</div>'
+      : '<div class="info-box"><b>Todavía no hay orden.</b> Para que salga hace falta:</div>';
+    return head + fixHTML(f);
+  }
+
+
+  /* ---------- Traducción a Python (para quien empieza) ---------- */
+  const pyName = id => id.replace(/\./g, '_');
+  function pyExpr(a) {
+    switch (a.op) {
+      case 'const': return a.v ? 'True' : 'False';
+      case 'ref': return pyName(a.id);
+      case 'not': return 'not ' + (a.a.op === 'ref' ? pyExpr(a.a) : '(' + pyExpr(a.a) + ')');
+      case 'and': return a.a.map(x => (x.op === 'or' ? '(' + pyExpr(x) + ')' : pyExpr(x))).join(' and ');
+      case 'or': return a.a.map(x => pyExpr(x)).join(' or ');
+    }
+    return '';
+  }
+  function pyHTML(id) {
+    const n = E.nodes[id];
+    let c = '# ' + id + '  ' + n.d + '\n';
+    if (n.cmd) c += 'orden = ' + pyExpr(E.ast(n.cmd)) + '\n';
+    if (n.perm) c += 'permisos = ' + pyExpr(E.ast(n.perm)) + '\n';
+    const cond = n.cmd && n.perm ? 'orden and permisos' : (n.cmd ? 'orden' : 'permisos');
+    c += '\nif ' + cond + ':\n    ' + pyName(id) + ' = 1   # la salida sale\nelse:\n    ' + pyName(id) + ' = 0   # la salida no sale\n';
+    return '<details class="treebox"><summary>Ver esta salida como código Python</summary><p class="muted small">Cada nombre es un bit del PLC; el punto se cambia por guion bajo (I8.3 pasa a I8_3). 1 es True y 0 es False.</p><pre class="code"><code>' + esc(c) + '</code></pre></details>';
+  }
+
+  /* ---------- Árbol de condiciones ---------- */
+  function treeHTML(id, depth, path) {
+    const n = E.nodes[id];
+    if (!n) return '';
+    const v = E.value(id);
+    const forced = id in E.state.force;
+    const head = `<span class="tv ${v ? 'hi' : 'lo'}">${v ? 1 : 0}</span>${chip(id)}<span class="d">${esc(nm(id))}</span>${forced ? '<span class="tag f">forzada</span>' : ''}`;
+    if (E.isLeaf(n) || forced || depth > 7 || path.includes(id)) {
+      return `<div class="tl">${head}${path.includes(id) ? '<span class="tag">interbloqueo, usa valor del scan anterior</span>' : ''}</div>`;
+    }
+    const a = E.defAst(id);
+    return `<details class="tn" ${depth < 1 ? 'open' : ''}><summary>${head}<span class="tag">${esc(typeName(n))}</span></summary>${astTree(a, depth + 1, path.concat(id), id)}</details>`;
+  }
+  function astTree(a, depth, path, owner) {
+    switch (a.op) {
+      case 'ref':
+        if (a.id.startsWith('__mem__')) return `<div class="tl"><span class="tv ${E.state.mem[a.id.slice(7)] ? 'hi' : 'lo'}">${E.state.mem[a.id.slice(7)] ? 1 : 0}</span><span class="d">ya estaba activa (retención)</span></div>`;
+        return treeHTML(a.id, depth, path);
+      case 'not': return `<div class="tg"><span class="gl no">NO</span><div>${astTree(a.a, depth, path, owner)}</div></div>`;
+      case 'and': return `<div class="tg"><span class="gl and">Y</span><div>${a.a.map(x => astTree(x, depth, path, owner)).join('')}</div></div>`;
+      case 'or': return `<div class="tg"><span class="gl or">O</span><div>${a.a.map(x => astTree(x, depth, path, owner)).join('')}</div></div>`;
+      case 'const': return `<div class="tl"><span class="d">${a.v ? 1 : 0}</span></div>`;
+    }
+    return '';
+  }
+
+  /* ---------- Panel de estados interactivos ---------- */
+  function closure(id, acc, seen) {
+    if (seen.has(id)) return acc; seen.add(id);
+    const n = E.nodes[id]; if (!n) return acc;
+    acc.push(id);
+    if (E.isLeaf(n) || id in E.state.force) return acc;
+    const a = E.defAst(id); if (!a) return acc;
+    E.astRefs(a).forEach(r => { if (!r.startsWith('__mem__')) closure(r, acc, seen); });
+    return acc;
+  }
+  function swBtn(id, kind) {
+    const v = E.value(id);
+    const label = (kind === 'leaf' ? '' : '') + id;
+    return `<button type="button" class="sw ${v ? 'on' : 'off'}" data-leaf="${esc(id)}" title="${esc(id + ': ' + E.nodes[id].d + (E.nodes[id].on1 ? '. ' + E.nodes[id].on1 : '') + '. Toque para cambiar entre 0 y 1.')}"><span class="sa">${esc(label)}</span><span class="sn">${esc(nm(id))}</span><b>${v ? 1 : 0}</b></button>`;
+  }
+  function statePanel(id) {
+    const ids = closure(id, [], new Set()).filter(x => x !== id);
+    const phys = ids.filter(x => E.nodes[x].k === 'in' && !E.nodes[x].stub);
+    const opq = ids.filter(x => E.nodes[x].k === 'opq' || (E.nodes[x].k === 'in' && E.nodes[x].stub));
+    const memo = ids.filter(x => ['seal', 'lat', 'sd', 'sf'].includes(E.nodes[x].k));
+    let h = '';
+    if (phys.length) h += `<div class="grp"><h4>Entradas y botones <small>toque para cambiar 0 / 1</small> ${qm('Son las señales que llegan de afuera: sensores, finales de carrera, pulsadores y botones de la pantalla. 1 significa señal presente. Ojo: es el valor del bit en el PLC, no el del contacto físico; un paro cableado normalmente cerrado vale 1 cuando todo está bien.')}</h4><div class="sws">${phys.map(x => swBtn(x, 'leaf')).join('')}</div></div>`;
+    if (opq.length) h += `<div class="grp"><h4>Marcas sin lógica confirmada <small>lea su valor en el PLC y póngalo aquí</small> ${qm('De estas marcas se sabe que intervienen, pero no cómo se calculan. Abra el PLC en línea, mire su valor real y póngalo aquí igual.')}</h4><div class="sws">${opq.map(x => swBtn(x, 'leaf')).join('')}</div></div>`;
+    if (memo.length) {
+      h += `<div class="grp"><h4>Memorias y temporizadores <small>ajuste el comportamiento en el tiempo</small> ${qm('Temporizador «tiempo cumplido»: sí significa que la condición ya duró todo el tiempo pedido. «ya estaba activa»: la marca se mantuvo del ciclo anterior (retención).')}</h4><div class="sws">` + memo.map(x => {
+        const n = E.nodes[x];
+        if (n.k === 'sd') { const on = x in E.state.elapsed ? E.state.elapsed[x] : true; return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="sd" title="${esc(x + ': ' + n.d + '. Toque para cambiar si el tiempo ya se cumplió.')}"><span class="sa">${esc(x)}</span><span class="sn">tiempo ${esc(n.pt)} ${on ? 'cumplido' : 'sin cumplir'}</span><b>${on ? 'sí' : 'no'}</b></button>`; }
+        if (n.k === 'sf') { const on = !!E.state.hold[x]; return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="sf" title="${esc(x + ': ' + n.d + '. Toque para cambiar si el retardo sigue corriendo.')}"><span class="sa">${esc(x)}</span><span class="sn">retardo de ${esc(n.pt)} ${on ? 'corriendo' : 'sin correr'}</span><b>${on ? 'sí' : 'no'}</b></button>`; }
+        const on = !!E.state.mem[x];
+        return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="mem" title="${esc(x + ': ' + n.d + '. Toque para cambiar si ya estaba activa en el ciclo anterior.')}"><span class="sa">${esc(x)}</span><span class="sn">ya estaba activa (retención)</span><b>${on ? 1 : 0}</b></button>`;
+      }).join('') + '</div></div>';
+    }
+    return h || '<p class="muted">Esta salida no depende de entradas editables.</p>';
+  }
+
+  /* ---------- Ficha editable (repuestos y fallos) ---------- */
+  function fieldsHTML(id) {
+    const f = fld(id); const n = E.nodes[id];
+    const physical = /^[IQ]/.test(id) && !n.stub;
+    if (!physical) return '';
+    return `<div class="fichas"><h4>Ficha técnica, fallos y repuesto ${qm('Anote qué aparato es, dónde se conecta, el código del repuesto y los fallos que ha visto. Se guarda solo en este navegador; copie el respaldo desde la pestaña Fallos y repuestos.')}</h4>
+      <div class="frm" data-fid="${esc(id)}">
+        <label>Dispositivo<input type="text" data-f="dev" value="${esc(f.dev || '')}" placeholder="Ej.: válvula, contactor, sensor"></label>
+        <label>Borne / módulo<input type="text" data-f="term" value="${esc(f.term || '')}" placeholder="Ej.: X3:14 · módulo 2"></label>
+        <label>Plano<input type="text" data-f="plan" value="${esc(f.plan || '')}" placeholder="Ej.: hoja 12"></label>
+        <label>N.º de parte del repuesto<input type="text" data-f="part" value="${esc(f.part || '')}" placeholder="Completar"></label>
+        <label>Cantidad en bodega<input type="text" inputmode="numeric" data-f="stock" value="${esc(f.stock || '')}" placeholder="0"></label>
+        <label class="wide">Fallos comunes y qué se hizo<textarea data-f="fails" rows="3" placeholder="Ej.: no sale con T4 = 1 → revisar bobina, fusible…">${esc(f.fails || '')}</textarea></label>
+      </div></div>`;
+  }
+
+  function detailHTML(id) {
+    const n = E.nodes[id];
+    const s = E.outStatus(id);
+    let h = `<div class="dhead"><div><span class="da">${esc(id)}</span> <span class="ds">${esc(symOf(id))}</span></div>
+      <h2>${esc(n.d)}</h2>
+      <div class="meta"><span class="pill ${STAT[s][1]} big" title="${esc(STATHELP[s])}">${STAT[s][0]}</span><span class="tag" title="Bloque y renglón del programa donde está escrita esta regla.">${esc(n.src || '')}</span><span class="tag ${confCls(n.c)}" title="${esc(CONFHELP[n.c] || '')}">${confTxt(n.c)}</span></div><p class="muted small">${esc(STATHELP[s])}</p></div>`;
+    h += algoHTML(id);
+    h += `<h3>¿Qué falta ahora? ${qm('Es la lista mínima de cambios para que la salida se active. Si dice «Se necesita al menos una de estas», con cumplir UNA opción basta.')}</h3>${hlp('Siga la lista de arriba hacia abajo. Si una fila dice «para eso necesita», esa marca depende de otras: revise primero las de adentro.')}${missingHTML(id)}`;
+    if (n.nt && n.nt.length) h += `<h3>Observaciones ${qm('Datos que no caben en la regla: prioridades entre salidas, excepciones y dudas por confirmar en la máquina.')}</h3><ul class="notes">${n.nt.map(t => `<li>${esc(t)}</li>`).join('')}</ul>`;
+    h += `<h3>Probar con valores reales ${qm('Aquí cambia valores para ver qué pasaría. Es una simulación en pantalla: no envía nada al PLC ni a la máquina.')}</h3>${hlp('Esto es una simulación: no toca el PLC ni la máquina. Toque una casilla para cambiarla entre 0 y 1 (verde es 1, gris es 0). Ponga los valores que ve en el PLC y las filas de arriba se actualizan solas.')}${statePanel(id)}`;
+    h += `<details class="treebox"><summary>Ver todo el árbol de condiciones</summary>${hlp('Cada línea muestra su valor (verde 1, gris 0). Y: deben cumplirse todas. O: basta una. NO: se invierte. Toque la flecha de una marca para ver de qué depende.')}${treeHTML(id, 0, [])}</details>`;
+    h += pyHTML(id);
+    h += fieldsHTML(id);
+    return h;
+  }
+
+  function renderDetail() {
+    if (!app.sel) app.sel = SEC.outs[0];
+    $('#detail').innerHTML = detailHTML(app.sel);
+  }
+
+  /* ---------- Ficha de cualquier marca (ventana) ---------- */
+  function cardHTML(id) {
+    const n = E.nodes[id];
+    if (!n) return '<p>Sin datos.</p>';
+    const v = E.value(id);
+    let h = `<div class="dhead"><div><span class="da">${esc(id)}</span> <span class="ds">${esc(symOf(id))}</span></div><h2>${esc(n.d)}</h2>
+      <div class="meta"><span class="pill ${v ? 'on' : 'no'} big" title="Valor actual en la simulación: 1 es activa, 0 es apagada.">valor ${v ? 1 : 0}</span><span class="tag" title="${esc(TYPEHELP[n.k] || '')}">${esc(typeName(n))}</span>${n.src ? `<span class="tag">${esc(n.src)}</span>` : ''}${n.c ? `<span class="tag ${confCls(n.c)}">${confTxt(n.c)}</span>` : ''}${n.stub ? '<span class="tag c3">ficha mínima</span>' : ''}</div></div>`;
+    h += `<p class="muted small">${esc(TYPEHELP[n.k] || '')}</p>`;
+    if (n.on1) h += `<p><b>Significado:</b> ${esc(n.on1)}</p>`;
+    if (!E.isLeaf(n)) h += `<h3>Se activa cuando ${qm('Es la regla de esta marca escrita en palabras: Y significa que deben cumplirse todas; O significa que basta una; NO significa que debe estar apagada.')}</h3><p class="formula">${esc(defText(id))}</p>`;
+    if (n.k === 'opq') h += `<h3>Intervienen <small>(estructura sin confirmar, leer el KOP)</small></h3><div class="chips">${n.inv.split(',').map(s => { const t = s.trim(); const neg = t.startsWith('!'); const r = t.replace(/^!/, ''); return `${neg ? '<span class="neg">NO</span>' : ''}${chip(r)}`; }).join('')}</div>`;
+    const ub = E.usedBy[id] ? Array.from(E.usedBy[id]).sort() : [];
+    if (ub.length) h += `<h3>Usada por ${qm('Las marcas y salidas que dependen de esta. Sirve para saber qué se afecta si esta falla o cambia.')}</h3><div class="chips">${ub.map(r => chip(r)).join('')}</div>`;
+    if (!(E.isLeaf(n))) {
+      const fv = id in E.state.force ? String(E.state.force[id]) : 'auto';
+      h += `<h3>Forzar valor <small>para simular lo que ve en el PLC</small> ${qm('Calculado: la pantalla decide con las entradas. 1 o 0: usted impone el valor para ver qué pasaría. Solo cambia esta pantalla, no toca el PLC ni la máquina.')}</h3><div class="seg" data-force="${esc(id)}">${['auto', '1', '0'].map(o => `<button type="button" class="${fv === o ? 'sel' : ''}" data-fv="${o}">${o === 'auto' ? 'Calculado' : o}</button>`).join('')}</div>`;
+    } else {
+      h += `<h3>Valor simulado ${qm('Cambie el valor para ver cómo reaccionan las salidas. No envía nada a la máquina.')}</h3><div class="sws">${swBtn(id, 'leaf')}</div>`;
+    }
+    h += fieldsHTML(id);
+    return h;
+  }
+  function openCard(id) {
+    $('#cardBody').innerHTML = cardHTML(id);
+    $('#card').hidden = false;
+    $('#card').dataset.id = id;
+  }
+  function closeCard() { $('#card').hidden = true; }
+
+  /* ---------- Pestaña Marcas ---------- */
+  function renderMarks() {
+    const q = ($('#mq').value || '').trim().toLowerCase();
+    const ty = $('#mt').value;
+    const used = new Set();
+    M.sections.forEach(s => s.outs.forEach(o => closure(o, [], new Set()).forEach(x => used.add(x))));
+    const rows = Object.keys(E.nodes).filter(id => {
+      const n = E.nodes[id];
+      if (ty === 'Q' && !(id[0] === 'Q')) return false;
+      if (ty === 'I' && !(n.k === 'in' && /^I/.test(id))) return false;
+      if (ty === 'M' && !(/^M|^Z/.test(id))) return false;
+      if (ty === 'T' && !(id[0] === 'T')) return false;
+      if (ty === 'conf' && !(n.c === 3 || n.stub)) return false;
+      if (q) { const hay = (id + ' ' + symOf(id) + ' ' + n.d + ' ' + (n.src || '')).toLowerCase(); if (!hay.includes(q)) return false; }
+      return true;
+    }).sort((a, b) => {
+      const ta = a.match(/^([A-Z]+)(\d+)(?:\.(\d+))?/), tb = b.match(/^([A-Z]+)(\d+)(?:\.(\d+))?/);
+      if (!ta || !tb) return a.localeCompare(b);
+      if (ta[1] !== tb[1]) return ta[1].localeCompare(tb[1]);
+      return (+ta[2] - +tb[2]) || ((+ta[3] || 0) - (+tb[3] || 0));
+    });
+    $('#mcount').textContent = rows.length + ' elementos';
+    $('#mbody').innerHTML = rows.map(id => {
+      const n = E.nodes[id];
+      return `<tr data-node="${esc(id)}"><td class="mono">${esc(id)}</td><td class="mono sm">${esc(symOf(id))}</td><td>${esc(n.d)}</td><td class="nw">${esc(typeName(n))}</td><td class="nw">${esc(n.src || '')}</td><td><span class="tag ${n.stub ? 'c3' : confCls(n.c)}" title="${esc(n.stub ? 'Ficha mínima: se cita en la lógica pero está fuera de este alcance.' : (CONFHELP[n.c] || 'Entrada física: no se calcula, viene de afuera.'))}">${n.stub ? 'Ficha mínima' : (n.c ? confTxt(n.c) : 'Entrada')}</span></td></tr>`;
+    }).join('');
+  }
+
+  /* ---------- Pestaña Fallos y repuestos ---------- */
+  function physIds() {
+    const set = new Set();
+    SEC.outs.forEach(o => closure(o, [], new Set()).forEach(x => { if (/^[IQ]/.test(x) && !E.nodes[x].stub && E.nodes[x].k !== 'calc' && E.nodes[x].k !== 'sd') set.add(x); }));
+    return Array.from(set).sort((a, b) => {
+      if (a[0] !== b[0]) return b[0].localeCompare(a[0]);
+      const pa = a.slice(1).split('.').map(Number), pb = b.slice(1).split('.').map(Number);
+      return (pa[0] - pb[0]) || (pa[1] - pb[1]);
+    });
+  }
+  function renderFaults() {
+    const ids = physIds();
+    $('#fcount').textContent = `${ids.length} elementos físicos de «${SEC.name}»`;
+    $('#fbody').innerHTML = ids.map(id => {
+      const n = E.nodes[id]; const f = fld(id);
+      const hint = id[0] === 'Q'
+        ? 'Si el bit está en 1 y no hay movimiento: salida física, fusible, bobina, contactor o variador. Si está en 0: ver «Qué falta».'
+        : 'Revisar LED del módulo, sensor o final de carrera, alineación, cableado y polaridad (NC / NO).';
+      return `<tr data-fid="${esc(id)}"><td class="mono nw"><button type="button" class="chip" data-node="${esc(id)}">${esc(id)}</button></td>
+        <td><b>${esc(symOf(id) || '')}</b><div class="sm muted">${esc(n.d)}</div><div class="sm hint">${esc(hint)}</div></td>
+        <td><input type="text" data-f="dev" value="${esc(f.dev || '')}" placeholder="${id[0] === 'Q' ? 'Ej.: válvula, contactor' : 'Ej.: sensor, final de carrera'}" aria-label="Dispositivo de ${esc(id)}"></td>
+        <td><input type="text" data-f="term" value="${esc(f.term || '')}" placeholder="Ej.: X3:14" aria-label="Borne de ${esc(id)}"></td>
+        <td><input type="text" data-f="part" value="${esc(f.part || '')}" placeholder="Código del repuesto" aria-label="Repuesto de ${esc(id)}"></td>
+        <td><input type="text" inputmode="numeric" data-f="stock" value="${esc(f.stock || '')}" placeholder="0" aria-label="Cantidad de ${esc(id)}"></td>
+        <td><textarea rows="2" data-f="fails" placeholder="Qué falló y qué se hizo" aria-label="Fallos de ${esc(id)}">${esc(f.fails || '')}</textarea></td></tr>`;
+    }).join('');
+  }
+  function exportData() {
+    const prefix = M.id + '|';
+    const out = {};
+    Object.keys(store.fields).filter(k => k.startsWith(prefix)).forEach(k => { const v = store.fields[k]; if (Object.values(v).some(Boolean)) out[k.slice(prefix.length)] = v; });
+    return { maquina: M.id, elementos: out };
+  }
+  function exportCSV() {
+    const rows = [['Direccion', 'Simbolo', 'Descripcion', 'Dispositivo', 'Borne', 'Plano', 'Repuesto', 'Cantidad', 'Fallos']];
+    physIds().forEach(id => { const f = fld(id); rows.push([id, symOf(id), E.nodes[id].d, f.dev, f.term, f.plan, f.part, f.stock, f.fails].map(x => '"' + String(x || '').replace(/"/g, '""') + '"')); });
+    return rows.map(r => r.join(',')).join('\n');
+  }
+
+  /* ---------- Plantilla para agregar máquinas ---------- */
+  const TEMPLATE = {
+    id: 'MAQ2', name: 'Nombre de la máquina', plc: 'Modelo de PLC', project: 'proyecto', lang: 'KOP',
+    sections: [{ id: 'S1', name: 'Sección ejemplo', blocks: 'FC10', outs: ['Q0.0'] }],
+    nodes: {
+      'I0.0': { k: 'in', d: 'Pulsador de marcha', on1: '1 = pulsado', def: 0 },
+      'I0.1': { k: 'in', d: 'Paro (cableado NC)', on1: '1 = circuito sano', def: 1 },
+      'M10.0': { k: 'calc', d: 'Orden de arranque', e: 'I0.0 & I0.1', src: 'FC10 NW1', c: 1 },
+      'Q0.0': { k: 'out', d: 'Motor 1', cmd: 'M10.0', perm: 'I0.1', src: 'FC10 NW2', c: 1 }
+    }
+  };
+  function addMachine() {
+    const msg = $('#addmsg');
+    try {
+      const m = JSON.parse($('#addjson').value);
+      if (!m.id || !m.name || !Array.isArray(m.sections) || !m.nodes) throw new Error('Faltan id, name, sections o nodes.');
+      if (machines.some(x => x.id === m.id)) throw new Error('Ya existe una máquina con id «' + m.id + '».');
+      Object.entries(m.nodes).forEach(([k, n]) => {
+        ['e', 'in', 'start', 'cond', 'set', 'rst', 'cmd', 'perm'].forEach(f => { if (n[f]) parseExpr(n[f]); });
+        if (!n.k) throw new Error('El nodo ' + k + ' no tiene k.');
+      });
+      m.sections.forEach(s => s.outs.forEach(o => { if (!m.nodes[o]) throw new Error('La salida ' + o + ' no está en nodes.'); }));
+      store.userMachines.push(m); save(); loadMachines();
+      msg.textContent = 'Máquina agregada. Elíjala en el selector de arriba.'; msg.className = 'ok';
+      app.mi = machines.length - 1; select(); renderAll();
+    } catch (e) { msg.textContent = 'No se pudo agregar: ' + e.message; msg.className = 'err'; }
+  }
+
+  /* ---------- Selección y render general ---------- */
+  function select() {
+    M = machines[app.mi];
+    E = engineFor(M);
+    if (!M.sections.some(s => s.id === app.sid)) app.sid = M.sections[0].id;
+    SEC = M.sections.find(s => s.id === app.sid);
+    if (!SEC.outs.includes(app.sel)) app.sel = SEC.outs[0];
+    E.run();
+  }
+  function renderAll() {
+    hideTip();
+    E.run();
+    renderControls();
+    renderList();
+    if (app.tab === 'out') renderDetail();
+    if (app.tab === 'marks') renderMarks();
+    if (app.tab === 'faults') renderFaults();
+    if (!$('#card').hidden) openCard($('#card').dataset.id);
+  }
+  function showTab(t) {
+    app.tab = t;
+    $$('.tabs button').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('sel', on); b.setAttribute('aria-selected', on); });
+    $$('.tabp').forEach(p => { p.hidden = p.id !== 'tab-' + t; });
+    renderAll();
+  }
+
+
+  /* ---------- Ayuda: interruptor general y globo «?» ---------- */
+  function applyHelp() {
+    document.body.classList.toggle('nohelp', store.help === false);
+    const b = $('#btnHelp');
+    if (b) { b.textContent = store.help === false ? 'Ayuda: desactivada' : 'Ayuda: activada'; b.setAttribute('aria-pressed', store.help === false ? 'false' : 'true'); }
+  }
+  let tipEl = null, tipFor = null;
+  function hideTip() { if (tipEl) tipEl.hidden = true; tipFor = null; }
+  function showTip(el) {
+    if (!tipEl) {
+      tipEl = document.createElement('div');
+      tipEl.id = 'tip'; tipEl.setAttribute('role', 'tooltip');
+      document.body.appendChild(tipEl);
+    }
+    tipEl.textContent = el.dataset.tip;
+    tipEl.hidden = false; tipFor = el;
+    tipEl.style.left = '0px'; tipEl.style.top = '0px';
+    const r = el.getBoundingClientRect();
+    const tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+    const vw = window.innerWidth || document.documentElement.clientWidth, vh = window.innerHeight || document.documentElement.clientHeight;
+    const x = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), Math.max(8, vw - tw - 8));
+    let y = r.bottom + 8;
+    if (y + th > vh - 8) y = Math.max(8, r.top - th - 8);
+    tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px';
+  }
+  window.addEventListener('scroll', hideTip, true);
+  window.addEventListener('resize', hideTip);
+
+  /* ---------- Eventos ---------- */
+  document.addEventListener('click', ev => {
+    const q = ev.target.closest('.q');
+    if (q) { if (tipFor === q) hideTip(); else showTip(q); return; }
+    if (!ev.target.closest('#tip')) hideTip();
+    const t = ev.target.closest('button, tr[data-node]');
+    if (!t) return;
+    if (t.id === 'btnHelp') { store.help = store.help === false; save(); applyHelp(); return; }
+    if (t.dataset.tab) { showTab(t.dataset.tab); return; }
+    if (t.dataset.out) { app.sel = t.dataset.out; renderAll(); const d = $('#detail'); if (d && window.innerWidth < 900) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    if (t.dataset.leaf) { const id = t.dataset.leaf; E.state.leaf[id] = E.value(id) ? 0 : 1; renderAll(); return; }
+    if (t.dataset.tm) {
+      const id = t.dataset.tm, k = t.dataset.kind;
+      if (k === 'sd') E.state.elapsed[id] = !(id in E.state.elapsed ? E.state.elapsed[id] : true);
+      else if (k === 'sf') E.state.hold[id] = !E.state.hold[id];
+      else E.state.mem[id] = !E.state.mem[id];
+      renderAll(); return;
+    }
+    if (t.dataset.fv && t.parentElement.dataset.force) {
+      const id = t.parentElement.dataset.force, o = t.dataset.fv;
+      if (o === 'auto') delete E.state.force[id]; else E.state.force[id] = +o;
+      renderAll(); return;
+    }
+    if (t.dataset.node && t.tagName === 'TR') { openCard(t.dataset.node); return; }
+    if (t.dataset.node) { openCard(t.dataset.node); return; }
+    if (t.id === 'cardClose' || t.id === 'cardBack') { closeCard(); return; }
+    if (t.id === 'btnReset') { app.scen = 'rest'; applyScenario('rest'); renderAll(); return; }
+    if (t.id === 'btnCopyJson') { const txt = JSON.stringify(exportData(), null, 2); $('#xbox').value = txt; copy(txt); return; }
+    if (t.id === 'btnCopyCsv') { const txt = exportCSV(); $('#xbox').value = txt; copy(txt); return; }
+    if (t.id === 'btnImport') {
+      try {
+        const o = JSON.parse($('#xbox').value);
+        Object.entries(o.elementos || {}).forEach(([id, v]) => { store.fields[fieldKey(id)] = v; });
+        save(); $('#xmsg').textContent = 'Datos importados.'; renderFaults();
+      } catch (e) { $('#xmsg').textContent = 'JSON no válido: ' + e.message; }
+      return;
+    }
+    if (t.id === 'btnTpl') { $('#addjson').value = JSON.stringify(TEMPLATE, null, 2); return; }
+    if (t.id === 'btnAdd') { addMachine(); return; }
+    if (t.id === 'btnDelUser') { store.userMachines = []; save(); loadMachines(); app.mi = 0; select(); renderAll(); $('#addmsg').textContent = 'Se quitaron las máquinas agregadas.'; $('#addmsg').className = 'ok'; return; }
+  });
+  function copy(txt) {
+    try { navigator.clipboard.writeText(txt).then(() => { $('#xmsg').textContent = 'Copiado al portapapeles.'; }, () => { $('#xmsg').textContent = 'Seleccione el texto del recuadro y cópielo.'; }); }
+    catch (e) { $('#xmsg').textContent = 'Seleccione el texto del recuadro y cópielo.'; }
+  }
+  document.addEventListener('input', ev => {
+    const el = ev.target;
+    if (el.id === 'mq') { renderMarks(); return; }
+    const f = el.dataset && el.dataset.f;
+    if (f) {
+      const host = el.closest('[data-fid]'); if (!host) return;
+      const key = fieldKey(host.dataset.fid);
+      store.fields[key] = Object.assign({}, store.fields[key], { [f]: el.value });
+      save();
+    }
+  });
+  document.addEventListener('change', ev => {
+    const el = ev.target;
+    if (el.id === 'selMachine') { app.mi = +el.value; app.sid = null; app.sel = null; select(); renderAll(); }
+    else if (el.id === 'selSection') { app.sid = el.value; app.sel = null; select(); renderAll(); }
+    else if (el.id === 'selScen') { app.scen = el.value; applyScenario(el.value); renderAll(); }
+    else if (el.id === 'mt') renderMarks();
+  });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') { if (tipEl && !tipEl.hidden) hideTip(); else if (!$('#card').hidden) closeCard(); } });
+
+  /* ---------- Arranque ---------- */
+  applyHelp();
+  loadMachines();
+  select();
+  applyScenario('rest');
+  renderAll();
+  window.__app = { app, machines, engines, store };
+})();
+
+</script>
+</body>
+</html>
