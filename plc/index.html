@@ -294,6 +294,39 @@ th .q { margin-left: 6px; }
 .gloss dd { margin: 0; }
 @media (min-width: 700px) { .gloss dl { grid-template-columns: 11rem 1fr; } .gloss dt { margin-top: 0; } }
 
+/* Señales */
+.sigbar { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; max-height: 5.6rem; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 8px 0; box-shadow: 0 4px 10px rgba(0, 0, 0, .08); }
+.sb-l { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-left: 4px; }
+.sb-l:first-child { margin-left: 0; }
+.chip.wn { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
+.sigtbl { table-layout: fixed; min-width: 340px; }
+.sigtbl th, .sigtbl td { padding: 3px; text-align: center; border-top: 1px solid var(--line); position: static; vertical-align: middle; }
+.sigtbl thead th { font-family: var(--font-mono); background: var(--paper); font-size: .76rem; }
+.sigtbl th.rl { width: 3.4rem; font-family: var(--font-mono); font-size: .82rem; text-transform: none; letter-spacing: 0; color: var(--ink); background: var(--paper); }
+.cell { width: 100%; min-height: 40px; border-radius: 6px; border: 1px solid var(--line); background: var(--idle-soft); color: var(--muted); font-family: var(--font-mono); font-weight: 600; font-size: .92rem; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; position: relative; padding: 0; }
+.cell.on { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
+.cell.chg { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cell.mom { border-style: dashed; }
+.cell.sel { box-shadow: 0 0 0 2px var(--ink); }
+.cell.none { display: flex; align-items: center; justify-content: center; background: transparent; border-color: transparent; color: var(--line); cursor: default; }
+.sw { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.sw.mom { border-style: dashed; }
+.sw.ro { cursor: default; }
+.sw.ro:hover { border-color: var(--line); }
+.sigcard { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 8px 0; display: flex; flex-direction: column; gap: 4px; }
+.sigcard .da { font-family: var(--font-mono); font-weight: 600; color: var(--accent); }
+.sigcard .ds { font-family: var(--font-mono); font-size: .76rem; color: var(--muted); }
+#sigInfo > p { margin: 8px 0; }
+
+.sigtools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0 4px; }
+.sigtools .btn { padding: 6px 10px; min-height: 36px; font-size: .86rem; }
+.sigmem { display: inline-flex; align-items: center; gap: 6px; }
+.sighint { margin: 6px 0; }
+.sigcard .sc-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sigcard .sc-d { font-size: .92rem; }
+.sigcard .row { margin-top: 2px; }
+#tab-sig h3 { margin: 14px 0 6px; }
+
 </style>
 </head>
 <body>
@@ -318,6 +351,7 @@ th .q { margin-left: 6px; }
 
   <nav class="tabs" role="tablist" aria-label="Secciones">
     <button type="button" role="tab" class="sel" aria-selected="true" data-tab="out" title="Las 21 salidas con su orden, permisos y qué les falta.">Salidas</button>
+    <button type="button" role="tab" aria-selected="false" data-tab="sig" title="Tablero de bits: ponga las señales en 1 o 0 como las ve en el PLC; se usan en todas las pestañas.">Señales</button>
     <button type="button" role="tab" aria-selected="false" data-tab="marks" title="Glosario de todas las entradas, marcas y temporizadores.">Marcas</button>
     <button type="button" role="tab" aria-selected="false" data-tab="faults" title="Dispositivos, bornes, repuestos y fallos de cada bit físico.">Fallos y repuestos</button>
     <button type="button" role="tab" aria-selected="false" data-tab="std" title="Cómo leer las reglas, cómo agregar otra máquina y qué se supone.">Estándar</button>
@@ -334,7 +368,7 @@ th .q { margin-left: 6px; }
         <li><b>Lea la ficha de arriba hacia abajo.</b> Primero la ORDEN (alguien pide la salida), luego los PERMISOS (todo lo que debe estar bien). Si se cumplen ambas, ENTONCES la salida sale.</li>
         <li><b>Mire los signos.</b> ✓ cumple y ✗ no cumple: la fila con ✗ es la causa de que no salga. En las órdenes, ● es pedida y ○ no pedida.</li>
         <li><b>«debe estar en 0» significa NO.</b> Esa señal es un freno: si llega (pasa a 1), la salida no arranca; si ya estaba andando, se corta. Cuando vuelve a 0, la salida puede salir otra vez. No es una falla: es una protección o una prioridad.</li>
-        <li><b>Para probar,</b> toque las casillas de «Probar con valores reales» y ponga lo que ve en el PLC. Las filas se actualizan solas.</li>
+        <li><b>Para probar,</b> toque las casillas de «Probar con valores reales» y ponga lo que ve en el PLC. Para fijar muchas señales de una vez use la pestaña Señales. Las filas se actualizan solas.</li>
         <li><b>Toque cualquier dirección</b> (por ejemplo I8.3) para ver para qué sirve, y el botón «?» para una explicación corta.</li>
       </ol>
       <p>Ojo: 0 y 1 son los valores del bit en el PLC, no del contacto físico. Un paro de emergencia cableado normalmente cerrado vale 1 cuando todo está bien.</p>
@@ -364,6 +398,23 @@ th .q { margin-left: 6px; }
       </aside>
       <article id="detail" aria-live="polite"></article>
     </div>
+  </section>
+
+  <!-- ===== Señales ===== -->
+  <section id="tab-sig" class="tabp" hidden>
+    <p class="muted small">Cada fila es un byte (la fila I6 reúne I6.0 a I6.7) y cada columna es un bit, del 0 al 7. Toque una celda para ponerla en 1 o en 0: vale en todas las pestañas.</p>
+    <div class="sigbar" id="sigBar" aria-live="polite"></div>
+    <div class="sigtools">
+      <button type="button" class="btn" id="btnSigRest" title="Deja todas las señales y memorias en su valor de reposo.">Todo a reposo</button>
+      <button type="button" class="btn" id="btnSigPush" title="Marca como momentáneas las señales que son pulsadores o botones, y como mantenidas las demás.">Pulsadores momentáneos</button>
+      <button type="button" class="btn" id="btnSigM" title="Vuelve todas las señales a mantenidas.">Todas mantenidas</button>
+      <span class="sigmem"><button type="button" class="btn" id="btnAutoMem" aria-pressed="true" title="Automática: las autorretenciones y los set/reset recuerdan su valor entre ciclos, como el PLC. Manual: usted decide esas memorias en la ficha de cada salida.">Memoria: automática</button><button type="button" class="q" data-tip="Memoria automática: un pulsador momentáneo que arranca algo y se suelta deja la autorretención activa, igual que en el PLC real. Si tras un paro de emergencia las salidas siguen bloqueadas aunque ya normalizó la señal, es porque la memoria de «hidráulica lista» quedó apagada: hace falta su orden de arranque." aria-label="Ayuda">?</button></span>
+    </div>
+    <div id="sigInfo"></div>
+    <div id="sigTables"></div>
+    <details class="howto"><summary>Cómo leer la tabla</summary>
+      <div class="hlp"><b>Verde con 1</b>: la señal está activa. <b>Gris con 0</b>: apagada. <b>Borde azul</b>: es distinta de su valor de reposo. <b>Borde punteado</b>: es momentánea (cambia solo mientras la mantiene presionada). Toque una celda y arriba verá qué es y podrá elegir si es mantenida o momentánea.</div>
+    </details>
   </section>
 
   <!-- ===== Marcas ===== -->
@@ -712,6 +763,23 @@ function createEngine(db, symtab) {
     return vals;
   }
 
+  // Repite ciclos copiando a la memoria el valor de cada autorretención y set/reset (como el PLC entre un ciclo y otro)
+  function settle() {
+    for (let i = 0; i < 8; i++) {
+      run();
+      let changed = false;
+      for (const id of Object.keys(nodes)) {
+        const n = nodes[id];
+        if ((n.k === 'seal' || n.k === 'lat') && id in last) {
+          const v = !!last[id];
+          if (!!state.mem[id] !== v) { state.mem[id] = v; changed = true; }
+        }
+      }
+      if (!changed) break;
+    }
+    return last;
+  }
+
   function value(id) { return id in last ? !!last[id] : leafVal(id); }
 
   // Estado de una salida: ON / BLOQ (orden activa y permisos faltan) / SIN (sin orden)
@@ -766,7 +834,7 @@ function createEngine(db, symtab) {
   }
   buildUsedBy();
 
-  return { ast, state, run, value, outStatus, missing, fixes, defAst, ev, nodes, usedBy, ord, isLeaf, leafVal, astRefs, get last() { return last; } };
+  return { ast, state, run, settle, value, outStatus, missing, fixes, defAst, ev, nodes, usedBy, ord, isLeaf, leafVal, astRefs, get last() { return last; } };
 }
 
 if (typeof module !== 'undefined') module.exports = { parseExpr, astRefs, createEngine, ordOf };
@@ -1083,7 +1151,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
   const hlp = h => `<div class="hlp">${h}</div>`;
 
   /* ---------- Persistencia ligera (puede no existir) ---------- */
-  let store = { fields: {}, userMachines: [], help: true };
+  let store = { fields: {}, userMachines: [], help: true, sigmode: {}, autoMem: true };
   try { const raw = localStorage.getItem('plcguia.v1'); if (raw) store = Object.assign(store, JSON.parse(raw)); } catch (e) { /* sin almacenamiento */ }
   function save() { try { localStorage.setItem('plcguia.v1', JSON.stringify(store)); } catch (e) { /* ignorar */ } }
 
@@ -1115,8 +1183,10 @@ if (typeof module !== 'undefined') module.exports = { DB };
     return engines[m.id];
   }
 
-  const app = { mi: 0, sid: null, sel: null, tab: 'out', scen: 'rest' };
+  const app = { mi: 0, sid: null, sel: null, tab: 'out', scen: 'rest', sigSel: null };
   let M, E, SEC;
+  const autoMem = () => store.autoMem !== false;
+  const evalAll = () => (autoMem() ? E.settle() : E.run());
   const symOf = id => (typeof SYM !== 'undefined' && SYM[id]) || '';
   const nodeOf = id => E.nodes[id];
   const typeName = n => ({ in: 'Entrada / bit externo', calc: 'Marca calculada', seal: 'Marca con autorretención', lat: 'Marca set/reset', sd: 'Temporizador (retardo a la conexión)', sf: 'Temporizador (retardo a la desconexión)', out: 'Salida', opq: 'Marca (lógica interna sin confirmar)' }[n.k] || n.k);
@@ -1126,6 +1196,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
   const confCls = c => ({ 1: 'c1', 2: 'c2', 3: 'c3' }[c] || 'c0');
 
   function chip(id, extra) {
+    if (id.startsWith('__mem__')) return `<span class="tag" title="Memoria: el valor que esta marca tenía en el ciclo anterior.">memoria de ${esc(id.slice(7))}</span>`;
     const n = E.nodes[id];
     const v = E.value(id);
     const t = n ? n.d : '';
@@ -1182,7 +1253,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     resetState();
     const sc = SCEN[key];
     if (sc && M.id === 'IMP10') Object.entries(sc.s).forEach(([k, v]) => { E.state.leaf[k] = v; });
-    E.run();
+    evalAll();
   }
 
   /* ---------- Estado de salidas ---------- */
@@ -1360,7 +1431,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
   function swBtn(id, kind) {
     const v = E.value(id);
     const label = (kind === 'leaf' ? '' : '') + id;
-    return `<button type="button" class="sw ${v ? 'on' : 'off'}" data-leaf="${esc(id)}" title="${esc(id + ': ' + E.nodes[id].d + (E.nodes[id].on1 ? '. ' + E.nodes[id].on1 : '') + '. Toque para cambiar entre 0 y 1.')}"><span class="sa">${esc(label)}</span><span class="sn">${esc(nm(id))}</span><b>${v ? 1 : 0}</b></button>`;
+    return `<button type="button" class="sw ${v ? 'on' : 'off'}${sigMode(id) === 'p' ? ' mom' : ''}" data-sig="${esc(id)}" title="${esc(id + ': ' + E.nodes[id].d + (E.nodes[id].on1 ? '. ' + E.nodes[id].on1 : '') + (sigMode(id) === 'p' ? '. Momentánea: mantenga presionado.' : '. Toque para cambiar entre 0 y 1.'))}"><span class="sa">${esc(label)}</span><span class="sn">${esc(nm(id))}</span><b>${v ? 1 : 0}</b></button>`;
   }
   function statePanel(id) {
     const ids = closure(id, [], new Set()).filter(x => x !== id);
@@ -1371,11 +1442,12 @@ if (typeof module !== 'undefined') module.exports = { DB };
     if (phys.length) h += `<div class="grp"><h4>Entradas y botones <small>toque para cambiar 0 / 1</small> ${qm('Son las señales que llegan de afuera: sensores, finales de carrera, pulsadores y botones de la pantalla. 1 significa señal presente. Ojo: es el valor del bit en el PLC, no el del contacto físico; un paro cableado normalmente cerrado vale 1 cuando todo está bien.')}</h4><div class="sws">${phys.map(x => swBtn(x, 'leaf')).join('')}</div></div>`;
     if (opq.length) h += `<div class="grp"><h4>Marcas sin lógica confirmada <small>lea su valor en el PLC y póngalo aquí</small> ${qm('De estas marcas se sabe que intervienen, pero no cómo se calculan. Abra el PLC en línea, mire su valor real y póngalo aquí igual.')}</h4><div class="sws">${opq.map(x => swBtn(x, 'leaf')).join('')}</div></div>`;
     if (memo.length) {
-      h += `<div class="grp"><h4>Memorias y temporizadores <small>ajuste el comportamiento en el tiempo</small> ${qm('Temporizador «tiempo cumplido»: sí significa que la condición ya duró todo el tiempo pedido. «ya estaba activa»: la marca se mantuvo del ciclo anterior (retención).')}</h4><div class="sws">` + memo.map(x => {
+      h += `<div class="grp"><h4>Memorias y temporizadores <small>ajuste el comportamiento en el tiempo</small> ${qm('Temporizador «tiempo cumplido»: sí significa que la condición ya duró todo el tiempo pedido. Las memorias (autorretención y set/reset) se calculan solas; en la pestaña Señales puede pasarlas a manual.')}</h4><div class="sws">` + memo.map(x => {
         const n = E.nodes[x];
         if (n.k === 'sd') { const on = x in E.state.elapsed ? E.state.elapsed[x] : true; return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="sd" title="${esc(x + ': ' + n.d + '. Toque para cambiar si el tiempo ya se cumplió.')}"><span class="sa">${esc(x)}</span><span class="sn">tiempo ${esc(n.pt)} ${on ? 'cumplido' : 'sin cumplir'}</span><b>${on ? 'sí' : 'no'}</b></button>`; }
         if (n.k === 'sf') { const on = !!E.state.hold[x]; return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="sf" title="${esc(x + ': ' + n.d + '. Toque para cambiar si el retardo sigue corriendo.')}"><span class="sa">${esc(x)}</span><span class="sn">retardo de ${esc(n.pt)} ${on ? 'corriendo' : 'sin correr'}</span><b>${on ? 'sí' : 'no'}</b></button>`; }
         const on = !!E.state.mem[x];
+        if (autoMem()) return `<div class="sw ro ${E.value(x) ? 'on' : 'off'}" title="${esc(x + ': ' + n.d + '. En modo automático la memoria se calcula sola. Cambie a manual en la pestaña Señales para ajustarla.')}"><span class="sa">${esc(x)}</span><span class="sn">memoria automática</span><b>${E.value(x) ? 1 : 0}</b></div>`;
         return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="mem" title="${esc(x + ': ' + n.d + '. Toque para cambiar si ya estaba activa en el ciclo anterior.')}"><span class="sa">${esc(x)}</span><span class="sn">ya estaba activa (retención)</span><b>${on ? 1 : 0}</b></button>`;
       }).join('') + '</div></div>';
     }
@@ -1550,14 +1622,15 @@ if (typeof module !== 'undefined') module.exports = { DB };
     if (!M.sections.some(s => s.id === app.sid)) app.sid = M.sections[0].id;
     SEC = M.sections.find(s => s.id === app.sid);
     if (!SEC.outs.includes(app.sel)) app.sel = SEC.outs[0];
-    E.run();
+    evalAll();
   }
   function renderAll() {
     hideTip();
-    E.run();
+    evalAll();
     renderControls();
     renderList();
     if (app.tab === 'out') renderDetail();
+    if (app.tab === 'sig') renderSignals();
     if (app.tab === 'marks') renderMarks();
     if (app.tab === 'faults') renderFaults();
     if (!$('#card').hidden) openCard($('#card').dataset.id);
@@ -1598,6 +1671,89 @@ if (typeof module !== 'undefined') module.exports = { DB };
   window.addEventListener('scroll', hideTip, true);
   window.addEventListener('resize', hideTip);
 
+
+  /* ---------- Pestaña Señales: tablero de bits ---------- */
+  const sigKey = id => M.id + '|' + id;
+  const sigMode = id => (store.sigmode[sigKey(id)] === 'p' ? 'p' : 'm');
+  const restVal = id => !!(E.nodes[id] && E.nodes[id].def);
+  const setSigValue = (id, v) => { E.state.leaf[id] = v ? 1 : 0; };
+  const pushLike = n => /pulsador|pulsado|bot[oó]n/i.test((n.d || '') + ' ' + (n.on1 || ''));
+  function sigIds() {
+    return Object.keys(E.nodes).filter(id => { const n = E.nodes[id]; return n && (n.k === 'in' || n.k === 'opq') && !/^(MW|MD|DB)/.test(id); });
+  }
+  function cellHTML(id) {
+    const n = E.nodes[id], v = E.value(id), m = sigMode(id);
+    const tip = id + ': ' + n.d + (n.on1 ? '. ' + n.on1 : '') + '. ' + (m === 'p' ? 'Momentánea: cambia solo mientras la mantiene presionada.' : 'Mantenida: toque para cambiarla y queda así.');
+    return `<button type="button" class="cell ${v ? 'on' : 'off'}${v !== restVal(id) ? ' chg' : ''}${m === 'p' ? ' mom' : ''}${app.sigSel === id ? ' sel' : ''}" data-sig="${esc(id)}" title="${esc(tip)}" aria-label="${esc(id + ' vale ' + (v ? 1 : 0))}">${v ? 1 : 0}</button>`;
+  }
+  function sigInfoHTML() {
+    const id = app.sigSel;
+    if (!id || !E.nodes[id]) return '<p class="muted small sighint">Toque una señal de la tabla: aquí verá qué es y podrá elegir si es mantenida o momentánea.</p>';
+    const n = E.nodes[id], v = E.value(id), m = sigMode(id);
+    return `<div class="sigcard"><div class="sc-h"><span class="da">${esc(id)}</span><span class="ds">${esc(symOf(id))}</span><span class="pill ${v ? 'on' : 'no'}">vale ${v ? 1 : 0}</span><span class="muted small">reposo ${restVal(id) ? 1 : 0}</span>${chip(id)}</div>
+      <div class="sc-d"><b>${esc(n.d)}</b>${n.on1 ? ` <span class="muted">· ${esc(n.on1)}</span>` : ''}</div>
+      <div class="row"><span class="small">Esta señal es:</span><div class="seg" data-sigfor="${esc(id)}"><button type="button" class="${m === 'm' ? 'sel' : ''}" data-sigmode="m">Mantenida</button><button type="button" class="${m === 'p' ? 'sel' : ''}" data-sigmode="p">Momentánea</button></div>${qm('Mantenida: queda como la deje hasta que la toque otra vez, como un interruptor o un final de carrera. Momentánea: cambia solo mientras mantiene el dedo presionado y vuelve sola al soltar, como un pulsador.')}</div></div>`;
+  }
+  function sigBarHTML() {
+    const ons = [], blk = [];
+    M.sections.forEach(s => s.outs.forEach(o => { const st = E.outStatus(o); if (st === 'on') ons.push(o); else if (st === 'blocked') blk.push(o); }));
+    const b = (o, c) => `<button type="button" class="chip ${c}" data-goout="${esc(o)}" title="${esc(o + ': ' + E.nodes[o].d + '. Toque para abrir su ficha.')}">${esc(o)}</button>`;
+    return `<span class="sb-l">Activas</span>${ons.length ? ons.map(o => b(o, 'hi')).join('') : '<span class="muted small">ninguna</span>'}<span class="sb-l">Bloqueadas</span>${blk.length ? blk.map(o => b(o, 'wn')).join('') : '<span class="muted small">ninguna</span>'}`;
+  }
+  function renderSignals() {
+    const ids = sigIds();
+    const groups = { I: {}, M: {}, Q: {} }, others = [];
+    ids.forEach(id => {
+      const a = /^([A-Z]+)(\d+)\.([0-7])$/.exec(id);
+      if (a && groups[a[1]]) { const by = groups[a[1]]; (by[+a[2]] = by[+a[2]] || {})[+a[3]] = id; } else others.push(id);
+    });
+    const T = {
+      I: ['Entradas (I)', 'Sensores, finales de carrera y pulsadores que llegan al PLC. 1 significa señal presente en el borne.'],
+      M: ['Marcas (M) que no se calculan aquí', 'Botones de pantalla, órdenes y estados que vienen del HMI o de otras secciones. Ponga el valor que ve en el PLC.'],
+      Q: ['Salidas (Q) de otras secciones', 'Salidas de otras partes del programa que esta lógica usa como condición.']
+    };
+    let h = '';
+    ['I', 'M', 'Q'].forEach(L => {
+      const bytes = Object.keys(groups[L]).map(Number).sort((a, b) => a - b);
+      if (!bytes.length) return;
+      h += `<h3>${T[L][0]} ${qm(T[L][1])}</h3><div class="tbl"><table class="sigtbl"><thead><tr><th>Byte</th>${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<th>${i}</th>`).join('')}</tr></thead><tbody>`;
+      bytes.forEach(b => {
+        h += `<tr><th class="rl">${L}${b}</th>`;
+        for (let i = 0; i < 8; i++) { const id = groups[L][b][i]; h += id ? `<td>${cellHTML(id)}</td>` : '<td><span class="cell none">·</span></td>'; }
+        h += '</tr>';
+      });
+      h += '</tbody></table></div>';
+    });
+    if (others.length) h += `<h3>Otras señales ${qm('Temporizadores y otros bits que no tienen forma de byte y bit. Se tocan igual que los demás.')}</h3><div class="sws">${others.map(id => swBtn(id, 'leaf')).join('')}</div>`;
+    $('#sigTables').innerHTML = h;
+    $('#sigInfo').innerHTML = sigInfoHTML();
+    $('#sigBar').innerHTML = sigBarHTML();
+    const am = $('#btnAutoMem');
+    if (am) { am.textContent = autoMem() ? 'Memoria: automática' : 'Memoria: manual'; am.setAttribute('aria-pressed', autoMem() ? 'true' : 'false'); }
+  }
+  function goOut(id) {
+    const sec = M.sections.find(x => x.outs.includes(id));
+    if (sec) { app.sid = sec.id; app.sel = id; select(); }
+    showTab('out');
+    try { window.scrollTo(0, 0); } catch (e) { /* ignorar */ }
+  }
+  let held = null;
+  function releaseHeld() { if (held) { const id = held; held = null; setSigValue(id, restVal(id)); renderAll(); } }
+  function keyPulse(id) { setSigValue(id, !restVal(id)); renderAll(); setTimeout(() => { setSigValue(id, restVal(id)); renderAll(); }, 700); }
+  document.addEventListener('pointerdown', ev => {
+    const b = ev.target && ev.target.closest ? ev.target.closest('[data-sig]') : null;
+    if (!b || (typeof ev.button === 'number' && ev.button > 0)) return;
+    const id = b.dataset.sig;
+    app.sigSel = id;
+    if (sigMode(id) !== 'p') return;
+    held = id;
+    try { document.body.setPointerCapture(ev.pointerId); } catch (e) { /* sin captura */ }
+    setSigValue(id, !restVal(id));
+    renderAll();
+  });
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => document.addEventListener(t, releaseHeld));
+  window.addEventListener('blur', releaseHeld);
+
   /* ---------- Eventos ---------- */
   document.addEventListener('click', ev => {
     const q = ev.target.closest('.q');
@@ -1608,7 +1764,23 @@ if (typeof module !== 'undefined') module.exports = { DB };
     if (t.id === 'btnHelp') { store.help = store.help === false; save(); applyHelp(); return; }
     if (t.dataset.tab) { showTab(t.dataset.tab); return; }
     if (t.dataset.out) { app.sel = t.dataset.out; renderAll(); const d = $('#detail'); if (d && window.innerWidth < 900) d.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-    if (t.dataset.leaf) { const id = t.dataset.leaf; E.state.leaf[id] = E.value(id) ? 0 : 1; renderAll(); return; }
+    if (t.dataset.sig) {
+      const id = t.dataset.sig;
+      app.sigSel = id;
+      if (sigMode(id) === 'p') { if (ev.detail === 0 && !held) keyPulse(id); else renderAll(); return; }
+      setSigValue(id, !E.value(id)); renderAll(); return;
+    }
+    if (t.dataset.goout) { goOut(t.dataset.goout); return; }
+    if (t.dataset.sigmode && t.parentElement.dataset.sigfor) {
+      const id = t.parentElement.dataset.sigfor;
+      store.sigmode[sigKey(id)] = t.dataset.sigmode;
+      if (t.dataset.sigmode === 'p') setSigValue(id, restVal(id)); /* una momentánea no se queda pulsada */
+      save(); renderAll(); return;
+    }
+    if (t.id === 'btnSigRest') { resetState(); renderAll(); return; }
+    if (t.id === 'btnSigPush') { sigIds().forEach(id => { const p = pushLike(E.nodes[id]); store.sigmode[sigKey(id)] = p ? 'p' : 'm'; if (p) setSigValue(id, restVal(id)); }); save(); renderAll(); return; }
+    if (t.id === 'btnSigM') { sigIds().forEach(id => { delete store.sigmode[sigKey(id)]; }); save(); renderAll(); return; }
+    if (t.id === 'btnAutoMem') { store.autoMem = !autoMem(); save(); renderAll(); return; }
     if (t.dataset.tm) {
       const id = t.dataset.tm, k = t.dataset.kind;
       if (k === 'sd') E.state.elapsed[id] = !(id in E.state.elapsed ? E.state.elapsed[id] : true);
