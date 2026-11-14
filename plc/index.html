@@ -295,7 +295,12 @@ th .q { margin-left: 6px; }
 @media (min-width: 700px) { .gloss dl { grid-template-columns: 11rem 1fr; } .gloss dt { margin-top: 0; } }
 
 /* Señales */
-.sigbar { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; max-height: 5.6rem; overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 8px 0; box-shadow: 0 4px 10px rgba(0, 0, 0, .08); }
+.sigsticky { position: sticky; top: 0; z-index: 6; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; margin: 8px 0; box-shadow: 0 4px 10px rgba(0, 0, 0, .08); }
+.sigbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; max-height: 3.4rem; overflow-y: auto; }
+.sigsel { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); font-size: .86rem; min-width: 0; }
+.sigsel .da { font-family: var(--font-mono); color: var(--accent); flex: none; }
+.sigsel .ssd { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sigsel .pill { flex: none; }
 .sb-l { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-left: 4px; }
 .sb-l:first-child { margin-left: 0; }
 .chip.wn { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
@@ -327,6 +332,19 @@ th .q { margin-left: 6px; }
 .sigcard .row { margin-top: 2px; }
 #tab-sig h3 { margin: 14px 0 6px; }
 
+.linknote { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--accent-soft); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 10px 0; font-size: .88rem; }
+.linknote[hidden] { display: none; }
+.linknote .ln-t { flex: 1 1 260px; }
+.linknote .btn { padding: 6px 10px; min-height: 36px; font-size: .86rem; }
+.cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.cell .cv { line-height: 1; }
+.cell .cl { display: none; }
+@media (min-width: 700px) {
+  .cell { min-height: 56px; padding: 3px 3px 4px; }
+  .cell .cl { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-family: var(--font-body); font-weight: 400; font-size: .64rem; line-height: 1.15; text-align: center; color: var(--muted); max-width: 100%; overflow-wrap: anywhere; }
+  .cell.on .cl { color: var(--ok); }
+}
+
 </style>
 </head>
 <body>
@@ -357,6 +375,7 @@ th .q { margin-left: 6px; }
     <button type="button" role="tab" aria-selected="false" data-tab="std" title="Cómo leer las reglas, cómo agregar otra máquina y qué se supone.">Estándar</button>
     <button type="button" role="tab" aria-selected="false" data-tab="roles" title="Qué papeles y habilidades hacen falta para mantener esta guía.">Roles y habilidades</button>
   </nav>
+  <div class="linknote" id="linkNote" hidden></div>
 
   <!-- ===== Salidas ===== -->
   <section id="tab-out" class="tabp">
@@ -403,7 +422,7 @@ th .q { margin-left: 6px; }
   <!-- ===== Señales ===== -->
   <section id="tab-sig" class="tabp" hidden>
     <p class="muted small">Cada fila es un byte (la fila I6 reúne I6.0 a I6.7) y cada columna es un bit, del 0 al 7. Toque una celda para ponerla en 1 o en 0: vale en todas las pestañas.</p>
-    <div class="sigbar" id="sigBar" aria-live="polite"></div>
+    <div class="sigsticky"><div class="sigbar" id="sigBar" aria-live="polite"></div><div class="sigsel" id="sigSelLine"></div></div>
     <div class="sigtools">
       <button type="button" class="btn" id="btnSigRest" title="Deja todas las señales y memorias en su valor de reposo.">Todo a reposo</button>
       <button type="button" class="btn" id="btnSigPush" title="Marca como momentáneas las señales que son pulsadores o botones, y como mantenidas las demás.">Pulsadores momentáneos</button>
@@ -1151,7 +1170,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
   const hlp = h => `<div class="hlp">${h}</div>`;
 
   /* ---------- Persistencia ligera (puede no existir) ---------- */
-  let store = { fields: {}, userMachines: [], help: true, sigmode: {}, autoMem: true };
+  let store = { fields: {}, userMachines: [], help: true, sigmode: {}, autoMem: true, link: true };
   try { const raw = localStorage.getItem('plcguia.v1'); if (raw) store = Object.assign(store, JSON.parse(raw)); } catch (e) { /* sin almacenamiento */ }
   function save() { try { localStorage.setItem('plcguia.v1', JSON.stringify(store)); } catch (e) { /* ignorar */ } }
 
@@ -1254,6 +1273,53 @@ if (typeof module !== 'undefined') module.exports = { DB };
     const sc = SCEN[key];
     if (sc && M.id === 'IMP10') Object.entries(sc.s).forEach(([k, v]) => { E.state.leaf[k] = v; });
     evalAll();
+    E.__base = normSt();
+  }
+
+  /* ---------- Vínculo Salidas <-> Señales ----------
+     Vinculadas: una sola copia de las señales para todas las pestañas.
+     Independientes: la pestaña Señales tiene su propia copia y las demás otra. */
+  const linked = () => store.link !== false;
+  const ctxNow = () => (app.tab === 'sig' ? 'sig' : 'out');
+  const ST_KEYS = ['leaf', 'force', 'mem', 'elapsed', 'hold'];
+  const cloneSt = () => { const o = { scen: app.scen, base: E.__base }; ST_KEYS.forEach(k => { o[k] = Object.assign({}, E.state[k]); }); return o; };
+  const loadSt = s => { ST_KEYS.forEach(k => { E.state[k] = Object.assign({}, s[k]); }); app.scen = s.scen; E.__base = s.base; };
+  function syncCtx() {
+    const want = ctxNow();
+    if (linked()) {
+      if (E.__snap) { if (E.__ctx !== 'sig' && E.__snap.sig) loadSt(E.__snap.sig); E.__snap = null; } /* al vincular, manda Señales */
+      E.__ctx = want; return;
+    }
+    if (!E.__snap) { E.__snap = { sig: cloneSt(), out: cloneSt() }; E.__ctx = want; return; }
+    if (E.__ctx === want) return;
+    E.__snap[E.__ctx] = cloneSt();
+    loadSt(E.__snap[want]); E.__ctx = want;
+  }
+  function normSt() {
+    const st = E.state, o = { leaf: {}, force: {}, elapsed: {}, hold: {} };
+    Object.keys(st.leaf).sort().forEach(k => { if (!!st.leaf[k] !== restVal(k)) o.leaf[k] = 1; });
+    Object.keys(st.force).sort().forEach(k => { o.force[k] = st.force[k]; });
+    Object.keys(st.elapsed).sort().forEach(k => { if (st.elapsed[k] === false) o.elapsed[k] = 0; });
+    Object.keys(st.hold).sort().forEach(k => { if (st.hold[k]) o.hold[k] = 1; });
+    return JSON.stringify(o);
+  }
+  const isCustom = () => M.id === 'IMP10' && E.__base !== undefined && normSt() !== E.__base;
+  const changedIds = () => Object.keys(E.state.leaf).filter(k => !!E.state.leaf[k] !== restVal(k));
+  function renderLinkNote() {
+    const el = $('#linkNote'); if (!el) return;
+    const show = app.tab === 'out' || app.tab === 'sig';
+    el.hidden = !show; if (!show) return;
+    const here = app.tab === 'sig' ? 'Señales' : 'Salidas', other = app.tab === 'sig' ? 'Salidas' : 'Señales', otherTab = app.tab === 'sig' ? 'out' : 'sig';
+    if (linked()) {
+      const n = changedIds().length;
+      el.innerHTML = `<span class="ln-t"><b>Vinculadas.</b> Lo que cambie en una pestaña aparece en la otra. ${n ? `Hay ${n} señal${n > 1 ? 'es' : ''} distinta${n > 1 ? 's' : ''} del reposo.` : 'Todas las señales están en reposo.'}</span>
+        <button type="button" class="btn" data-tab="${otherTab}" title="Ir a la pestaña ${other}.">Ver ${other}</button>
+        <button type="button" class="btn" id="btnLink" title="Cada pestaña tendrá su propia copia de las señales y lo que cambie en una no afectará a la otra.">Desvincular</button>`;
+    } else {
+      el.innerHTML = `<span class="ln-t"><b>Independientes.</b> Lo que cambie en ${here} no afecta a ${other}. Al vincular, Salidas copia las señales de Señales.</span>
+        <button type="button" class="btn" data-tab="${otherTab}" title="Ir a la pestaña ${other}.">Ver ${other}</button>
+        <button type="button" class="btn" id="btnLink" title="Vuelve a compartir las señales: Salidas copia lo que haya en Señales.">Vincular</button>`;
+    }
   }
 
   /* ---------- Estado de salidas ---------- */
@@ -1283,7 +1349,9 @@ if (typeof module !== 'undefined') module.exports = { DB };
     const sc = $('#selScen');
     if (M.id === 'IMP10') {
       sc.hidden = false; $('#scenLabel').hidden = false;
-      sc.innerHTML = Object.entries(SCEN).map(([k, v]) => `<option value="${k}" ${k === app.scen ? 'selected' : ''}>${esc(v.n)}</option>`).join('');
+      const cu = isCustom();
+      sc.innerHTML = (cu ? '<option value="__custom" selected>Personalizada: señales cambiadas a mano</option>' : '')
+        + Object.entries(SCEN).map(([k, v]) => `<option value="${k}" ${!cu && k === app.scen ? 'selected' : ''}>${esc(v.n)}</option>`).join('');
     } else { sc.hidden = true; $('#scenLabel').hidden = true; }
   }
 
@@ -1622,12 +1690,14 @@ if (typeof module !== 'undefined') module.exports = { DB };
     if (!M.sections.some(s => s.id === app.sid)) app.sid = M.sections[0].id;
     SEC = M.sections.find(s => s.id === app.sid);
     if (!SEC.outs.includes(app.sel)) app.sel = SEC.outs[0];
+    syncCtx();
     evalAll();
   }
   function renderAll() {
     hideTip();
     evalAll();
     renderControls();
+    renderLinkNote();
     renderList();
     if (app.tab === 'out') renderDetail();
     if (app.tab === 'sig') renderSignals();
@@ -1639,6 +1709,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     app.tab = t;
     $$('.tabs button').forEach(b => { const on = b.dataset.tab === t; b.classList.toggle('sel', on); b.setAttribute('aria-selected', on); });
     $$('.tabp').forEach(p => { p.hidden = p.id !== 'tab-' + t; });
+    syncCtx();
     renderAll();
   }
 
@@ -1670,6 +1741,16 @@ if (typeof module !== 'undefined') module.exports = { DB };
   }
   window.addEventListener('scroll', hideTip, true);
   window.addEventListener('resize', hideTip);
+  const canHover = () => !!(window.matchMedia && window.matchMedia('(hover: hover)').matches);
+  document.addEventListener('mouseover', ev => {
+    if (!canHover()) return;
+    const c = ev.target.closest && ev.target.closest('.cell[data-tip]');
+    if (c && tipFor !== c) showTip(c);
+  });
+  document.addEventListener('mouseout', ev => {
+    const c = ev.target.closest && ev.target.closest('.cell[data-tip]');
+    if (c && tipFor === c && !(ev.relatedTarget && c.contains(ev.relatedTarget))) hideTip();
+  });
 
 
   /* ---------- Pestaña Señales: tablero de bits ---------- */
@@ -1682,9 +1763,15 @@ if (typeof module !== 'undefined') module.exports = { DB };
     return Object.keys(E.nodes).filter(id => { const n = E.nodes[id]; return n && (n.k === 'in' || n.k === 'opq') && !/^(MW|MD|DB)/.test(id); });
   }
   function cellHTML(id) {
-    const n = E.nodes[id], v = E.value(id), m = sigMode(id);
-    const tip = id + ': ' + n.d + (n.on1 ? '. ' + n.on1 : '') + '. ' + (m === 'p' ? 'Momentánea: cambia solo mientras la mantiene presionada.' : 'Mantenida: toque para cambiarla y queda así.');
-    return `<button type="button" class="cell ${v ? 'on' : 'off'}${v !== restVal(id) ? ' chg' : ''}${m === 'p' ? ' mom' : ''}${app.sigSel === id ? ' sel' : ''}" data-sig="${esc(id)}" title="${esc(tip)}" aria-label="${esc(id + ' vale ' + (v ? 1 : 0))}">${v ? 1 : 0}</button>`;
+    const n = E.nodes[id], v = E.value(id), m = sigMode(id), sym = symOf(id);
+    const tip = id + (sym ? ' · ' + sym : '') + ' — ' + n.d + (n.on1 ? '. ' + n.on1 : '') + '. ' + (m === 'p' ? 'Momentánea: cambia solo mientras la mantiene presionada.' : 'Mantenida: toque para cambiarla y queda así.');
+    return `<button type="button" class="cell ${v ? 'on' : 'off'}${v !== restVal(id) ? ' chg' : ''}${m === 'p' ? ' mom' : ''}${app.sigSel === id ? ' sel' : ''}" data-sig="${esc(id)}" data-tip="${esc(tip)}" aria-label="${esc(id + ': ' + n.d + '. Vale ' + (v ? 1 : 0))}"><span class="cv">${v ? 1 : 0}</span><span class="cl">${esc(n.d)}</span></button>`;
+  }
+  function sigSelHTML() {
+    const id = app.sigSel;
+    if (!id || !E.nodes[id]) return '<span class="muted">Toque una señal de la tabla para ver aquí qué es.</span>';
+    const n = E.nodes[id], v = E.value(id);
+    return `<b class="da">${esc(id)}</b><span class="ssd" title="${esc(n.d + (n.on1 ? '. ' + n.on1 : ''))}">${esc(n.d)}</span><span class="pill ${v ? 'on' : 'no'}">${v ? 1 : 0}</span>`;
   }
   function sigInfoHTML() {
     const id = app.sigSel;
@@ -1728,6 +1815,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     $('#sigTables').innerHTML = h;
     $('#sigInfo').innerHTML = sigInfoHTML();
     $('#sigBar').innerHTML = sigBarHTML();
+    $('#sigSelLine').innerHTML = sigSelHTML();
     const am = $('#btnAutoMem');
     if (am) { am.textContent = autoMem() ? 'Memoria: automática' : 'Memoria: manual'; am.setAttribute('aria-pressed', autoMem() ? 'true' : 'false'); }
   }
@@ -1777,7 +1865,8 @@ if (typeof module !== 'undefined') module.exports = { DB };
       if (t.dataset.sigmode === 'p') setSigValue(id, restVal(id)); /* una momentánea no se queda pulsada */
       save(); renderAll(); return;
     }
-    if (t.id === 'btnSigRest') { resetState(); renderAll(); return; }
+    if (t.id === 'btnLink') { store.link = !linked(); save(); syncCtx(); renderAll(); return; }
+    if (t.id === 'btnSigRest') { app.scen = 'rest'; applyScenario('rest'); renderAll(); return; }
     if (t.id === 'btnSigPush') { sigIds().forEach(id => { const p = pushLike(E.nodes[id]); store.sigmode[sigKey(id)] = p ? 'p' : 'm'; if (p) setSigValue(id, restVal(id)); }); save(); renderAll(); return; }
     if (t.id === 'btnSigM') { sigIds().forEach(id => { delete store.sigmode[sigKey(id)]; }); save(); renderAll(); return; }
     if (t.id === 'btnAutoMem') { store.autoMem = !autoMem(); save(); renderAll(); return; }
@@ -1830,7 +1919,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     const el = ev.target;
     if (el.id === 'selMachine') { app.mi = +el.value; app.sid = null; app.sel = null; select(); renderAll(); }
     else if (el.id === 'selSection') { app.sid = el.value; app.sel = null; select(); renderAll(); }
-    else if (el.id === 'selScen') { app.scen = el.value; applyScenario(el.value); renderAll(); }
+    else if (el.id === 'selScen') { if (el.value === '__custom') return; app.scen = el.value; applyScenario(el.value); renderAll(); }
     else if (el.id === 'mt') renderMarks();
   });
   document.addEventListener('keydown', ev => { if (ev.key === 'Escape') { if (tipEl && !tipEl.hidden) hideTip(); else if (!$('#card').hidden) closeCard(); } });
