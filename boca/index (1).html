@@ -1,0 +1,1275 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  CheckCircle2, Circle, ChevronDown, ChevronUp, Users, ListChecks, Info, RefreshCcw,
+  Target, Award, BookOpen, Lightbulb, FileText, Languages, Brain, BookMarked, Home, 
+  HeartHandshake, ShieldCheck, TrendingUp, Coins, HandHeart, MessageSquareText, Activity,
+  Crown, Handshake, Wrench, Star, GraduationCap, Flame, Puzzle, Building2, Network, 
+  Stethoscope, Pill, PartyPopper, Zap, Sparkles
+} from 'lucide-react';
+
+const DATA = {
+  es: {
+    header: {
+      title: "Estrategia BOCA 2.0 Pro",
+      subtitle: "Liderazgo, Influencia y Estatus Social",
+      progress: "Progreso de Implementación",
+      stepsCompleted: "pasos completados",
+      reset: "Reiniciar Progreso",
+      confirmReset: "¿Estás seguro de que deseas reiniciar todo el progreso?"
+    },
+    tabs: {
+      intro: "¿Qué es BOCA?",
+      talent: "Élite & Talento",
+      leadership: "21 Leyes",
+      psychology: "Neuro-Donación",
+      checklist: "Paso a Paso",
+      roles: "Roles",
+      glossary: "Glosario"
+    },
+    intro: {
+      title: "El Corazón de la Acción Local",
+      p1: "Las filiales no son solo puestos de socorro; son el epicentro de la resiliencia comunitaria. Una Filial Fuerte es un imán para los mejores talentos y el orgullo de su ciudad.",
+      whatIsTitle: "¿Qué es BOCA?",
+      whatIsDesc: "BOCA (Branch Organisational Capacity to Act) es el sistema integral para auditarse a sí mismos, encontrar fallos sistémicos y escalar al siguiente nivel de excelencia operativa e influencia local.",
+      strongBranchTitle: "La Filial de Alto Estatus",
+      strongBranchDesc: "Una filial fuerte es capaz de:",
+      strongBranchPoints: [
+        "Financiarse localmente sin rogar dinero, atrayendo inversiones.",
+        "Atraer y retener a los profesionales más brillantes de la zona.",
+        "Ser el socio preferido de corporaciones, hospitales y farmacias.",
+        "Convertir el voluntariado en una experiencia de deleite y orgullo.",
+        "Ser una autoridad moral y logística ante el gobierno local."
+      ],
+      whyBocaTitle: "¿Por qué aplicar BOCA hoy?",
+      whyBocaPoints: [
+        { title: "Propiedad Local:", desc: "La filial manda sobre su destino, no espera órdenes de la capital." },
+        { title: "Consenso Real:", desc: "Líderes y voluntarios deciden juntos qué es lo más urgente." },
+        { title: "Atracción de Recursos:", desc: "Una filial organizada con BOCA es mucho más atractiva y confiable para grandes donantes." }
+      ]
+    },
+    talent: {
+      title: "Estrategia de Élite y Estatus Social",
+      desc: "Cómo convertir la filial en el lugar donde todos quieren estar: desde la alta sociedad hasta los profesionales de salud que buscan empleo o networking.",
+      pillars: [
+        {
+          icon: <Stethoscope className="w-6 h-6 text-blue-500" />,
+          title: "1. Enfermería & Salud: El Trampolín al Empleo",
+          desc: "No pidas enfermeras voluntarias solo para 'ayudar'. Ofréceles una plataforma de visibilidad profesional inigualable.",
+          deepDive: [
+            { subtitle: "Convenios Pro-Empleo:", text: "Firma pactos con hospitales privados y públicos. La filial certifica la ética, velocidad y destreza de la enfermera. El hospital ve el voluntariado en Cruz Roja como el 'periodo de prueba' perfecto para contratar a alguien fijo. Es un ganar-ganar total." },
+            { subtitle: "Networking Clínico:", text: "Organiza rotaciones de voluntariado dentro de los hospitales bajo el sello de la Cruz Roja. La enfermera se da a conocer con los jefes de piso y directores médicos mientras sirve. La filial se vuelve su agente de empleabilidad." }
+          ]
+        },
+        {
+          icon: <Pill className="w-6 h-6 text-emerald-500" />,
+          title: "2. La Red de Farmacias: Embajadas de Salud",
+          desc: "Conecta a las farmacias rurales y urbanas como puntos de enlace de la Cruz Roja.",
+          deepDive: [
+            { subtitle: "Micro-puntos de Captación:", text: "Propón a las farmacias locales ser un 'Punto Amigo Cruz Roja'. Ellos recaudan donaciones en el mostrador y tú les das un sello de prestigio sanitario. La gente confía en el farmacéutico de su barrio; usa esa confianza a tu favor." },
+            { subtitle: "Suministro Crítico:", text: "Crea un inventario conectado. En una emergencia, la filial sabe exactamente qué medicinas tiene cada farmacia rural. A cambio, tú les ofreces ser sus proveedores de capacitación oficial en primeros auxilios para sus empleados." }
+          ]
+        },
+        {
+          icon: <PartyPopper className="w-6 h-6 text-purple-500" />,
+          title: "3. Del Aburrimiento al Deleite (Cura Existencial)",
+          desc: "La gente busca voluntariado porque está aburrida de la rutina o busca significado. Dales 'Adrenalina con Propósito'.",
+          deepDive: [
+            { subtitle: "El Factor 'Deleite':", text: "Ser voluntario debe ser divertido. Organiza 'Operaciones Relámpago' que terminen en una convivencia social épica. El voluntario no viene solo a trabajar, viene a pertenecer a una élite de héroes que además saben disfrutar la vida." },
+            { subtitle: "Gamificación del Significado:", text: "Crea un sistema de 'Rangos de Impacto'. El voluntario que acumula horas gana parches, acceso a cenas exclusivas o cursos internacionales. Convierte el servicio en un juego de alto estatus." }
+          ]
+        },
+        {
+          icon: <Star className="w-6 h-6 text-amber-500" />,
+          title: "4. Reclutamiento VIP (Alta Sociedad)",
+          desc: "Identifica a las familias influyentes. Si ellos están involucrados, todos querrán estarlo.",
+          deepDive: [
+            { subtitle: "Invitaciones Personales de Guante Blanco:", text: "Cero redes sociales. Envía cartas físicas elegantes invitando a los líderes de la ciudad a una 'Cena de Visión Humanitaria'. La gente con recursos quiere que se le pida su consejo estratégico, no solo su dinero." },
+            { subtitle: "Asignación de Roles VIP:", text: "A un CEO no lo pones a cargar cajas (a menos que sea para una foto simbólica). Su rol es hacer la llamada que tú no puedes hacer para conseguir donaciones masivas, o auditar gratis las finanzas de la filial con su firma contable." }
+          ]
+        },
+        {
+          icon: <GraduationCap className="w-6 h-6 text-indigo-500" />,
+          title: "5. El Ejército Estudiantil (Fuerza Joven)",
+          desc: "Captar la energía de los jóvenes vendiéndoles cómo esto potenciará su propio futuro.",
+          deepDive: [
+            { subtitle: "Convenios de Horas Sociales:", text: "Ve directo a rectores de colegios. Crea un 'Programa de Pasantías Humanitarias'. Convierte la filial en la opción #1 para que los jóvenes hagan sus horas comunitarias obligatorias." },
+            { subtitle: "Vende Currículum, no Limpieza:", text: "Un universitario no quiere solo barrer. Ofrécele roles que luzcan bien en LinkedIn: 'Coordinador Junior de Logística', 'Asistente de Marketing Comunitario'. Empoderarlos los retiene." }
+          ]
+        },
+        {
+          icon: <Flame className="w-6 h-6 text-red-500" />,
+          title: "6. La Fiebre del Voluntariado (Efecto FOMO)",
+          desc: "Hacer que ser voluntario sea el símbolo de estatus más deseado en la comunidad.",
+          deepDive: [
+            { subtitle: "El Principio de Escasez:", text: "Lo que es fácil de obtener, no se valora. NO aceptes a todos el día que llegan. Crea 'Promociones' (Ej. Promoción Primavera 2026) con cupos limitados. Haz entrevistas de filtro." },
+            { subtitle: "Prueba Social (Social Proof):", text: "La gente quiere estar donde está la acción. Sube fotos a redes de voluntarios riendo, compartiendo pizzas. Vende la 'Comunidad', no solo el sacrificio." }
+          ]
+        }
+      ]
+    },
+    psychology: {
+      title: "Neuro-Marketing del Altruismo",
+      desc: "La ciencia conductual detrás de cómo hacer que la gente sienta euforia al donar y cómo retener al mejor talento evitando que se 'quemen'.",
+      pillars: [
+        {
+          icon: <Zap className="w-6 h-6 text-yellow-500" />,
+          title: "El 'High' del Donante (Neuromarketing)",
+          desc: "Donar libera dopamina. Debemos maximizar ese efecto para que sea verdaderamente adictivo.",
+          deepDive: [
+            { subtitle: "Gratificación Instantánea:", text: "Si alguien dona en una farmacia, que suene una campana o reciba un pin digital de inmediato. El cerebro necesita el premio AL MOMENTO de soltar el dinero para querer repetir." },
+            { subtitle: "Estatus Público y Competencia:", text: "El altruismo competitivo es real. Crea listas públicas (con permiso) de 'Protectores de la Ciudad'. La gente 'fina' dona más cuando sus pares ven que lo están haciendo. Convierte la donación en un símbolo de estatus." },
+            { subtitle: "Efecto de la Víctima Identificable:", text: "La mente no procesa estadísticas ('10,000 niños con hambre'). El cerebro se bloquea. Pero si dices 'Este es Juan y no ha comido hoy', el cerebro segrega oxitocina y dona. Habla de UNO, no de MILES." },
+            { subtitle: "El Método Hook-Story-Offer:", text: "Antes: 'Hola, done por favor'.\nDespués: '[Gancho]: Ayer a las 3 AM una familia lo perdió todo. [Historia]: Llegamos en 10 minutos, pero perdimos camillas en el humo. [Oferta]: Ayúdanos a reemplazar 1 camilla donando $50 aquí'." }
+          ]
+        },
+        {
+          icon: <Sparkles className="w-6 h-6 text-pink-500" />,
+          title: "Psicología de la Retención",
+          desc: "El voluntariado existe para llenar el vacío de propósito. Protégelo.",
+          deepDive: [
+            { subtitle: "Salario Emocional Máximo:", text: "Reconocimiento público y específico. Cuando un voluntario hace algo bien, nárralo como una epopeya en el grupo de WhatsApp. Que todos lo vean como un referente. 'Buen trabajo' no basta." },
+            { subtitle: "Teoría de la Autodeterminación:", text: "Un voluntario se queda si siente 3 cosas: 1) Competencia (es bueno en lo que hace), 2) Autonomía (toma decisiones, no solo acata órdenes), 3) Pertenencia (tiene amigos y es familia)." },
+            { subtitle: "Evitar el Síndrome de Burnout:", text: "Las filiales suelen abusar de sus mejores 5 voluntarios llamándolos para todo. Esto los 'quema'. Aprende a decirle a tu mejor voluntario: 'Vete a tu casa, descansa este fin de semana'." },
+            { subtitle: "Match-Making de Habilidades:", text: "Si un voluntario es un genio del Excel o abogado, no le des una escoba. Dale el control de los estatutos de BOCA. El respeto al talento de la persona es la mayor forma de retención." }
+          ]
+        }
+      ]
+    },
+    leadership: {
+      title: "Las 21 Leyes del Liderazgo Irrefutable",
+      desc: "Basado en los principios de John Maxwell, adaptado estratégicamente a la realidad del liderazgo de influencia (sin sueldo) de las ONGs.",
+      laws: [
+        {
+          icon: <Crown className="w-6 h-6 text-amber-500" />,
+          title: "El Fundamento del Líder Voluntario",
+          points: [
+            { name: "1. La Ley del Tope:", text: "La eficacia de la filial está limitada por tu capacidad de liderazgo. Si tu liderazgo es un 4 sobre 10, tu filial nunca pasará de un 3." },
+            { name: "2. La Ley de la Influencia:", text: "En la Cruz Roja no hay salarios para mandar. Si no puedes influir mediante el respeto, no eres el líder, solo tienes un título." },
+            { name: "3. La Ley del Proceso:", text: "El liderazgo se desarrolla diariamente. BOCA no cambiará la filial en un fin de semana; es el inicio de un proceso a largo plazo." },
+            { name: "4. La Ley de la Navegación:", text: "Cualquiera dirige el barco, pero se necesita un líder para trazar la ruta. Anticipa la resistencia antes de proponer un cambio drástico." },
+            { name: "5. La Ley de la Adición:", text: "Un líder añade valor sirviendo a otros. No estás para que los voluntarios te sirvan; tú estás para darles las herramientas que necesitan." },
+            { name: "6. La Ley del Terreno Firme:", text: "La confianza es tu base. Si expones problemas en un taller BOCA y luego no haces nada (no cumples), pierdes la confianza para siempre." },
+            { name: "7. La Ley del Respeto:", text: "Los voluntarios siguen naturalmente a líderes más fuertes que ellos mismos. Actúa con integridad absoluta." }
+          ]
+        },
+        {
+          icon: <HeartHandshake className="w-6 h-6 text-emerald-500" />,
+          title: "Conexión, Talento y Empoderamiento",
+          points: [
+            { name: "8. La Ley de la Intuición:", text: "Los líderes aprenden a leer el ambiente y saber cuándo un voluntario está a punto de tirar la toalla por agotamiento." },
+            { name: "9. La Ley del Magnetismo:", text: "Atraes a quienes son como tú. Si eres desorganizado y apático, reclutarás ese perfil. Si quieres voluntarios de élite, sé de élite." },
+            { name: "10. La Ley de la Conexión:", text: "Toca el corazón antes de pedir la mano. No le pidas a un voluntario que trabaje el domingo si ni sabes el nombre de sus hijos." },
+            { name: "11. La Ley del Círculo Íntimo:", text: "El potencial del líder lo determinan quienes están más cerca de él. ¿Quienes son tus 5 colaboradores clave? Ellos elevan o hunden la filial." },
+            { name: "12. La Ley del Otorgamiento de Poder:", text: "Solo los líderes seguros delegan tareas importantes. Si micro-gestionas por miedo a que se equivoquen, la filial nunca crecerá." },
+            { name: "13. La Ley de la Reproducción:", text: "Se necesita un líder para formar otro. Tu trabajo no es ser indispensable, es crear a tu reemplazo." },
+            { name: "14. La Ley del Apoyo (Buy-in):", text: "La gente compra al líder primero, luego su visión. Si no confían en ti, sabotearán BOCA." }
+          ]
+        },
+        {
+          icon: <TrendingUp className="w-6 h-6 text-blue-500" />,
+          title: "Ejecución, Impulso y Legado",
+          points: [
+            { name: "15. La Ley de la Victoria:", text: "Los líderes encuentran la forma de que el equipo gane. En medio de la falta de fondos, un líder busca la solución, no da excusas." },
+            { name: "16. La Ley del Gran Impulso (Momentum):", text: "El impulso es el mejor amigo de un líder. Celebra pequeñas victorias rápidamente después de BOCA para crear energía positiva imparable." },
+            { name: "17. La Ley de las Prioridades:", text: "Estar ocupado no es ser productivo. Prioriza las acciones de la Hoja de Ruta de BOCA que darán el 80% del impacto." },
+            { name: "18. La Ley del Sacrificio:", text: "Un líder debe ceder para subir. A veces significa ceder tu fin de semana, o ceder tu ego para admitir errores." },
+            { name: "19. La Ley del Momento Oportuno:", text: "Cuándo liderar es tan importante como qué hacer. No lances BOCA en medio de una emergencia activa; el timing será desastroso." },
+            { name: "20. La Ley del Crecimiento Explosivo:", text: "Para sumar, lidera a seguidores. Para multiplicar, lidera a líderes. Invierte tu tiempo entrenando a los coordinadores de área." },
+            { name: "21. La Ley del Legado:", text: "El valor duradero del líder se mide por su sucesión. Una 'Filial Fuerte' es aquella que sigue funcionando perfectamente el día que tú te vas." }
+          ]
+        }
+      ]
+    },
+    ui: {
+      markComplete: "Marcar paso como completado",
+      unmarkComplete: "Revertir estado del paso",
+      tipsTitle: "Consejos Prácticos del Líder",
+      examplesTitle: "Ejemplos Reales",
+      contextTitle: "Profundización: ¿Por qué y Para qué?",
+      rolesDesc: "El ecosistema BOCA requiere que cada actor asuma su responsabilidad con excelencia.",
+      glossaryDesc: "El lenguaje de Desarrollo Organizacional traducido a términos sencillos."
+    },
+    glossary: [
+      { term: "BOCA", def: "Branch Organisational Capacity to Act (Capacidad Organizativa de la Filial para Actuar). Una herramienta para diagnosticar fallas y planificar mejoras." },
+      { term: "Salario Emocional", def: "La compensación real de un voluntario: reconocimiento, amistad, prestigio social y la sensación de propósito." },
+      { term: "ESG / RSE", def: "Criterios Ambientales, Sociales y de Gobernanza (o Responsabilidad Social Empresarial). Lo que las empresas necesitan cumplir para sus inversores, y nosotros les proveemos la plataforma para hacerlo." },
+      { term: "Headhunting", def: "Cacería de talentos. Buscar perfiles específicos de alto poder o conocimiento en lugar de esperar a que ellos lleguen solos." },
+      { term: "FOMO (Fear Of Missing Out)", def: "El miedo a perderse algo increíble. Principio usado para que la gente desee ser parte del voluntariado limitando los cupos." },
+      { term: "Hoja de Ruta (Roadmap)", def: "El plan de acción tangible, con responsables y fechas, que nace tras el taller BOCA. Si esto falla, todo falla." },
+      { term: "ToF (Training of Facilitators)", def: "Capacitación rigurosa de 2 días para enseñar a tu equipo a manejar debates complejos en los talleres." }
+    ],
+    roles: [
+      { role: "Promotor BOCA", actor: "Presidente Local/Nacional", res: "Pone el sello oficial al proyecto. Vende la visión a la alta sociedad, abre puertas con políticos y grandes empresarios. Protege BOCA a nivel directivo." },
+      { role: "Coordinador BOCA", actor: "Staff de Sede (NHQ)", res: "El director de orquesta. Prepara el presupuesto nacional, estandariza las capacitaciones, consolida la data de todas las filiales y exige resultados." },
+      { role: "Movilizador BOCA", actor: "Líder de Filial en Terreno", res: "El motor local. Convence a sus voluntarios de ser honestos. Después del taller, es el responsable único de que la Hoja de Ruta se integre en el día a día." },
+      { role: "Facilitador BOCA", actor: "Persona capacitada (ToF)", res: "Guía neutral del taller. Usa psicología y escucha activa para que los participantes debatan sanamente y lleguen a sus propias conclusiones. Redacta el informe oficial." }
+    ],
+    phases: [
+      {
+        id: "phase-1", title: "REFLEXIÓN INICIAL", icon: "BookOpen",
+        steps: [
+          {
+            id: 1, title: "Paso 1. ¿Por qué el Desarrollo de la Filial?",
+            details: [
+              "Identificar el problema real local (¿Fuga masiva de talento? ¿Desconexión con la comunidad? ¿Finanzas en rojo?).",
+              "Evitar la 'Fatiga de Evaluaciones'. Si acaban de hacer una auditoría financiera pesada, no les mandes BOCA inmediatamente."
+            ],
+            context: {
+              why: "Sin un 'por qué' claro, el proceso se percibe como burocracia inútil impuesta por la Sede.",
+              whatFor: "Para alinear expectativas entre la capital y el terreno, evitando que unos esperen dinero y otros solo esperen un reporte.",
+              how: "El equipo nacional debe redactar un solo párrafo contundente (El 'Elevator Pitch') justificando el propósito antes de empezar."
+            }
+          },
+          {
+            id: 2, title: "Paso 2. ¿Estamos listos para BOCA?",
+            details: [
+              "Designar al Coordinador nacional con tiempo dedicado.",
+              "Confirmar presupuesto real para viáticos, comida y, vitalmente, para financiar las soluciones que proponga la filial.",
+              "Verificar que no haya emergencias activas (desastres naturales) en el radar."
+            ],
+            context: {
+              why: "Lanzar un proceso profundo, prometer cambios y abandonarlo a la mitad por falta de dinero destruye la confianza.",
+              whatFor: "Asegurar la viabilidad operativa para llegar al Paso 14 de forma ininterrumpida.",
+              how: "Creando una matriz de riesgos simple (Presupuesto, Tiempo, Disposición) antes de contactar a la primera filial."
+            }
+          }
+        ]
+      },
+      {
+        id: "phase-2", title: "PREPARACIÓN INICIAL", icon: "Target",
+        steps: [
+          {
+            id: 3, title: "Paso 3. Inicio: Roles y Responsabilidades",
+            details: [
+              "Hacer nombramientos oficiales documentados.",
+              "Contactar a la oficina regional de IFRC para solicitar mentores o formadores expertos si la Sociedad Nacional lo hace por primera vez."
+            ],
+            context: {
+              why: "La ley del 'Todos somos responsables' significa que 'Nadie lo hará'.",
+              whatFor: "Establecer la cadena de rendición de cuentas desde el día 1.",
+              how: "Organiza una reunión oficial de Kick-off donde cada actor (Promotor, Coordinador, Movilizador) acepte públicamente su rol."
+            }
+          },
+          {
+            id: 4, title: "Paso 4. Enfoque y Selección de Filiales",
+            details: [
+              "Redactar Términos de Referencia (TdR) claros.",
+              "Definir si será un ejercicio voluntario u obligatorio por estatuto.",
+              "Elegir filiales piloto."
+            ],
+            context: {
+              why: "Aplicar BOCA a 50 filiales simultáneamente colapsará al equipo de Sede Central.",
+              whatFor: "Controlar el ritmo y crear 'casos de éxito' iniciales para inspirar (Prueba Social).",
+              how: "Selecciona estratégicamente 2 filiales muy fuertes, 2 regulares y 1 en crisis para testear el sistema en distintos escenarios."
+            }
+          },
+          {
+            id: 5, title: "Paso 5. Presupuesto y Recursos Financieros",
+            details: [
+              "Presupuestar traslados y hoteles para el Entrenamiento ToF (2 días).",
+              "Cubrir costos locales del Taller (Almuerzos y materiales para 15 personas x 2 días).",
+              "Asegurar un 'Fondo Semilla' intocable."
+            ],
+            context: {
+              why: "BOCA destapará grandes ideas. Si la filial arma una ruta excelente y le dicen 'No hay dinero', se genera resentimiento.",
+              whatFor: "Garantizar que el análisis se convierta en impacto inmediato.",
+              how: "Reserva entre $500 y $1,000 USD por filial exclusivamente para que arranquen la Actividad #1 de su nueva Hoja de Ruta."
+            }
+          },
+          {
+            id: 6, title: "Paso 6. Orientación Previa",
+            details: [
+              "Reunir a miembros de la junta y voluntarios clave.",
+              "Vender el concepto: BOCA es para crecer, no para auditar."
+            ],
+            context: {
+              why: "El cerebro reptiliano tiene miedo al juicio. Las filiales pueden esconder información por miedo a represalias.",
+              whatFor: "Crear un espacio seguro donde haya honestidad brutal.",
+              how: "Envía un mensaje en video del Presidente Nacional: 'BOCA es un espejo para mejorar, no una lupa para buscar culpables'."
+            }
+          },
+          {
+            id: 7, title: "Paso 7. Adaptación y Traducción Local",
+            details: [
+              "Revisar el manual global y ajustarlo al dialecto y cultura nacional.",
+              "Eliminar atributos irrelevantes (ej. leyes laborales complejas si en la filial solo hay voluntarios ad-honorem).",
+              "Conservar la numeración de los atributos clave para comparar datos con IFRC."
+            ],
+            context: {
+              why: "La jerga corporativa internacional desconecta y aburre al voluntario de base.",
+              whatFor: "Generar sentido de pertenencia; que sientan que la herramienta es 'suya'.",
+              how: "Usa un comité mixto (sede y terreno) para traducir el documento a lenguaje claro y directo."
+            },
+            examples: [
+              { before: "La filial posee estrategias de movilización de recursos estructuradas...", after: "Nuestra junta directiva tiene un plan claro y escrito para conseguir donativos este año..." }
+            ]
+          }
+        ]
+      },
+      {
+        id: "phase-3", title: "FORMACIÓN DEL EQUIPO", icon: "Users",
+        steps: [
+          {
+            id: 8, title: "Paso 8. Selección de Facilitadores",
+            details: [
+              "Buscar perfiles con alta inteligencia emocional, empatía y paciencia.",
+              "No elegir perfiles autoritarios o 'jefes'.",
+              "Asegurar diversidad de género, edad y experiencia operativa."
+            ],
+            context: {
+              why: "Un facilitador que impone su opinión convierte a BOCA en una charla unidireccional y destruye el consenso.",
+              whatFor: "Para garantizar que las soluciones vengan de la propia filial, no del moderador.",
+              how: "Haz entrevistas enfocadas en habilidades de escucha activa y manejo de conflictos."
+            }
+          },
+          {
+            id: 9, title: "Paso 9. Capacitación de Facilitadores (ToF)",
+            details: [
+              "Entrenamiento riguroso, inmersivo y presencial de 2 días.",
+              "No permitir que pasen más de 2 meses entre el entrenamiento y su primer taller."
+            ],
+            context: {
+              why: "Manejar a 15 personas frustradas debatiendo prioridades es muy difícil. La teoría no basta.",
+              whatFor: "Estandarizar la calidad del taller en todo el país.",
+              how: "Dedica el 80% del tiempo de entrenamiento a hacer simulaciones (Role-play) de escenarios hostiles reales."
+            }
+          }
+        ]
+      },
+      {
+        id: "phase-4", title: "IMPLEMENTACIÓN EN TERRENO", icon: "ListChecks",
+        steps: [
+          {
+            id: 10, title: "Paso 10. Talleres BOCA Locales",
+            details: [
+              "Aislar a 8-15 personas representativas (jóvenes, veteranos, directivos) por 1.5 a 2 días completos.",
+              "Realizar las actividades: El Rompecabezas BOCA, Debate de la Matriz, Priorización.",
+              "Resultado: Construir la Hoja de Ruta asumiendo responsables inmediatos."
+            ],
+            context: {
+              why: "Si asisten solo los directivos, el resultado estará sesgado y no mostrará la realidad operativa.",
+              whatFor: "Lograr un acuerdo social profundo sobre las 3 prioridades absolutas de la filial.",
+              how: "Asegura logística impecable: alimentación, materiales y exigencia de celulares apagados."
+            }
+          },
+          {
+            id: 11, title: "Paso 11. Monitoreo y Seguimiento",
+            details: [
+              "Imprimir la Hoja de Ruta en tamaño póster y pegarla en la filial.",
+              "Revisar avances obligatoriamente en cada reunión mensual de la directiva local.",
+              "La Sede Nacional debe exigir el reporte de progreso de BOCA constantemente."
+            ],
+            context: {
+              why: "Las organizaciones aman planificar pero fallan al ejecutar. Sin presión amistosa, el entusiasmo muere a los 15 días.",
+              whatFor: "Para mantener la tracción (Momentum) y asegurar la rendición de cuentas.",
+              how: "Implementa llamadas trimestrales de 'Stocktaking' (Balance) para que cada filial reporte sus bloqueos."
+            }
+          },
+          {
+            id: 12, title: "Paso 12. Análisis Global de Resultados",
+            details: [
+              "Consolidar la información de todas las Hojas de Ruta en una matriz nacional.",
+              "Buscar patrones de fallas sistémicas a nivel país (Ej. 80% fallan en temas legales)."
+            ],
+            context: {
+              why: "La Sede suele dirigir recursos basándose en suposiciones o intuiciones.",
+              whatFor: "Tener data dura para justificar inversiones ante donantes internacionales o la Asamblea.",
+              how: "Crear un 'Dashboard' ejecutivo que conecte los dolores de las filiales con los departamentos de Sede."
+            }
+          }
+        ]
+      },
+      {
+        id: "phase-5", title: "RECONOCIMIENTO E INSPIRACIÓN", icon: "Award",
+        steps: [
+          {
+            id: 13, title: "Paso 13. Celebrar Logros",
+            details: [
+              "Reconocer el inmenso esfuerzo adicional que toma el desarrollo organizacional.",
+              "Documentar Casos de Éxito en video.",
+              "Otorgar certificaciones de 'Filial de Excelencia' o 'Sellos de Calidad'."
+            ],
+            context: {
+              why: "El voluntariado cobra en Salario Emocional. Si la Sede ignora sus mejoras internas, la motivación se desploma.",
+              whatFor: "Demostrar que mejorar la administración es un acto tan heroico como rescatar personas.",
+              how: "Que el Presidente Nacional visite la filial exclusivamente para entregar el reconocimiento frente a toda la ciudad."
+            }
+          },
+          {
+            id: 14, title: "Paso 14. Apoyo entre Pares",
+            details: [
+              "Conectar a filiales muy eficientes (A+) con filiales que necesitan apoyo (C).",
+              "Organizar Foros Anuales de Desarrollo de Filiales (cero desastres, solo gestión y liderazgo)."
+            ],
+            context: {
+              why: "La Sede Central no tiene el monopolio de las buenas ideas. La solución suele tenerla la filial vecina.",
+              whatFor: "Crear una red descentralizada de aprendizaje mutuo (Hub de conocimiento).",
+              how: "Implementa un programa formal de 'Filiales Hermanas' o mentoría cruzada."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  en: {
+    header: {
+      title: "BOCA 2.0 Pro Strategy",
+      subtitle: "Leadership, Influence & Social Status",
+      progress: "Implementation Progress",
+      stepsCompleted: "steps completed",
+      reset: "Reset Progress",
+      confirmReset: "Are you sure you want to reset all progress?"
+    },
+    tabs: {
+      intro: "What is BOCA?",
+      talent: "Elite & Talent",
+      leadership: "21 Laws",
+      psychology: "Neuro-Donation",
+      checklist: "Step-by-Step",
+      roles: "Roles",
+      glossary: "Glossary"
+    },
+    intro: {
+      title: "The Beating Heart of Local Action",
+      p1: "Branches are not just first aid posts; they are the epicenter of community resilience. A Strong Branch is a magnet for top talent and the pride of its city.",
+      whatIsTitle: "What is BOCA?",
+      whatIsDesc: "BOCA (Branch Organisational Capacity to Act) is the comprehensive system to self-audit, find systemic flaws, and scale to the next level of operational excellence and local influence.",
+      strongBranchTitle: "The High-Status Branch",
+      strongBranchDesc: "A strong branch is capable of:",
+      strongBranchPoints: [
+        "Financing itself locally without begging, by attracting investment.",
+        "Attracting and retaining the brightest professionals in the area.",
+        "Being the preferred partner for corporations, hospitals, and pharmacies.",
+        "Turning volunteering into an experience of delight and pride.",
+        "Commanding moral and logistical authority with local government."
+      ],
+      whyBocaTitle: "Why apply BOCA today?",
+      whyBocaPoints: [
+        { title: "Local Ownership:", desc: "The branch controls its destiny, it does not wait for HQ orders." },
+        { title: "Real Consensus:", desc: "Leaders and volunteers decide together what is most urgent." },
+        { title: "Resource Attraction:", desc: "An organized BOCA branch is much more attractive and reliable to big donors." }
+      ]
+    },
+    talent: {
+      title: "Elite Strategy & Social Status",
+      desc: "How to turn the branch into the place everyone wants to be: from high society to health professionals seeking employment or networking.",
+      pillars: [
+        {
+          icon: <Stethoscope className="w-6 h-6 text-blue-500" />,
+          title: "1. Nursing & Health: Employment Springboard",
+          desc: "Don't ask volunteer nurses just to 'help'. Offer them an unmatched professional visibility platform.",
+          deepDive: [
+            { subtitle: "Pro-Employment Pacts:", text: "Sign pacts with private and public hospitals. The branch certifies the nurse's ethics, speed, and skill. The hospital views Red Cross volunteering as the perfect 'probationary period' to hire full-time. Total win-win." },
+            { subtitle: "Clinical Networking:", text: "Organize volunteer rotations inside hospitals under the Red Cross seal. Nurses make themselves known to floor chiefs and medical directors while serving. The branch becomes their employment agent." }
+          ]
+        },
+        {
+          icon: <Pill className="w-6 h-6 text-emerald-500" />,
+          title: "2. Pharmacy Network: Health Embassies",
+          desc: "Connect rural and urban pharmacies as Red Cross liaison points.",
+          deepDive: [
+            { subtitle: "Micro-Donation Points:", text: "Propose local pharmacies become a 'Red Cross Friend Point'. They collect donations at the counter; you give them a health prestige seal. People trust their neighborhood pharmacist; use that trust." },
+            { subtitle: "Critical Inventory:", text: "Create a connected inventory. In an emergency, the branch knows exactly what medicines each rural pharmacy has. In return, you offer them official first aid training for their employees." }
+          ]
+        },
+        {
+          icon: <PartyPopper className="w-6 h-6 text-purple-500" />,
+          title: "3. From Boredom to Delight (Existential Cure)",
+          desc: "People seek volunteering because they are bored with routine or seek meaning. Give them 'Purpose with Adrenaline'.",
+          deepDive: [
+            { subtitle: "The Delight Factor:", text: "Volunteering should be fun. Organize 'Flash Operations' that end in an epic social mixer. The volunteer doesn't just come to work; they come to belong to an elite group of heroes who also know how to enjoy life." },
+            { subtitle: "Meaning Gamification:", text: "Create 'Impact Ranks'. A volunteer who accumulates hours earns patches, access to exclusive dinners, or international courses. Turn service into a high-status game." }
+          ]
+        },
+        {
+          icon: <Star className="w-6 h-6 text-amber-500" />,
+          title: "4. VIP Recruitment (High Society)",
+          desc: "Identify influential families. If they are involved, everyone will want to be.",
+          deepDive: [
+            { subtitle: "White-Glove Invitations:", text: "Zero social media. Send elegant physical letters inviting city leaders to a 'Humanitarian Vision Dinner'. People with resources want to be asked for their strategic advice, not just their money." },
+            { subtitle: "Assigning VIP Roles:", text: "You don't make a CEO carry boxes. Their role is to make the call you can't make to secure massive donations, or to audit branch finances for free with their accounting firm." }
+          ]
+        },
+        {
+          icon: <GraduationCap className="w-6 h-6 text-indigo-500" />,
+          title: "5. The Student Army (Youth Force)",
+          desc: "Capture the energy of the youth by selling them how this will boost their own future.",
+          deepDive: [
+            { subtitle: "Social Hours Agreements:", text: "Go straight to school principals. Create a 'Humanitarian Internship Program'. Make the branch the #1 option for teens to fulfill mandatory community hours." },
+            { subtitle: "Sell Résumé, Not Sweeping:", text: "A college student doesn't just want to sweep. Offer roles that look good on LinkedIn: 'Junior Logistics Coordinator', 'Community Marketing Assistant'. Empowering retains them." }
+          ]
+        },
+        {
+          icon: <Flame className="w-6 h-6 text-red-500" />,
+          title: "6. Volunteer Fever (The FOMO Effect)",
+          desc: "Make volunteering the most desired status symbol in the community.",
+          deepDive: [
+            { subtitle: "The Principle of Scarcity:", text: "What is easy to obtain is not valued. DO NOT accept everyone the day they arrive. Create 'Cohorts' (e.g., Spring Cohort 2026) with limited spots. Conduct filter interviews." },
+            { subtitle: "Social Proof:", text: "People want to be where the action is. Post photos of volunteers laughing, sharing pizza. Sell the 'Community', not just the sacrifice." }
+          ]
+        }
+      ]
+    },
+    psychology: {
+      title: "Neuro-Marketing of Altruism",
+      desc: "The behavioral science behind making people feel euphoria when donating and how to retain top talent by avoiding burnout.",
+      pillars: [
+        {
+          icon: <Zap className="w-6 h-6 text-yellow-500" />,
+          title: "The Donor's 'High' (Neuromarketing)",
+          desc: "Donating releases dopamine. We must maximize that effect so it becomes truly addictive.",
+          deepDive: [
+            { subtitle: "Instant Gratification:", text: "If someone donates at a pharmacy, ring a bell or send a digital pin immediately. The brain needs the reward AT THE MOMENT of releasing the money to want to repeat it." },
+            { subtitle: "Public Status & Competition:", text: "Competitive altruism is real. Create public lists (with permission) of 'City Protectors'. High-society people donate more when their peers see them doing it. Turn donation into a status symbol." },
+            { subtitle: "Identifiable Victim Effect:", text: "The mind doesn't process statistics ('10,000 hungry kids'). The brain shuts down. But if you say 'This is John and he hasn't eaten today', the brain secretes oxytocin and donates. Talk about ONE, not THOUSANDS." },
+            { subtitle: "The Hook-Story-Offer Method:", text: "Before: 'Hello, please donate'.\nAfter: '[Hook]: Yesterday at 3 AM a family lost everything. [Story]: We arrived in 10 mins, but lost stretchers in the smoke. [Offer]: Help us replace 1 stretcher by donating $50 here'." }
+          ]
+        },
+        {
+          icon: <Sparkles className="w-6 h-6 text-pink-500" />,
+          title: "Psychology of Retention",
+          desc: "Volunteering exists to fill the void of purpose. Protect it.",
+          deepDive: [
+            { subtitle: "Maximum Emotional Salary:", text: "Public and specific recognition. When a volunteer does well, narrate it like an epic tale in the WhatsApp group. Let everyone see them as a role model. 'Good job' is not enough." },
+            { subtitle: "Self-Determination Theory:", text: "A volunteer stays if they feel 3 things: 1) Competence (good at what they do), 2) Autonomy (make decisions, not just take orders), 3) Belonging (have friends, feel like family)." },
+            { subtitle: "Avoiding Burnout Syndrome:", text: "Branches often abuse their top 5 volunteers, calling them for everything. This 'burns them out'. Learn to tell your best volunteer: 'Go home, rest this weekend'." },
+            { subtitle: "Skills Match-Making:", text: "If a volunteer is an Excel genius or a lawyer, don't hand them a broom. Give them control of the BOCA bylaws. Respecting a person's talent is the highest form of retention." }
+          ]
+        }
+      ]
+    },
+    leadership: {
+      title: "The 21 Irrefutable Laws of Leadership",
+      desc: "Based on John Maxwell's principles, strategically adapted to the reality of influence leadership (unpaid) in NGOs.",
+      laws: [
+        {
+          icon: <Crown className="w-6 h-6 text-amber-500" />,
+          title: "The Foundation of the Volunteer Leader",
+          points: [
+            { name: "1. The Law of the Lid:", text: "The branch's effectiveness is limited by your leadership capacity. If your leadership is a 4 out of 10, your branch will never surpass a 3." },
+            { name: "2. The Law of Influence:", text: "In the Red Cross, there are no salaries to command with. If you cannot influence through respect, you are not the leader, you just have a title." },
+            { name: "3. The Law of Process:", text: "Leadership develops daily. BOCA won't change the branch in a weekend; it is the start of a long-term process." },
+            { name: "4. The Law of Navigation:", text: "Anyone can steer the ship, but it takes a leader to chart the course. Anticipate resistance before proposing a drastic change." },
+            { name: "5. The Law of Addition:", text: "A leader adds value by serving others. Volunteers are not there to serve you; you are there to give them the tools they need." },
+            { name: "6. The Law of Solid Ground:", text: "Trust is your foundation. If you expose problems in a BOCA workshop and then do nothing, you lose trust forever." },
+            { name: "7. The Law of Respect:", text: "Volunteers naturally follow leaders stronger than themselves. Act with absolute integrity." }
+          ]
+        },
+        {
+          icon: <HeartHandshake className="w-6 h-6 text-emerald-500" />,
+          title: "Connection, Talent & Empowerment",
+          points: [
+            { name: "8. The Law of Intuition:", text: "Leaders learn to read the room and know when a volunteer is about to throw in the towel from exhaustion." },
+            { name: "9. The Law of Magnetism:", text: "You attract who you are. If you are disorganized and apathetic, you will recruit that profile. If you want elite volunteers, be elite." },
+            { name: "10. The Law of Connection:", text: "Touch a heart before asking for a hand. Don't ask a volunteer to work Sunday if you don't know their kids' names." },
+            { name: "11. The Law of the Inner Circle:", text: "A leader's potential is determined by those closest to them. Who are your top 5 collaborators? They elevate or sink the branch." },
+            { name: "12. The Law of Empowerment:", text: "Only secure leaders delegate important tasks. If you micromanage out of fear they'll mess up, the branch will never grow." },
+            { name: "13. The Law of Reproduction:", text: "It takes a leader to raise up another leader. Your job isn't to be indispensable, it's to create your replacement." },
+            { name: "14. The Law of Buy-in:", text: "People buy into the leader first, then the vision. If they don't trust you, they will sabotage BOCA." }
+          ]
+        },
+        {
+          icon: <TrendingUp className="w-6 h-6 text-blue-500" />,
+          title: "Execution, Momentum & Legacy",
+          points: [
+            { name: "15. The Law of Victory:", text: "Leaders find a way for the team to win. Amidst a lack of funds, a leader looks for solutions, not excuses." },
+            { name: "16. The Law of the Big Mo (Momentum):", text: "Momentum is a leader's best friend. Celebrate small wins quickly after BOCA to create unstoppable positive energy." },
+            { name: "17. The Law of Priorities:", text: "Being busy is not being productive. Prioritize the BOCA Roadmap actions that will yield 80% of the impact." },
+            { name: "18. The Law of Sacrifice:", text: "A leader must give up to go up. Sometimes it means giving up your weekend, or your ego to admit mistakes." },
+            { name: "19. The Law of Timing:", text: "When to lead is as important as what to do. Don't launch BOCA during an active emergency; the timing will be disastrous." },
+            { name: "20. The Law of Explosive Growth:", text: "To add, lead followers. To multiply, lead leaders. Invest your time training area coordinators." },
+            { name: "21. The Law of Legacy:", text: "A leader's lasting value is measured by succession. A 'Strong Branch' runs perfectly the day you leave." }
+          ]
+        }
+      ]
+    },
+    ui: {
+      markComplete: "Mark step as completed",
+      unmarkComplete: "Revert step status",
+      tipsTitle: "Leader's Practical Tips",
+      examplesTitle: "Real Examples",
+      contextTitle: "Deep Dive: Why and What for?",
+      rolesDesc: "The BOCA ecosystem requires every actor to take responsibility with excellence.",
+      glossaryDesc: "Organizational Development language translated to simple terms."
+    },
+    glossary: [
+      { term: "BOCA", def: "Branch Organisational Capacity to Act. A tool to diagnose flaws and plan improvements." },
+      { term: "Emotional Salary", def: "The real compensation of a volunteer: recognition, friendship, social prestige, and a sense of purpose." },
+      { term: "ESG / CSR", def: "Environmental, Social, and Governance criteria. What companies need to meet for investors, and we provide the platform for them to do it." },
+      { term: "Headhunting", def: "Targeted search for high-level specific profiles rather than waiting for them to walk in." },
+      { term: "FOMO (Fear Of Missing Out)", def: "The psychological fear of missing out on something amazing. Used to make people desire volunteering by limiting spots." },
+      { term: "Roadmap", def: "The tangible action plan, with owners and dates, born after the BOCA workshop. If this fails, everything fails." },
+      { term: "ToF (Training of Facilitators)", def: "Rigorous 2-day training to teach your team how to handle complex debates in workshops." }
+    ],
+    roles: [
+      { role: "BOCA Promoter", actor: "Local/National President", res: "Puts the official seal on the project. Sells the vision to high society, opens doors with politicians and big business. Protects BOCA at the executive level." },
+      { role: "BOCA Coordinator", actor: "NHQ Staff", res: "The orchestrator. Prepares the national budget, standardizes training, consolidates data from all branches, and demands results." },
+      { role: "BOCA Mobiliser", actor: "Local Branch Leader", res: "The local engine. Convinces volunteers to be honest. After the workshop, they are solely responsible for integrating the Roadmap into daily operations." },
+      { role: "BOCA Facilitator", actor: "Trained Person (ToF)", res: "Neutral workshop guide. Uses psychology and active listening so participants debate healthily and reach their own conclusions. Writes the official report." }
+    ],
+    phases: [
+      {
+        id: "phase-1", title: "INITIAL REFLECTION", icon: "BookOpen",
+        steps: [
+          {
+            id: 1, title: "Step 1. Why Branch Development?",
+            details: [
+              "Identify the real local problem (Massive talent drain? Community disconnect? Red finances?).",
+              "Avoid 'Assessment Fatigue'. If they just did a heavy financial audit, don't send BOCA immediately."
+            ],
+            context: {
+              why: "Without a clear 'why', the process feels like useless bureaucracy imposed by HQ.",
+              whatFor: "To align expectations between the capital and the field, preventing mismatched goals.",
+              how: "The national team must draft a single strong paragraph (Elevator Pitch) justifying the purpose before starting."
+            }
+          },
+          {
+            id: 2, title: "Step 2. Are we BOCA ready?",
+            details: [
+              "Designate a national Coordinator with dedicated time.",
+              "Confirm real budget for travel, food, and vitally, to fund the solutions the branch proposes.",
+              "Verify there are no active emergencies (natural disasters) on the radar."
+            ],
+            context: {
+              why: "Launching a deep process, promising changes, and abandoning it halfway for lack of money destroys trust.",
+              whatFor: "Ensure operational viability to reach Step 14 uninterrupted.",
+              how: "Create a simple risk matrix (Budget, Time, Disposition) before contacting the first branch."
+            }
+          }
+        ]
+      },
+      {
+        id: "phase-2", title: "INITIAL PREPARATION", icon: "Target",
+        steps: [
+          {
+            id: 3, title: "Step 3. Kick-off: Roles & Responsibilities",
+            details: [
+              "Make documented official appointments.",
+              "Contact the regional IFRC office to request expert mentors if doing it for the first time."
+            ],
+            context: {
+              why: "The law of 'We are all responsible' means 'No one will do it'.",
+              whatFor: "Establish accountability from Day 1.",
+              how: "Organize an official Kick-off meeting where each actor publicly accepts their role."
+            }
+          },
+          {
+            id: 4, title: "Step 4. Approach & Selection",
+            details: [
+              "Draft clear Terms of Reference (ToR).",
+              "Define if it will be a voluntary exercise or mandatory by statute.",
+              "Choose pilot branches."
+            ],
+            context: {
+              why: "Applying BOCA to 50 branches simultaneously will collapse the NHQ team.",
+              whatFor: "Control the pace and create initial 'success stories' to inspire (Social Proof).",
+              how: "Strategically select 2 very strong branches, 2 average, and 1 in crisis to test the system."
+            }
+          },
+          {
+            id: 5, title: "Step 5. Budget & Resources",
+            details: [
+              "Budget travel and hotels for ToF Training (2 days).",
+              "Cover local Workshop costs (Lunch and materials for 15 pax x 2 days).",
+              "Secure an untouchable 'Seed Fund'."
+            ],
+            context: {
+              why: "BOCA uncovers great ideas. If the branch makes a great roadmap and is told 'No money', resentment builds.",
+              whatFor: "Guarantee the analysis turns into immediate impact.",
+              how: "Reserve $500 - $1,000 USD per branch exclusively to kickstart Activity #1 of their new Roadmap."
+            }
+          },
+          {
+            id: 6, title: "Step 6. Pre-Workshop Orientation",
+            details: [
+              "Gather board members and key volunteers.",
+              "Sell the concept: BOCA is for growth, not auditing."
+            ],
+            context: {
+              why: "The reptilian brain fears judgment. Branches might hide info out of fear of reprisals.",
+              whatFor: "Create a safe space for brutal honesty.",
+              how: "Send a video from the National President: 'BOCA is a mirror to improve, not a magnifying glass to find culprits'."
+            }
+          },
+          {
+            id: 7, title: "Step 7. Local Adaptation & Translation",
+            details: [
+              "Review the global manual and adjust it to national culture.",
+              "Remove irrelevant attributes (e.g., complex labor laws if branch is 100% volunteer).",
+              "Keep core attribute numbering to compare data with IFRC."
+            ],
+            context: {
+              why: "International corporate jargon disconnects and bores the grassroots volunteer.",
+              whatFor: "Generate ownership; make them feel the tool is 'theirs'.",
+              how: "Use a mixed committee (HQ and field) to translate the document into clear language."
+            },
+            examples: [
+              { before: "The branch has structured resource mobilization strategies...", after: "Our board has a clear written plan to get donations this year..." }
+            ]
+          }
+        ]
+      },
+      {
+        id: "phase-3", title: "TEAM FORMATION", icon: "Users",
+        steps: [
+          {
+            id: 8, title: "Step 8. Facilitator Selection",
+            details: [
+              "Look for profiles with high emotional intelligence, empathy, and patience.",
+              "Do not choose authoritarian 'boss' profiles.",
+              "Ensure diversity in gender, age, and operational experience."
+            ],
+            context: {
+              why: "A facilitator who imposes opinions turns BOCA into a one-way lecture and destroys consensus.",
+              whatFor: "To guarantee solutions come from the branch itself, not the moderator.",
+              how: "Conduct interviews focused on active listening and conflict management skills."
+            }
+          },
+          {
+            id: 9, title: "Step 9. ToF Training",
+            details: [
+              "Rigorous, immersive 2-day in-person training.",
+              "Do not allow more than 2 months between training and their first workshop."
+            ],
+            context: {
+              why: "Handling 15 frustrated people debating priorities is very hard. Theory is not enough.",
+              whatFor: "Standardize workshop quality nationwide.",
+              how: "Dedicate 80% of training time to role-play simulations of real hostile scenarios."
+            }
+          }
+        ]
+      },
+      {
+        id: "phase-4", title: "FIELD ROLL-OUT", icon: "ListChecks",
+        steps: [
+          {
+            id: 10, title: "Step 10. Local BOCA Workshops",
+            details: [
+              "Isolate 8-15 representative people (youth, veterans, directors) for 1.5 to 2 full days.",
+              "Do activities: BOCA Puzzle, Matrix Debate, Prioritization.",
+              "Result: Build the Roadmap assigning immediate owners."
+            ],
+            context: {
+              why: "If only directors attend, the result is biased and ignores operational reality.",
+              whatFor: "Achieve deep social agreement on the branch's 3 absolute priorities.",
+              how: "Ensure flawless logistics: food, materials, and mandatory phones off."
+            }
+          },
+          {
+            id: 11, title: "Step 11. Monitoring & Follow-up",
+            details: [
+              "Print the Roadmap poster-size and stick it on the branch wall.",
+              "Mandatory progress review in every monthly board meeting.",
+              "NHQ must constantly demand BOCA progress reports."
+            ],
+            context: {
+              why: "Organizations love planning but fail executing. Without friendly pressure, enthusiasm dies in 15 days.",
+              whatFor: "To maintain traction (Momentum) and ensure accountability.",
+              how: "Implement quarterly 'Stocktaking' video calls for branches to report roadblocks."
+            }
+          },
+          {
+            id: 12, title: "Step 12. Global Results Analysis",
+            details: [
+              "Consolidate all Roadmap data into a national matrix.",
+              "Look for systemic failure patterns nationwide (e.g., 80% fail in legal issues)."
+            ],
+            context: {
+              why: "HQ usually directs resources based on assumptions or intuition.",
+              whatFor: "Have hard data to justify investments to international donors or the Assembly.",
+              how: "Create an executive Dashboard connecting branch pains with HQ departments."
+            }
+          }
+        ]
+      },
+      {
+        id: "phase-5", title: "RECOGNITION & INSPIRATION", icon: "Award",
+        steps: [
+          {
+            id: 13, title: "Step 13. Celebrate Achievements",
+            details: [
+              "Recognize the immense extra effort organizational development takes.",
+              "Document Success Stories on video.",
+              "Award 'Branch of Excellence' certifications or Quality Seals."
+            ],
+            context: {
+              why: "Volunteers get paid in Emotional Salary. If HQ ignores internal improvements, motivation plummets.",
+              whatFor: "Prove that improving administration is as heroic an act as rescuing people.",
+              how: "Have the National President visit the branch exclusively to deliver the award in front of the city."
+            }
+          },
+          {
+            id: 14, title: "Step 14. Peer Support",
+            details: [
+              "Connect highly efficient branches (A+) with those needing support (C).",
+              "Organize Annual Branch Development Forums (zero disasters, only management & leadership)."
+            ],
+            context: {
+              why: "HQ does not have a monopoly on good ideas. The neighboring branch often has the solution.",
+              whatFor: "Create a decentralized mutual learning network (Knowledge Hub).",
+              how: "Implement a formal 'Sister Branches' program or cross-mentorship."
+            }
+          }
+        ]
+      }
+    ]
+  }
+};
+
+const iconMap = {
+  BookOpen: <BookOpen className="w-5 h-5" />,
+  Target: <Target className="w-5 h-5" />,
+  Users: <Users className="w-5 h-5" />,
+  ListChecks: <ListChecks className="w-5 h-5" />,
+  Award: <Award className="w-5 h-5" />
+};
+
+export default function BocaApp() {
+  const [lang, setLang] = useState('es');
+  const [completedSteps, setCompletedSteps] = useState([]);
+  const [activeTab, setActiveTab] = useState('talent'); // Inicio en la pestaña clave
+  const [expandedStep, setExpandedStep] = useState(null);
+
+  useEffect(() => {
+    const savedProgress = localStorage.getItem('boca-progress');
+    const savedLang = localStorage.getItem('boca-lang');
+    if (savedProgress) setCompletedSteps(JSON.parse(savedProgress));
+    if (savedLang) setLang(savedLang);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('boca-progress', JSON.stringify(completedSteps));
+    localStorage.setItem('boca-lang', lang);
+  }, [completedSteps, lang]);
+
+  const toggleStep = (stepId) => {
+    setCompletedSteps(prev => 
+      prev.includes(stepId) ? prev.filter(id => id !== stepId) : [...prev, stepId]
+    );
+  };
+
+  const calculateProgress = () => Math.round((completedSteps.length / 14) * 100);
+
+  const resetProgress = () => {
+    if(window.confirm(DATA[lang].header.confirmReset)) {
+      setCompletedSteps([]);
+    }
+  };
+
+  const toggleLanguage = () => {
+    setLang(prev => prev === 'es' ? 'en' : 'es');
+  };
+
+  const t = DATA[lang];
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans pb-12">
+      <header className="bg-red-600 text-white shadow-md sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Target className="w-6 h-6" />
+              {t.header.title}
+            </h1>
+            <p className="text-red-100 text-sm mt-1">{t.header.subtitle}</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <button 
+              onClick={toggleLanguage}
+              className="flex items-center gap-1 px-4 py-2 bg-red-800 hover:bg-red-900 text-white rounded-full text-sm font-bold transition-colors shadow-inner border border-red-500 flex-shrink-0"
+            >
+              <Languages className="w-4 h-4" />
+              {lang === 'es' ? 'EN' : 'ES'}
+            </button>
+
+            <nav className="flex overflow-x-auto bg-red-700 p-1.5 rounded-xl gap-1 max-w-full hide-scrollbar shadow-inner">
+              {Object.keys(t.tabs).map((key) => (
+                <button 
+                  key={key}
+                  onClick={() => setActiveTab(key)} 
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-2 ${activeTab === key ? 'bg-white text-red-600 shadow-sm transform scale-105' : 'text-white hover:bg-red-500 hover:text-white'}`}
+                >
+                   {key === 'intro' && <Home className="w-4 h-4" />}
+                   {key === 'talent' && <Star className="w-4 h-4" />}
+                   {key === 'leadership' && <Crown className="w-4 h-4" />}
+                   {key === 'psychology' && <Brain className="w-4 h-4" />}
+                   {key === 'checklist' && <ListChecks className="w-4 h-4" />}
+                   {key === 'roles' && <Users className="w-4 h-4" />}
+                   {key === 'glossary' && <BookMarked className="w-4 h-4" />}
+                   
+                   <span className="hidden md:inline">{t.tabs[key]}</span>
+                   <span className="md:hidden capitalize">{key}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        
+        {/* --- INTRO CONTENT --- */}
+        {activeTab === 'intro' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+              <h2 className="text-3xl font-black text-gray-900 mb-5">{t.intro.title}</h2>
+              <p className="text-lg text-gray-700 leading-relaxed mb-8">{t.intro.p1}</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                <div className="bg-red-50/50 rounded-2xl p-8 border border-red-100 shadow-sm">
+                  <h3 className="text-xl font-bold text-red-800 mb-4 flex items-center gap-3"><Info className="w-7 h-7" /> {t.intro.whatIsTitle}</h3>
+                  <p className="text-red-900/80 leading-relaxed text-lg">{t.intro.whatIsDesc}</p>
+                </div>
+                <div className="bg-emerald-50/50 rounded-2xl p-8 border border-emerald-100 shadow-sm">
+                  <h3 className="text-xl font-bold text-emerald-800 mb-4 flex items-center gap-3"><ShieldCheck className="w-7 h-7" /> {t.intro.strongBranchTitle}</h3>
+                  <p className="text-emerald-900/80 mb-5 font-medium">{t.intro.strongBranchDesc}</p>
+                  <ul className="space-y-3">
+                    {t.intro.strongBranchPoints.map((point, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-emerald-900/80">
+                        <CheckCircle2 className="w-6 h-6 text-emerald-500 flex-shrink-0" />
+                        <span className="mt-0.5 leading-relaxed">{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 pt-10">
+                <h3 className="text-2xl font-black text-gray-900 mb-8 flex items-center gap-3">
+                  <TrendingUp className="w-7 h-7 text-red-600" /> {t.intro.whyBocaTitle}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {t.intro.whyBocaPoints.map((reason, idx) => (
+                    <div key={idx} className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="bg-red-100 w-12 h-12 rounded-full flex items-center justify-center text-red-600 font-black text-xl mb-4">
+                        {idx + 1}
+                      </div>
+                      <h4 className="font-bold text-gray-900 text-lg mb-2">{reason.title}</h4>
+                      <p className="text-gray-600 leading-relaxed">{reason.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- TALENT & PSYCHOLOGY CONTENT --- */}
+        {(activeTab === 'talent' || activeTab === 'psychology') && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className={`bg-gradient-to-br ${activeTab === 'talent' ? 'from-teal-900 via-emerald-800 to-emerald-900' : 'from-indigo-900 via-blue-800 to-blue-900'} rounded-2xl p-10 shadow-xl text-white relative overflow-hidden`}>
+              <div className="relative z-10">
+                <h2 className="text-4xl font-black mb-4 flex items-center gap-4 tracking-tight">
+                  {activeTab === 'talent' ? <Users className="w-10 h-10 text-emerald-300" /> : <Brain className="w-10 h-10 text-blue-300" />} 
+                  {t[activeTab].title}
+                </h2>
+                <p className={`${activeTab === 'talent' ? 'text-emerald-100' : 'text-blue-100'} text-xl leading-relaxed max-w-4xl font-medium`}>
+                  {t[activeTab].desc}
+                </p>
+              </div>
+              <div className="absolute -bottom-24 -right-24 opacity-10 transform rotate-12 scale-150">
+                  {activeTab === 'talent' ? <Star className="w-96 h-96" /> : <Zap className="w-96 h-96" />}
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              {t[activeTab].pillars.map((pillar, idx) => (
+                <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="bg-gray-50/80 border-b border-gray-100 p-8 flex gap-6 items-start">
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex-shrink-0 transform -rotate-3">
+                      {pillar.icon}
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 tracking-tight">{pillar.title}</h3>
+                      <p className="text-gray-600 mt-2 text-lg leading-relaxed">{pillar.desc}</p>
+                    </div>
+                  </div>
+                  <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {pillar.deepDive.map((item, idy) => (
+                      <div key={idy} className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex flex-col hover:border-gray-300 transition-colors">
+                        <h4 className={`font-black ${activeTab === 'talent' ? 'text-emerald-800' : 'text-blue-800'} mb-4 text-sm uppercase tracking-widest flex items-center gap-2`}>
+                           <span className={`w-2 h-2 rounded-full ${activeTab === 'talent' ? 'bg-emerald-500' : 'bg-blue-500'}`}></span>
+                           {item.subtitle}
+                        </h4>
+                        <p className="text-gray-700 text-base leading-relaxed whitespace-pre-line flex-1">
+                          {item.text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* --- LEADERSHIP CONTENT --- */}
+        {activeTab === 'leadership' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+             <div className="bg-gradient-to-br from-amber-600 via-orange-600 to-red-700 rounded-2xl p-10 shadow-xl text-white relative overflow-hidden">
+              <div className="relative z-10">
+                <h2 className="text-4xl font-black mb-4 flex items-center gap-4 tracking-tight">
+                  <Crown className="w-10 h-10 text-amber-200" /> 
+                  {t.leadership.title}
+                </h2>
+                <p className="text-orange-50 text-xl leading-relaxed max-w-4xl font-medium">
+                  {t.leadership.desc}
+                </p>
+              </div>
+              <div className="absolute -top-24 -right-10 opacity-10 transform -rotate-12 scale-150">
+                  <Crown className="w-96 h-96" />
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              {t.leadership.laws.map((lawSection, idx) => (
+                <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                  <div className="bg-orange-50/30 border-b border-gray-100 p-8 flex gap-6 items-center">
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-orange-100 flex-shrink-0">
+                      {lawSection.icon}
+                    </div>
+                    <h3 className="text-2xl font-black text-gray-900 tracking-tight">{lawSection.title}</h3>
+                  </div>
+                  <div className="p-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {lawSection.points.map((point, idy) => (
+                        <div key={idy} className="flex flex-col gap-3 group">
+                          <h4 className="font-bold text-lg text-gray-900 border-l-4 border-amber-500 pl-4 py-1 group-hover:border-red-500 transition-colors">
+                            {point.name}
+                          </h4>
+                          <p className="text-gray-700 text-base leading-relaxed bg-gray-50/50 p-5 rounded-xl border border-gray-100 h-full">
+                            {point.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* --- CHECKLIST PROGRESS & CONTENT --- */}
+        {activeTab === 'checklist' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            {/* PROGRESS WIDGET */}
+            <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-4 gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-900">{t.header.progress}</h2>
+                  <p className="text-gray-500 mt-1 font-medium">{completedSteps.length} / 14 {t.header.stepsCompleted}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-4xl font-black text-red-600">{calculateProgress()}%</span>
+                </div>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-4 mb-6 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-red-500 to-red-600 h-full rounded-full transition-all duration-700 ease-out" 
+                  style={{ width: `${calculateProgress()}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-end">
+                <button 
+                  onClick={resetProgress}
+                  className="text-sm flex items-center gap-2 text-gray-400 hover:text-red-600 font-semibold transition-colors px-4 py-2 rounded-lg hover:bg-red-50"
+                >
+                  <RefreshCcw className="w-4 h-4" /> {t.header.reset}
+                </button>
+              </div>
+            </div>
+
+            {/* CHECKLIST PHASES */}
+            <div className="space-y-6">
+              {t.phases.map((phase) => (
+                <div key={phase.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="bg-gray-50/80 px-8 py-5 border-b border-gray-200 flex items-center gap-4">
+                    <div className="text-red-600 bg-white p-2.5 rounded-xl shadow-sm border border-gray-100">
+                      {iconMap[phase.icon] || <ListChecks className="w-6 h-6" />}
+                    </div>
+                    <h3 className="font-black text-gray-900 tracking-widest text-lg uppercase">{phase.title}</h3>
+                  </div>
+                  
+                  <div className="divide-y divide-gray-100">
+                    {phase.steps.map((step) => {
+                      const isCompleted = completedSteps.includes(step.id);
+                      const isExpanded = expandedStep === step.id;
+                      
+                      return (
+                        <div key={step.id} className={`transition-colors duration-300 ${isCompleted ? 'bg-red-50/20' : 'hover:bg-gray-50/50'}`}>
+                          {/* STEP HEADER (CLICKABLE) */}
+                          <div className="px-8 py-5 flex items-start gap-5">
+                            <button 
+                              onClick={() => toggleStep(step.id)}
+                              className={`mt-1 flex-shrink-0 transition-transform hover:scale-110 focus:outline-none ${isCompleted ? 'text-red-600' : 'text-gray-300 hover:text-red-400'}`}
+                            >
+                              {isCompleted ? <CheckCircle2 className="w-8 h-8" /> : <Circle className="w-8 h-8" />}
+                            </button>
+                            
+                            <div className="flex-1 cursor-pointer select-none" onClick={() => setExpandedStep(isExpanded ? null : step.id)}>
+                              <div className="flex justify-between items-center gap-4">
+                                <h4 className={`font-bold text-xl transition-colors ${isCompleted ? 'text-gray-400 line-through decoration-red-300 decoration-2' : 'text-gray-900'}`}>
+                                  {step.title}
+                                </h4>
+                                <div className={`p-1.5 rounded-lg transition-colors ${isExpanded ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-500'}`}>
+                                  {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                </div>
+                              </div>
+                              {!isExpanded && (
+                                <p className="text-gray-500 mt-2 text-base line-clamp-1 pr-12">
+                                  {step.details[0]}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* EXPANDED CONTENT */}
+                          {isExpanded && (
+                            <div className="px-8 pb-8 pt-2 ml-14 pl-6 border-l-2 border-red-200/50 animate-in slide-in-from-top-2 duration-200">
+                              
+                              <div className="prose prose-gray max-w-none mb-8">
+                                <ul className="space-y-4 list-none pl-0">
+                                  {step.details.map((detail, idx) => (
+                                    <li key={idx} className="flex gap-3 text-gray-700 text-lg leading-relaxed">
+                                      <span className="text-red-400 font-bold mt-0.5">•</span>
+                                      <span>{detail}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                              
+                              {step.context && (
+                                <div className="mt-6 bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100/60 shadow-sm">
+                                  <h5 className="font-black text-indigo-900 mb-5 flex items-center gap-2 text-sm uppercase tracking-widest">
+                                    <Brain className="w-5 h-5 text-indigo-600" /> 
+                                    {t.ui.contextTitle}
+                                  </h5>
+                                  <div className="space-y-5 text-base">
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                                      <div className="sm:w-28 flex-shrink-0 font-black text-indigo-800 bg-indigo-100/50 px-3 py-1 rounded-lg w-fit h-fit">{lang === 'es' ? '¿Por qué?' : 'Why?'}</div>
+                                      <div className="text-gray-800 leading-relaxed pt-1">{step.context.why}</div>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                                      <div className="sm:w-28 flex-shrink-0 font-black text-indigo-800 bg-indigo-100/50 px-3 py-1 rounded-lg w-fit h-fit">{lang === 'es' ? '¿Para qué?' : 'What for?'}</div>
+                                      <div className="text-gray-800 leading-relaxed pt-1">{step.context.whatFor}</div>
+                                    </div>
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 bg-white p-4 rounded-xl border border-indigo-50 shadow-sm mt-2">
+                                      <div className="sm:w-28 flex-shrink-0 font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-lg w-fit h-fit">{lang === 'es' ? '¿Cómo?' : 'How?'}</div>
+                                      <div className="text-gray-900 font-medium leading-relaxed pt-1">{step.context.how}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {step.examples && (
+                                <div className="mt-6 bg-emerald-50/50 rounded-2xl p-6 border border-emerald-100/60 shadow-sm">
+                                  <h5 className="font-black text-emerald-900 mb-5 flex items-center gap-2 text-sm uppercase tracking-widest">
+                                    <FileText className="w-5 h-5 text-emerald-600" /> 
+                                    {t.ui.examplesTitle}
+                                  </h5>
+                                  <div className="space-y-4 text-base">
+                                    {step.examples.map((ejemplo, idx) => (
+                                      <div key={idx} className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm">
+                                        <div className="flex flex-col md:flex-row gap-4">
+                                          <div className="md:w-1/2">
+                                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-bold uppercase tracking-wider mb-2 inline-block">{lang === 'es' ? 'Antes (Jerga)' : 'Before'}</span> 
+                                            <p className="text-gray-500 italic">"{ejemplo.before}"</p>
+                                          </div>
+                                          <div className="hidden md:block w-px bg-gray-100"></div>
+                                          <div className="md:w-1/2">
+                                            <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md font-bold uppercase tracking-wider mb-2 inline-block">{lang === 'es' ? 'Después (Humano)' : 'After'}</span> 
+                                            <p className="text-gray-900 font-medium">"{ejemplo.after}"</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="mt-10 flex gap-4">
+                                 <button 
+                                    onClick={() => toggleStep(step.id)}
+                                    className={`text-base px-8 py-3 rounded-xl font-bold transition-all shadow-sm flex items-center gap-3
+                                      ${isCompleted 
+                                        ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200' 
+                                        : 'bg-red-600 text-white hover:bg-red-700 hover:shadow-md transform hover:-translate-y-0.5'}`}
+                                 >
+                                   {isCompleted ? <RefreshCcw className="w-5 h-5"/> : <CheckCircle2 className="w-5 h-5"/>}
+                                   {isCompleted ? t.ui.unmarkComplete : t.ui.markComplete}
+                                 </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* --- ROLES & GLOSSARY --- */}
+        {activeTab === 'roles' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="bg-red-50 border border-red-100 rounded-2xl p-8 mb-8 flex gap-5 shadow-sm">
+              <Info className="w-8 h-8 text-red-600 flex-shrink-0" />
+              <div>
+                 <h2 className="text-xl font-black text-red-900 mb-2">Ecosistema BOCA</h2>
+                 <p className="text-red-900/80 text-lg leading-relaxed">{t.ui.rolesDesc}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {t.roles.map((role, idx) => (
+                <div key={idx} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 hover:shadow-md transition-all">
+                  <h3 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-3">
+                    <HeartHandshake className="w-8 h-8 text-red-500" />
+                    {role.role}
+                  </h3>
+                  <div className="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">{lang === 'es' ? 'Quién asume el rol:' : 'Who assumes the role:'}</span>
+                    <p className="font-black text-red-700 text-xl">{role.actor}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">{lang === 'es' ? 'Responsabilidad Real:' : 'Real responsibility:'}</span>
+                    <p className="text-gray-700 text-lg leading-relaxed">{role.res}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'glossary' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+             <div className="bg-blue-50 border border-blue-100 rounded-2xl p-8 mb-8 flex gap-5 shadow-sm">
+              <BookMarked className="w-8 h-8 text-blue-600 flex-shrink-0" />
+              <div>
+                 <h2 className="text-xl font-black text-blue-900 mb-2">Diccionario de Desarrollo</h2>
+                 <p className="text-blue-900/80 text-lg leading-relaxed">{t.ui.glossaryDesc}</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden divide-y divide-gray-100">
+              {t.glossary.map((item, idx) => (
+                <div key={idx} className="p-8 hover:bg-gray-50/50 transition-colors flex flex-col md:flex-row gap-6 md:gap-10">
+                  <div className="md:w-1/3">
+                    <h4 className="text-2xl font-black text-blue-900">{item.term}</h4>
+                  </div>
+                  <div className="md:w-2/3 flex items-center">
+                    <p className="text-gray-700 text-lg leading-relaxed">{item.def}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
