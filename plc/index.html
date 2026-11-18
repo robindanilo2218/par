@@ -354,6 +354,8 @@ th .q { margin-left: 6px; }
 button.tv { border: 1px solid currentColor; cursor: pointer; min-height: 28px; min-width: 2.2rem; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 button.tv.mom { border-style: dashed; }
 button.tv:hover { border-color: var(--accent); }
+.sigcard .sc-a { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 2px; }
+.sigcard .sc-a b { margin-right: 2px; }
 
 </style>
 </head>
@@ -730,9 +732,10 @@ function createEngine(db, symtab) {
   const nodes = db.nodes;
   const cache = new Map();
   const ast = s => { let a = cache.get(s); if (!a) { a = parseExpr(s); cache.set(s, a); } return a; };
-  const state = { leaf: {}, force: {}, mem: {}, elapsed: {}, hold: {} };
+  const state = { leaf: {}, force: {}, mem: {}, elapsed: {}, hold: {}, tgprev: {} };
   let last = {};
   let vals = {}, prev = {}, visiting = new Set();
+  let latchMode = false;
 
   const isLeaf = n => !n || n.k === 'in' || n.k === 'opq';
   const ordCache = {};
@@ -788,13 +791,14 @@ function createEngine(db, symtab) {
     switch (n.k) {
       case 'calc': v = ev(ast(n.e), id); break;
       case 'out': v = ev(defAst(id), id); break;
-      case 'sd': v = ev(ast(n.in), id) && (id in state.elapsed ? !!state.elapsed[id] : true); break;
+      case 'sd': v = ev(ast(n.in), id) && (id in state.elapsed ? !!state.elapsed[id] : !n.nel); break;
       case 'sf': v = ev(ast(n.in), id) || !!state.hold[id]; break;
       case 'seal': v = (ev(ast(n.start), id) || !!state.mem[id]) && ev(ast(n.cond), id); break;
-      case 'lat': v = !ev(ast(n.rst), id) && (ev(ast(n.set), id) || !!state.mem[id]); break;
+      case 'lat': v = n.tg ? !!state.mem[id] : (!ev(ast(n.rst), id) && (ev(ast(n.set), id) || !!state.mem[id])); break;
       default: v = false;
     }
     visiting.delete(id);
+    if (latchMode && (n.k === 'seal' || n.k === 'lat')) state.mem[id] = v; // como el PLC: el set/reset queda guardado al instante y lo ven los renglones siguientes
     return (vals[id] = v);
   }
 
@@ -815,8 +819,31 @@ function createEngine(db, symtab) {
 
   // Repite ciclos copiando a la memoria el valor de cada autorretención y set/reset (como el PLC entre un ciclo y otro)
   function settle() {
+    latchMode = true;
+    try { return settleLoop(); } finally { latchMode = false; }
+  }
+  // biestable por pulso: cambia de estado cada vez que 'tg' pasa de 0 a 1 (con 'tgen' como permiso para encender)
+  function toggles() {
+    let any = false;
+    for (const id of Object.keys(nodes)) {
+      const n = nodes[id];
+      if (n.k !== 'lat' || !n.tg) continue;
+      vals = last; visiting = new Set();
+      const cur = !!ev(ast(n.tg), id);
+      if (cur && !state.tgprev[id]) {
+        let nv = !state.mem[id];
+        if (nv && n.tgen && !ev(ast(n.tgen), id)) nv = false;
+        if (nv !== !!state.mem[id]) { state.mem[id] = nv; any = true; }
+      }
+      state.tgprev[id] = cur;
+    }
+    return any;
+  }
+  function settleLoop() {
+    run();
+    if (toggles()) run();
     for (let i = 0; i < 8; i++) {
-      run();
+      if (i) run();
       let changed = false;
       for (const id of Object.keys(nodes)) {
         const n = nodes[id];
@@ -883,8 +910,20 @@ function createEngine(db, symtab) {
     }
   }
   buildUsedBy();
+  // ecuaciones reales (sin el texto de 'inv'): para saber qué salidas mueve una señal
+  const usedByEq = {};
+  for (const k of Object.keys(nodes)) {
+    const n = nodes[k], refs = new Set();
+    [n.e, n.in, n.start, n.cond, n.set, n.rst, n.cmd, n.perm].filter(Boolean).forEach(x => astRefs(ast(x), refs));
+    refs.forEach(r => { if (r !== k) (usedByEq[r] = usedByEq[r] || new Set()).add(k); });
+  }
+  function affects(id, isOut) {
+    const seen = new Set([id]), q = [id], hit = [];
+    while (q.length) { const x = q.pop(); if (x !== id && isOut(x)) hit.push(x); (usedByEq[x] || []).forEach(y => { if (!seen.has(y)) { seen.add(y); q.push(y); } }); }
+    return hit;
+  }
 
-  return { ast, state, run, settle, value, outStatus, missing, fixes, defAst, ev, nodes, usedBy, ord, isLeaf, leafVal, astRefs, get last() { return last; } };
+  return { ast, state, run, settle, value, outStatus, missing, fixes, defAst, ev, nodes, usedBy, usedByEq, affects, ord, isLeaf, leafVal, astRefs, get last() { return last; } };
 }
 
 if (typeof module !== 'undefined') module.exports = { parseExpr, astRefs, createEngine, ordOf };
@@ -958,8 +997,6 @@ IN('M99.0', 'Bandera de FC111 (pulso)', '1 solo durante el pulso; en marcha norm
 IN('M251.5', 'Alarma de FC40 que inhibe el centrado', '1 = alarma activa', 0);
 
 /* ---------- Estado general y bomba hidráulica (FC30) ---------- */
-OPQ('M1.5', 'Ciclo AUTOMÁTICO en marcha (autorretención). Con M1.5 = 1 trabajan FC34 y el empujador automático; con M1.5 = 0 trabaja el manual (FC33)',
-  'I0.0, I0.1, I8.5, I8.6, M1.4, !M2.2, !M229.3, T70', 'FC30 NW16');
 OPQ('M1.6', 'Pulso de un ciclo al arrancar el automático (flanco de subida de M1.5)', 'M1.5', 'FC30 NW19');
 OPQ('M2.0', 'Pulso de arranque automático (flanco de subida de M1.5)', 'M1.5', 'FC30 NW24');
 IN('T5', 'Temporizador T5 de la bomba (preselección en MW120/MW121): al cumplirse apaga la bomba (inferido)', '1 = tiempo cumplido, la bomba se corta', 0, { t: 'T' });
@@ -979,21 +1016,16 @@ CALC('M41.0', 'Orden MANUAL: inclinar empujador arriba', 'M91.4 & !M91.5 & !I6.5
 CALC('M41.1', 'Orden MANUAL: inclinar empujador abajo', 'M91.5 & !M91.4 & !I6.6 & I6.0 & !M1.5', 'FC33 NW9');
 CALC('M41.3', 'Orden MANUAL: empujador retroceder', 'M91.7 & !M91.6 & !I6.3 & !I6.4 & !M1.5', 'FC33 NW11');
 CALC('M41.4', 'Orden MANUAL: placa del empujador arriba (acompaña al retroceso)', 'M91.7 & !I6.3 & !I6.4 & !M1.5', 'FC33 NW12');
-OPQ('M41.2', 'Orden MANUAL: empujador avanzar. Mínimo seguro: M91.6 pulsado, M91.7 no, inclinación abajo (I6.6) y sin límites adelante (I6.1/I6.2); además intervienen los finales de paso (I5.x) y los topes (I11.x)',
-  'M91.6, !M91.7, I6.6, !I6.1, !I6.2, I5.1, I5.2, I5.3, I11.4, I11.5, M43.0, !Q28.0, !Q28.1, !M1.5', 'FC33 NW10');
-OPQ('M41.5', 'Orden MANUAL: avance del empujador por pasos (rama de FC33 NW10)', 'I5.1, I5.2, I11.4, M43.0, !M1.5', 'FC33 NW10');
-OPQ('M41.6', 'Orden MANUAL: avance del empujador por pasos, con tope abajo (rama de FC33 NW10)', 'I5.3, I11.5, I5.2, I6.6, !M1.5', 'FC33 NW10');
 SD('T30', 'Espera de 1 s entre órdenes de centrado manual', '!M40.4', '1 s', 'FC42 NW6');
 OPQ('M40.4', 'Pulso: final de carrera de centrado alcanzado mientras se pulsa un botón de centrado', 'I7.4, M182.0, M182.1', 'FC42 NW5');
 CALC('M40.2', 'Orden MANUAL: centrar a la izquierda', '!M1.5 & M182.0 & !M182.1 & T30', 'FC42 NW3');
 CALC('M40.3', 'Orden MANUAL: centrar a la derecha', '!M1.5 & !I7.5 & M182.1 & !M182.0 & T30', 'FC42 NW4');
 SD('T31', 'Compuerta de desecho fuera de cerrada durante 0,5 s', '!I7.6', '0,5 s', 'FC33 NW25');
-SD('T33', 'Compuerta de desecho cerrada 1 s', 'I7.6 & !M42.4', '1 s', 'FC33 NW24');
-SD('T34', 'Bulto presente y salida libre con la compuerta pedida cerrada, 1 s', 'I7.3 & !I7.7 & !M42.1', '1 s', 'FC33 NW23');
+SD('T33', 'Compuerta de desecho cerrada 1 s', 'I7.6 & !M42.4', '1 s', 'FC33 NW24', 1, { nel: 1 });
+SD('T34', 'Bulto presente y salida libre con la compuerta pedida cerrada, 1 s', 'I7.3 & !I7.7 & !M42.1', '1 s', 'FC33 NW23', 1, { nel: 1 });
 SF('T32', 'Pulso de apertura manual de la compuerta de desecho (se mantiene 1,5 s)', 'M42.1 & I7.6', '1,5 s', 'FC33 NW20');
 OPQ('M42.1', 'Compuerta de desecho MANUAL: biestable abrir/cerrar (cambia con cada pulso de M182.3)', 'M42.0, M42.1', 'FC33 NW19');
 OPQ('M42.4', 'Pulso: la compuerta manual pasó de abierta a cerrada (flanco de bajada de M42.1)', 'M42.1', 'FC33 NW21');
-OPQ('M42.2', 'Orden MANUAL: cerrar compuerta de desecho (autorretenida)', 'M42.4, M42.2, T34, !T33, I7.3, !I7.7', 'FC33 NW22');
 CALC('M42.3', 'Orden MANUAL: transportador de desecho (la compuerta pedida abierta y fuera de cerrada 0,5 s)', 'M42.1 & T31 & !M1.5', 'FC33 NW25');
 
 /* ---------- Automático del elevador (FC34): zona MCR activa con M1.5 = 1 ---------- */
@@ -1040,25 +1072,12 @@ SD('T109', 'Compuerta de desecho cerrada 1 s', 'I7.6', '1 s', 'FC43 NW12');
 SEAL('M131.1', 'Orden de RECUPERACIÓN: cerrar compuerta de desecho', 'M130.1', 'M130.0 & T4 & !T109', 'FC43 NW11');
 
 /* ---------- Empujador automático (FC41): zona MCR M1.5 · M50.6 · no M115.0 ---------- */
-OPQ('M50.6', 'Ciclo AUTOMÁTICO del empujador en marcha (autorretención; arranca con T46)', 'M1.5, I3.7, I6.1, I6.2, I6.6, I6.7, I7.0, I7.1, I7.2, I7.3, M2.7, M50.7, M51.0, T46', 'FC41 NW8');
 CALC('Z41A', 'Zona MCR del empujador automático (FC41 NW16): ciclo auto y empujador en marcha, sin paro M115.0', 'M1.5 & M50.6 & !M115.0', 'FC41 NW16');
 OPQ('M204.3', 'Pulso de un ciclo al iniciar el automático (flanco de subida de M1.5)', 'M1.5', 'FC41 NW6');
 SD('T44', 'Tiempo máximo de retroceso automático (1 s sin que la fotocélula I5.6 lo vea)', 'M51.1 & Q28.1 & !I5.6 & !M0.2 & !M51.4 & !M51.6', '1 s', 'FC41 NW13', 2);
 SEAL('M51.0', 'Fase AUTO de retorno: placa arriba (empieza al llegar adelante o con M52.0)', 'I6.2 | I6.1 | M52.0', 'M1.5 & !T44 & !I6.3 & !I6.4', 'FC41 NW9');
 SEAL('M51.1', 'Orden AUTO: empujador retroceder (necesita placa arriba I5.5)', 'M51.0 | (M151.0 & I5.5)', 'M1.5 & !I6.3 & !I6.4 & !T44', 'FC41 NW10');
 SEAL('M151.0', 'Orden AUTO: placa arriba al iniciar o descargar', 'M204.3 | M51.6', 'M1.5 & !I6.3 & !I6.4', 'FC41 NW11');
-OPQ('M38.0', 'Secuencia del empujador, PASO 0: empujador atrás, listo. Se pone con I6.4, Q28.1, M39.7 o el pulso M204.3', 'I6.4, Q28.1, M39.7, M204.3', 'FC41 NW2');
-OPQ('M38.1', 'Secuencia del empujador, PASO 1: 1er paso alcanzado, el empujador avanza (set/reset en FC41 NW17–19)', 'M38.0, I5.1, I5.2', 'FC41 NW17');
-OPQ('M38.2', 'Secuencia del empujador, PASO 2 (set/reset en FC41 NW19–22)', 'M38.1, I5.2, I5.3, T129', 'FC41 NW19');
-OPQ('M38.3', 'Secuencia del empujador, PASO 3 (set/reset en FC41 NW22–25)', 'M38.2, I5.3, I5.5, T129', 'FC41 NW22');
-OPQ('M38.4', 'Secuencia del empujador, PASO 4 (set/reset en FC41 NW25–27)', 'M38.3, I5.3, I5.5, I11.5, M166.7', 'FC41 NW25');
-OPQ('M38.5', 'Secuencia del empujador, PASO 5 (set/reset en FC41 NW27)', 'M38.4, I11.5', 'FC41 NW27');
-OPQ('M49.0', 'Orden AUTO: 1er paso (cilindro) adelante', 'Z41A, M38.0, I6.6, !I5.1, !T100', 'FC41 NW17');
-OPQ('M49.1', 'Orden AUTO: empujador avanza (paso 1)', 'Z41A, M38.1, I5.1, I5.2, I11.4, M47.0, T101, !I0.2, Q28.0', 'FC41 NW18');
-OPQ('M49.2', 'Orden AUTO: 2º paso adelante', 'Z41A, !M38.2, !M38.3, !M38.4, !M38.5, I5.2, !I6.1, !I6.2, M47.1, T102, !I0.2', 'FC41 NW21');
-OPQ('M49.3', 'Orden AUTO: placa arriba y 1er paso atrás (paso 3)', 'Z41A, !M38.3, !M38.4, !M38.5, I5.3, !I5.5, M47.2, T103, T129, M166.7, !I0.2', 'FC41 NW24');
-OPQ('M49.5', 'Orden AUTO: avance final del empujador (paso 5), velocidad baja o media', 'Z41A, M38.5, !I3.5, I3.6, I6.1, I6.2, I11.5, Q13.1, Q28.1', 'FC41 NW28');
-OPQ('M49.7', 'Orden AUTO: 1er paso atrás', 'Z41B, !I5.2, M49.6, T105', 'FC41 NW32');
 CALC('M48.4', 'Velocidad: avance con el 1er final de paso alcanzado → entrada de velocidad baja', 'Z41A & M49.1 & I5.1', 'FC41 NW20', 2);
 CALC('M48.5', 'Velocidad: avance antes del 1er final de paso → entrada de velocidad media', 'Z41A & M49.1 & !I5.1', 'FC41 NW20', 2);
 SF('T74', 'Retardo de 0,3 s en el contactor NRAKE del empujador', 'Q28.0 | Q28.1', '0,3 s', 'FC41 NW42');
@@ -1091,9 +1110,13 @@ OUT('Q13.0', 'Compuerta de desecho: abrir', 'T32|M52.7', '!Q12.7 & T4', 'FC35 NW
 
 /* ---------- SALIDAS: EMPUJADOR (FC41 y FC35) ---------- */
 OUT('Q16.1', 'Empujador: inclinar arriba', 'M41.0|M50.1|M52.2|M130.7', '!Q16.2 & T4', 'FC41 NW37', {
-  cmdHelp: 'Alguna orden de inclinar arriba: manual M41.0, automática M50.1 / M52.2 o recuperación M130.7' });
+  cmdHelp: 'Alguna orden de inclinar arriba: manual M41.0, automática M50.1 / M52.2 o recuperación M130.7',
+  nt: ['El empujador gira sobre un pivote fijo: el extremo donde empieza el empuje es el que sube o baja, y el pivote no se mueve.',
+    'El final de carrera de inclinación arriba (I6.5) no está escrito en este renglón: está dentro de cada orden (M41.0, M50.1, M52.2, M130.7). Al llegar a I6.5 esas órdenes se apagan y por eso Q16.1 se apaga. Pruebe I6.5 en Señales.'] });
 OUT('Q16.2', 'Empujador: inclinar abajo', 'T54', 'T4', 'FC41 NW39', {
-  cmdHelp: 'T54 (retardo de 0,1 s a la desconexión) se activa con M41.1 manual o M50.3 automática, si Q16.1 no está activa' });
+  cmdHelp: 'T54 (retardo de 0,1 s a la desconexión) se activa con M41.1 manual o M50.3 automática, si Q16.1 no está activa',
+  nt: ['Mismo pivote fijo: bajar es girar el empujador hacia abajo desde el extremo donde empieza el empuje.',
+    'El final de carrera de inclinación abajo (I6.6) también está dentro de las órdenes (M41.1 y M50.3), no en este renglón. Al llegar a I6.6 se apagan y Q16.2 se apaga 0,1 s después por el retardo T54.'] });
 OUT('Q28.0', 'Empujador: avanzar (variador)', 'M41.2|M41.5|M41.6|M49.1|M48.4|M48.5|M49.5', 'I3.6 & !I6.2 & I8.5 & I9.3 & I9.4 & !Q28.1 & T4', 'FC41 NW40', {
   cmdHelp: 'Alguna orden de avanzar: manual M41.2 / M41.5 / M41.6 o automática M49.1 / M48.4 / M48.5 / M49.5',
   nt: ['Exige el extendedor abajo (I3.6) y que el empujador no esté en el final adelante (I6.2).', 'A diferencia del retroceso, el avance sí exige hidráulica lista (T4).'] });
@@ -1191,8 +1214,6 @@ SEAL('M56.0', 'HMI: empujador lateral del escamador INHIBIDO (se pone con M212.6
 SEAL('M56.1', 'HMI: elevador de bultos del escamador INHIBIDO (se pone con M13.2; se quita con M13.3 o al pasar a automático)', 'M13.2', '!M13.3 & !M1.5', 'FC32 NW2');
 SEAL('M28.2', 'Ventana de «bulto en la compuerta shingle»: arranca con el pulso M28.1 y termina por T64 / T65', 'M28.1', '!T64 & !T65', 'FC32 NW6');
 OPQ('M28.1', 'Pulso: el bulto lleva 20 ms frente a la fotocélula I3.5 (flanco de M28.0, que pone T62)', 'I3.5, T62, M30.4', 'FC32 NW5');
-OPQ('M28.3', 'Fase siguiente de la ventana: arranca con T63 (3 s) o con el final de carrera I3.4; termina por T64 (2 s)', 'I3.4, M28.2, M27.2, M28.4, T63, T64', 'FC32 NW7');
-OPQ('T64', 'Temporizador de 2 s de la ventana de la compuerta shingle (FC32 NW7)', 'M28.3', 'FC32 NW7');
 SD('T20', 'Filtro de 10 ms para que la señal sea estable: transportador de entrada andando con el elevador de bultos abajo y el bulto frente a I3.5', 'Q13.1 & I3.3 & I3.5', '10 ms', 'FC32 NW10', 2);
 OPQ('M30.1', 'Contador de láminas C0 distinto de cero (cuenta con los pulsos de T20; se carga con M30.3 y MW32)', 'T20, M1.0, M30.3', 'FC32 NW11');
 CALC('M30.0', 'Escamador: PROHÍBE SUBIR (hay bulto entrando y el contador de láminas está activo)', 'T20 & M30.1', 'FC32 NW10', 2);
@@ -1342,6 +1363,115 @@ OUT('Q17.0', 'Señal «extendedor arriba» hacia la imprenta', '', '!I4.0 & I4.1
   cmdHelp: 'Sin orden: se activa cuando el extendedor llegó al tope superior (I4.0 = 0) con ambos pasadores cerrados',
   nt: ['I4.0 es NC: en 0 significa «llegó arriba», por eso aparece con ! en el permiso.'] });
 
+/* =====================================================================
+   «Cajas negras» reemplazadas por ecuaciones leídas de los listados KOP (FC30, FC32, FC33, FC41).
+   Confianza 2 = inferida: el texto del PDF no conserva el orden exacto de los contactos, por eso
+   se dedujo con los tipos de instrucción (A / AN / O) y la posición en el diagrama.
+   ===================================================================== */
+
+/* --- FC30 NW12, NW16–18: arranque y paro del ciclo AUTOMÁTICO --- */
+IN('M2.4', 'Orden de PARO del ciclo al terminar (sin escritor en el programa)', '1 = pide parar el automático cuando todo esté en reposo', 0);
+IN('M229.3', 'Paro del automático desde el HMI o comunicación (sin escritor en el programa)', '1 = impide el automático', 0);
+CALC('M1.4', 'Condiciones de arranque cumplidas: empujador atrás, inclinación abajo, elevador abajo, compuerta cerrada y pasador OK', '(I6.4 | !I5.6) & I6.6 & M2.7 & I7.6 & I8.3', 'FC30 NW12', 2, {
+  nt: ['Inferida. El diagrama tiene además una comparación MW121 = 0 y el contacto M2.7 dibujado dos veces; aquí se usó M2.7 como «elevador abajo».'] });
+SD('T70', 'Pulsador de arranque I0.1 mantenido 0,7 s', 'M1.4 & I0.1', '0,7 s', 'FC30 NW16', 2);
+SEAL('M1.5', 'Ciclo AUTOMÁTICO en marcha (autorretención). Con M1.5 = 1 trabajan FC34 y el empujador automático; con M1.5 = 0 trabaja el manual (FC33)',
+  'M1.4 & I0.1 & T70', 'I8.5 & I8.6 & I0.0 & !M2.2 & !M229.3', 'FC30 NW16', 2, {
+  nt: ['Arranca con el pulsador I0.1 (selector I0.0 en automático) si M1.4 está cumplida; se mantiene sola.',
+       'Se cae con el paro de emergencia, el térmico de la bomba, el selector en manual, M229.3 o el paro al final del ciclo (M2.2).'] });
+SEAL('M2.1', 'Paro al final del ciclo pedido (queda esperando que todo vuelva a reposo)', 'M2.4', 'M1.5 & !M2.2 & !I0.2', 'FC30 NW17', 2);
+CALC('M2.2', 'Paro del ciclo: había orden de paro y ya todo está en reposo (apaga M1.5)', 'M2.1 & I6.4 & M2.7 & I7.6 & I8.3', 'FC30 NW18', 2);
+
+/* --- FC33 NW10: avance MANUAL del empujador --- */
+IN('M43.0', 'Memoria interna de FC33 NW10 del avance manual por pasos (su escritura exacta no se pudo leer del listado)', '1 = activa', 0);
+CALC('M41.2', 'Orden MANUAL: empujador avanzar (zona del 1er paso)', 'M91.6 & !M91.7 & I6.6 & !I6.1 & !I6.2 & !I5.2 & !I5.3 & !M1.5', 'FC33 NW10', 2, {
+  nt: ['Inferida: botón AVANZAR (M91.6) sin RETROCEDER, inclinación abajo, sin sobrecarrera ni final adelante y sin los finales de paso I5.2 / I5.3.'] });
+CALC('M41.5', 'Orden MANUAL: avance del empujador por pasos (tope trasero arriba)', 'M91.6 & !M91.7 & I11.4 & (I5.1 | I5.2) & M43.0 & !M1.5', 'FC33 NW10', 2, {
+  nt: ['Inferida: exige el tope trasero arriba (I11.4), un final del 1er paso (I5.1 o I5.2) y la memoria M43.0.'] });
+CALC('M41.6', 'Orden MANUAL: avance del empujador por pasos (tope trasero abajo)', 'M91.6 & !M91.7 & I6.6 & I5.3 & I11.5 & I5.2 & !M1.5', 'FC33 NW10', 2, {
+  nt: ['Inferida: exige el 2º paso adelante (I5.3), el tope trasero abajo (I11.5) y el 1er paso atrás (I5.2).'] });
+
+/* --- FC33 NW22: cierre manual de la compuerta de desecho --- */
+SEAL('M42.2', 'Orden MANUAL: cerrar compuerta de desecho (autorretenida)', 'M42.4 | T34', '!T33 & I7.3 & !I7.7', 'FC33 NW22', 2);
+
+/* --- FC32 NW6–7: ventana de la compuerta shingle --- */
+SD('T63', 'Ventana de 3 s de la compuerta shingle (FC32 NW6)', 'M28.2', '3 s', 'FC32 NW6', 2, { nel: 1 });
+SEAL('M28.3', 'Fase siguiente de la ventana: arranca con T63 (3 s) o con el final de carrera I3.4; termina por T64 (2 s)', 'I3.4 | T63', 'M28.2 & !M27.2 & !M28.4 & !T64', 'FC32 NW7', 2);
+SD('T64', 'Temporizador de 2 s de la ventana de la compuerta shingle (FC32 NW7)', 'M28.3', '2 s', 'FC32 NW7', 2, { nel: 1 });
+
+/* --- FC41: ciclo del empujador y secuencia de pasos M38.x --- */
+IN('M39.7', 'Bandera externa que fuerza el PASO 0 de la secuencia (sin escritor en el programa)', '1 = fuerza el paso 0', 0);
+SEAL('M50.6', 'Ciclo AUTOMÁTICO del empujador en marcha (autorretención). Se cae al llegar adelante (I6.1 / I6.2) y entonces sigue la fase de retorno M51.0',
+  'M50.7 & (T46 | (I7.1 & !I3.7))', 'I6.6 & !M51.0 & !I6.1 & !I6.2', 'FC41 NW8', 2, {
+  nt: ['Inferida: arranca con T46 (1,5 s de espera con el elevador arriba) o con el elevador arriba (I7.1) y la entrada sin bulto (I3.7).',
+       'Un renglón superior del diagrama (elevador abajo y sin bulto) no se pudo ubicar y no está en esta ecuación: confirmar en STEP 7.'] });
+
+LAT('M38.0', 'PASO 0 de la secuencia: empujador atrás, listo. Se pone con I6.4, Q28.1, M39.7 o el pulso M204.3', 'I6.4 | Q28.1 | M39.7 | M204.3', 'Z41A & M38.1', 'FC41 NW2', 2);
+LAT('M38.1', 'PASO 1: 1er paso adelante alcanzado (I5.1), el empujador avanza', 'Z41A & M38.0 & I5.1', 'Z41A & M38.2', 'FC41 NW17', 2);
+LAT('M38.2', 'PASO 2: 1er paso atrás alcanzado (I5.2)', 'Z41A & M38.1 & I5.2', '(Z41A & M38.3) | ((I6.4 | Q28.1) & !(Z41A & M38.1 & I5.2))', 'FC41 NW19', 2);
+LAT('M38.3', 'PASO 3: 2º paso adelante alcanzado (I5.3) o pasaron 4 s (T129)', 'Z41A & (M38.2 | M38.3 | M38.4 | M38.5) & (I5.3 | T129)', '(Z41A & (M38.4 | M38.5)) | ((I6.4 | Q28.1) & !(Z41A & (M38.2 | M38.3 | M38.4 | M38.5) & (I5.3 | T129)))', 'FC41 NW22', 2);
+LAT('M38.4', 'PASO 4: placa arriba (I5.5 o M166.7). El paso 3 cede el turno a este', 'Z41A & (M38.3 | M38.4 | M38.5) & (I5.5 | M166.7)', '(Z41A & M38.5) | ((I6.4 | Q28.1) & !(Z41A & (M38.3 | M38.4 | M38.5) & (I5.5 | M166.7)))', 'FC41 NW25', 2, { nt: ['En el PDF este renglón también tiene I5.3 y T129, pero no pude ver en qué posición. Los dejé fuera para que el paso 3 (subir la placa) no se salte en el mismo ciclo; I5.3 y T129 siguen mandando en el paso 3 (FC41 NW22).'] });
+LAT('M38.5', 'PASO 5: tope trasero abajo (I11.5), avance final', 'Z41A & (M38.4 | M38.5) & I11.5', '(I6.4 | Q28.1) & !(Z41A & (M38.4 | M38.5) & I11.5)', 'FC41 NW27', 2);
+
+SD('T100', 'Límite de 1 s del 1er paso adelante', 'Z41A & M38.0 & I6.6 & !I5.1', '1 s', 'FC41 NW17', 2, { nel: 1 });
+CALC('M49.0', 'Orden AUTO: 1er paso (cilindro) adelante', 'Z41A & M38.0 & I6.6 & !I5.1 & !T100', 'FC41 NW17', 2);
+SD('T101', 'Tiempo máximo de 10 s del avance (alarma)', 'Q28.0', '10 s', 'FC41 NW18', 2, { nel: 1 });
+SEAL('M47.0', 'Alarma de tiempo excedido del avance (paso 1); se borra con el reset I0.2', 'T101', '!I0.2', 'FC41 NW18', 2);
+CALC('M49.1', 'Orden AUTO: empujador avanza (paso 1)', 'Z41A & M38.1 & (I5.1 | !I5.2) & I11.4', 'FC41 NW18', 2, {
+  nt: ['Inferida: paso 1, 1er paso no atrás (I5.1 o no I5.2) y tope trasero arriba (I11.4).'] });
+SEAL('M49.2', 'Orden AUTO: 2º paso adelante', 'I5.2', 'Z41A & (M38.2 | M38.3 | M38.4 | M38.5) & !I6.1 & !I6.2', 'FC41 NW21', 2);
+SD('T102', 'Tiempo máximo de 3 s del 2º paso (alarma)', 'M49.2', '3 s', 'FC41 NW21', 2, { nel: 1 });
+SEAL('M47.1', 'Alarma de tiempo excedido del 2º paso; se borra con el reset I0.2', 'T102', '!I0.2', 'FC41 NW21', 2);
+SD('T129', 'Espera de 4 s en los pasos 2 y 3 sin llegar al 2º paso adelante', '(M38.2 | M38.3) & !I5.3', '4 s', 'FC41 NW23', 2, { nel: 1 });
+SEAL('M49.3', 'Orden AUTO: placa arriba y 1er paso atrás (paso 3)', 'I5.3 | T129', 'Z41A & (M38.3 | M38.4 | M38.5) & !I5.5 & !M166.7', 'FC41 NW24', 2);
+SD('T103', 'Tiempo máximo de 3 s de la placa arriba (alarma)', 'M49.3', '3 s', 'FC41 NW24', 2, { nel: 1 });
+SEAL('M47.2', 'Alarma de tiempo excedido de la placa arriba; se borra con el reset I0.2', 'T103', '!I0.2', 'FC41 NW24', 2);
+SD('T104', 'Tiempo máximo de 5 s para bajar el tope trasero (alarma)', 'M49.4', '5 s', 'FC41 NW26', 2, { nel: 1 });
+CALC('M49.4', 'Orden AUTO: bajar el tope trasero (pasos 4 y 5)', 'Z41A & (M38.4 | M38.5) & I6.6 & !I3.5 & C10 & !I11.5 & !T104', 'FC41 NW26', 2, { nt: ['Esta orden actúa sobre las válvulas del tope trasero (Q12.0 y Q12.1, FC32 NW30 y NW31), que no están en las secciones de esta guía. Por eso al mover C10 o I11.5 no se enciende ninguna salida de la lista.'] });
+SEAL('M47.3', 'Alarma de tiempo excedido del tope trasero; se borra con el reset I0.2', 'T104', '!I0.2', 'FC41 NW26', 2);
+CALC('M49.5', 'Orden AUTO: avance final del empujador (paso 5), velocidad baja o media', 'Z41A & M38.5 & !I3.5 & I3.6 & I11.5 & Q13.1 & !I6.1 & !I6.2', 'FC41 NW28', 2);
+CALC('M49.6', 'Orden AUTO: fin del avance (el empujador llegó adelante o ya retrocede)', 'Z41A & M38.5 & (I6.1 | I6.2 | Q28.1)', 'FC41 NW28', 2);
+SD('T105', 'Límite de 2 s del 1er paso atrás', 'M49.7', '2 s', 'FC41 NW32', 2, { nel: 1 });
+SEAL('M49.7', 'Orden AUTO: 1er paso atrás', 'M49.6', 'Z41B & !I5.2 & !T105', 'FC41 NW32', 2);
+
+
+/* ---------- Segunda tanda: señales que solo aparecían dentro de marcas sin ecuación (sin efecto) ---------- */
+const KD = id => (N[id] && N[id].d) || id;
+/* Extendedor: botones que cambian de estado con cada pulso */
+LAT('M10.1', KD('M10.1'), 'I0.4 & I3.6 & M1.3', 'I0.4', 'FC31 NW2', 2, { tg: 'I0.4', tgen: 'I3.6 & M1.3',
+  nt: ['Cambia de estado con cada pulso de I0.4. Para encender exige extendedor abajo (I3.6) y seguridad sana (M1.3).', 'En el PDF también aparece !Q13.7 en este renglón; no pude ubicar su papel. ' + 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+LAT('M11.2', KD('M11.2'), 'I0.5', 'I0.5', 'FC31 NW12', 2, { tg: 'I0.5',
+  nt: ['Cambia de estado con cada pulso de I0.5.', 'En el renglón también aparecen M11.1, M11.4, M12.0, M12.1, M99.0 y T12; no pude ubicar su papel, por eso aquí solo se modela I0.5. ' + 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+LAT('M11.5', KD('M11.5'), 'I0.6', 'I0.6', 'FC31 NW17', 2, { tg: 'I0.6',
+  nt: ['Cambia de estado con cada pulso de I0.6.', 'En el renglón también aparecen M11.4, M12.0, M12.1 y T14; no pude ubicar su papel. ' + 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+LAT('M12.3', KD('M12.3'), 'I0.7 & I8.5 & !M11.1 & !M11.4', 'I0.2 | !I8.5 | M70.6 | M166.1', 'FC31 NW24', 2, {
+  nt: ['Se enciende con I0.7 si el paro de emergencia está sano (I8.5) y no hay M11.1 ni M11.4. Se apaga con reset (I0.2), con emergencia, cuando los tampers ya están posicionados (M70.6) o con M166.1.', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+/* Escamador: cuenta y prohibición de bajar */
+SEAL('M30.4', KD('M30.4'), 'M30.3 & M30.5', '!T22', 'FC32 NW16', 2, { nt: ['Pulso de 2 s: arranca cuando termina el conteo (M30.3 con M30.5) y lo corta T22.', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+SD('T22', 'Duración de 2 s de la prohibición de bajar el escamador', 'M30.4', '2 s', 'FC32 NW16', 2, { nel: 1 });
+SD('T62', 'El bulto lleva 20 ms frente a la fotocélula I3.5 (filtro)', 'I3.5 & !M30.4', '20 ms', 'FC32 NW5', 2, { nel: 1 });
+CALC('M28.1', KD('M28.1'), 'T62 & I3.5 & !M30.4', 'FC32 NW5', 2, { nt: ['En el PDF es un pulso (FP). Aquí se muestra como nivel mientras T62 esté cumplido. Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+/* Elevador automático */
+SD('T41', 'Tiempo máximo del transportador del elevador adelante (1er plazo)', 'M50.2', 'tiempo no leído', 'FC34 NW5', 2, { nel: 1 });
+SD('T42', 'Tiempo máximo del transportador del elevador adelante (2º plazo)', 'M50.2', 'tiempo no leído', 'FC34 NW5', 2, { nel: 1 });
+SEAL('M50.2', KD('M50.2'), '(M1.5 & I6.4 & I6.5 & !I7.3 & !I8.2 & M66.7) | M52.1', 'M2.7 & I7.6 & !T41 & !T42', 'FC34 NW5', 2, { nt: ['Arranca en automático con el empujador atrás (I6.4), inclinación arriba (I6.5), sin bulto en I7.3, fotocélula de paro libre (I8.2) y centrado listo (M66.7), o con M52.1. Se corta si falla M2.7 o I7.6, o si vencen T41 o T42.', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+SD('T45', 'Plazo de la subida automática del elevador', 'M51.4', 'tiempo no leído', 'FC34 NW11', 2, { nel: 1 });
+SEAL('M51.4', KD('M51.4'), 'M1.5 & !I6.4 & !I6.5 & !M50.6 & !M51.6 & (T45 | M80.6 | !M80.1)', '!I7.1', 'FC34 NW11', 2, { nt: ['Subir elevador en automático: arranca con el ciclo en marcha (M1.5), empujador y placa fuera de reposo, sin M50.6 ni M51.6, y con T45, M80.6 o sin M80.1. Se corta al llegar arriba (I7.1).', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+CALC('M53.4', 'Impide la subida por la vía 2 del elevador', '!I7.3 & M2.7 & M50.7 & (!I6.7 | !I7.0)', 'FC34 NW12', 2, { nt: ['Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+CALC('M53.3', KD('M53.3'), 'M1.5 & I6.4 & I6.6 & I6.7 & I7.0 & I7.6 & !I5.6 & !I7.1 & !I7.3 & !M50.6 & !M51.6 & !M53.4 & T58 & (M80.6 | !M80.1)', 'FC34 NW12', 2, { nt: ['Segunda vía para subir el elevador en automático: exige empujador atrás (I6.4), inclinación abajo (I6.6), I6.7, I7.0, bulto ya fuera de la fotocélula (T58) y nada en I5.6, I7.1 ni I7.3.', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+SD('T51', 'Plazo del transportador de desecho', 'M54.1', 'tiempo no leído', 'FC34 NW24', 2, { nel: 1 });
+SEAL('M54.1', KD('M54.1'), '(M1.5 & M51.6 & I7.2 & I7.3) | M54.0', '!T51 & !T59', 'FC34 NW24', 2, { nt: ['Transportador de desecho en automático: arranca en la descarga (M51.6) con I7.2 e I7.3, o con M54.0; se corta con T51 o T59.', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+/* Compuerta de desecho manual */
+LAT('M42.1', KD('M42.1'), 'M42.0', 'M42.0', 'FC33 NW19', 2, { tg: 'M42.0', nt: ['Biestable: cambia entre abierta y cerrada con cada pulso de M42.0.', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+/* Centrado */
+CALC('M60.7', KD('M60.7'), 'I8.0 & M83.3', 'FC42 NW13', 2, { nt: ['Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+LAT('M66.3', KD('M66.3'), 'M1.5 & I8.2 & M66.2 & T113 & I9.5 & I9.6', 'M1.6 | M1.7 | M66.7 | !M1.5', 'FC42 NW21', 2, { nt: ['Se enciende en automático con I8.2, M66.2, T113 y las dos señales analógicas sanas (I9.5, I9.6). Se apaga con M1.6, M1.7, M66.7 o al parar el automático.', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+LAT('M66.4', KD('M66.4'), 'M1.5 & I8.2 & M66.2 & T114 & I9.5 & I9.6', 'M1.6 | M1.7 | M66.7 | !M1.5', 'FC42 NW22', 2, { nt: ['Igual que M66.3 pero hacia el otro lado, con T114.', 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+SD('T113', 'Retardo antes de centrar hacia la derecha', 'M66.2', 'tiempo no leído', 'FC42 NW21', 2, { nel: 1 });
+SD('T114', 'Retardo antes de centrar hacia la izquierda', 'M66.2', 'tiempo no leído', 'FC42 NW22', 2, { nel: 1 });
+SEAL('M67.1', KD('M67.1'), '(M1.6 | M50.3 | M116.1 | M130.1) & M166.0', 'Z42B & !I7.4 & !I8.2 & !M251.5', 'FC42 NW36', 2, { nt: ['Búsqueda de centrado: arranca con M1.6, M50.3, M116.1 o M130.1 si M166.0 lo permite. Se corta con paro (Z42B), fin de centrado I7.4, fotocélula I8.2 o la alarma M251.5.', 'En el PDF también aparece !M1.5 en este renglón; no pude ubicar su papel. ' + 'Ecuación deducida de la lista de contactos del PDF. El orden de los contactos no se pudo leer del texto: confírmela con una captura del renglón.'] });
+SD('T117', 'Tiempo máximo de la búsqueda de centrado (20 s)', 'M67.1', '20 s', 'FC42 NW38', 2, { nel: 1 });
+
 /* ---------- Elementos citados pero fuera de este alcance: fichas mínimas (completar al ampliar) ---------- */
 const STUB = {
   'T65': ['Temporizador T65 (FC32 NW6): el programa solo lo lee, nada lo arranca; vale 0', 'FC32 NW6'],
@@ -1418,7 +1548,7 @@ const DB = {
         blocks: 'FC35 (salidas), FC33 (manual), FC34 (automático), FC42 (centrado), FC43 (recuperación), FC30 (bomba y modos)',
         outs: ['Q16.3', 'Q16.4', 'Q16.5', 'Q12.2', 'Q12.3', 'Q12.4', 'Q12.5', 'Q12.7', 'Q13.0'] },
       { id: 'PUSH', name: 'Empujador',
-        intro: 'Empuja el bulto desde el elevador hacia el extendedor en varios pasos (1.º paso, 2.º paso y avance final), con inclinación y placa.',
+        intro: 'Empuja el bulto desde el elevador hacia el extendedor en varios pasos (1.º paso, 2.º paso y avance final), con inclinación y placa. La inclinación gira sobre un pivote fijo; sus finales de carrera I6.5 (arriba) e I6.6 (abajo) detienen el giro a través de las órdenes.',
         blocks: 'FC41 (secuencia y salidas), FC35 (variador), FC33 (manual), FC34 (inclinación), FC43 (recuperación)',
         outs: ['Q16.1', 'Q16.2', 'Q28.0', 'Q28.1', 'Q28.4', 'Q28.3', 'Q25.1', 'Q25.2', 'Q20.6', 'Q20.7', 'Q21.0', 'Q21.1'] },
       { id: 'ESC', name: 'Escamador (compuerta shingle)',
@@ -1540,10 +1670,15 @@ if (typeof module !== 'undefined') module.exports = { DB };
     conv: { n: 'Manual: transportador del elevador ADELANTE', s: { 'M91.2': 1 } },
     cen: { n: 'Manual: centrar a la izquierda', s: { 'M182.0': 1 } },
     tilt: { n: 'Manual: empujador inclinar ARRIBA', s: { 'M91.4': 1 } },
-    pf: { n: 'Manual: empujador AVANZAR (M41.2 = 1)', s: { 'M41.2': 1 } },
+    tiltlim: { n: 'Manual: inclinar ARRIBA, ya llegó al límite I6.5 (se detiene)', s: { 'M91.4': 1, 'I6.5': 1 } },
+    tiltdn: { n: 'Manual: empujador inclinar ABAJO (aún no llega a I6.6)', s: { 'M91.5': 1, 'I6.6': 0 } },
+    tiltdnlim: { n: 'Manual: inclinar ABAJO, ya llegó al límite I6.6 (se detiene)', s: { 'M91.5': 1, 'I6.6': 1 } },
+    pf: { n: 'Manual: empujador AVANZAR (botón M91.6)', s: { 'M91.6': 1 } },
     pr: { n: 'Manual: empujador RETROCEDER, placa abajo', s: { 'M91.7': 1, 'I6.4': 0, 'I6.2': 1, 'I5.5': 0 } },
     pr2: { n: 'Manual: empujador RETROCEDER, placa arriba', s: { 'M91.7': 1, 'I6.4': 0, 'I6.2': 1, 'I5.5': 1 } },
-    auto: { n: 'Automático: orden de subir M51.4', s: { 'M1.5': 1, 'M51.4': 1, 'I7.2': 0 } },
+    auto: { n: 'Automático: orden de subir M51.4', s: { 'I0.0': 1, 'M51.4': 1, 'I7.2': 0 }, m: { 'M1.5': 1 } },
+    pcyc: { n: 'Automático: empujador en el PASO 0 (1er paso adelante)', s: { 'I0.0': 1 }, m: { 'M1.5': 1, 'M50.6': 1 } },
+    pcyc1: { n: 'Automático: PASO 1, el empujador avanza (I5.1 y tope arriba I11.4)', s: { 'I0.0': 1, 'I5.1': 1, 'I6.4': 0, 'I11.4': 1 }, m: { 'M1.5': 1, 'M50.6': 1, 'M38.1': 1 } },
     rec: { n: 'Recuperación (M130.1) fuera de base', s: { 'M130.1': 1, 'I7.2': 0, 'I6.5': 0, 'I6.4': 0, 'I5.5': 1 } },
     nohyd: { n: 'Falla: sin hidráulica (T5 cumplido) y pulsando SUBIR', s: { 'T5': 1, 'M91.0': 1 } },
     exjog: { n: 'Extendedor: transportador en jog (I2.0)', s: { 'I2.0': 1 } },
@@ -1555,13 +1690,14 @@ if (typeof module !== 'undefined') module.exports = { DB };
   };
   function resetState() {
     const st = E.state;
-    st.leaf = {}; st.force = {}; st.mem = {}; st.elapsed = {}; st.hold = {};
+    st.leaf = {}; st.force = {}; st.mem = {}; st.elapsed = {}; st.hold = {}; st.tgprev = {};
     if (M.id === 'IMP10') st.mem['M2.3'] = true;
   }
   function applyScenario(key) {
     resetState();
     const sc = SCEN[key];
     if (sc && M.id === 'IMP10') Object.entries(sc.s).forEach(([k, v]) => { E.state.leaf[k] = v; });
+    if (sc && sc.m && M.id === 'IMP10') Object.entries(sc.m).forEach(([k, v]) => { E.state.mem[k] = !!v; });
     evalAll();
     E.__base = normSt();
   }
@@ -1589,7 +1725,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     const st = E.state, o = { leaf: {}, force: {}, elapsed: {}, hold: {} };
     Object.keys(st.leaf).sort().forEach(k => { if (!!st.leaf[k] !== restVal(k)) o.leaf[k] = 1; });
     Object.keys(st.force).sort().forEach(k => { o.force[k] = st.force[k]; });
-    Object.keys(st.elapsed).sort().forEach(k => { if (st.elapsed[k] === false) o.elapsed[k] = 0; });
+    Object.keys(st.elapsed).sort().forEach(k => { if (!!st.elapsed[k] !== !(E.nodes[k] && E.nodes[k].nel)) o.elapsed[k] = st.elapsed[k] ? 1 : 0; });
     Object.keys(st.hold).sort().forEach(k => { if (st.hold[k]) o.hold[k] = 1; });
     return JSON.stringify(o);
   }
@@ -1805,7 +1941,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     if (memo.length) {
       h += `<div class="grp"><h4>Memorias y temporizadores <small>ajuste el comportamiento en el tiempo</small> ${qm('Temporizador «tiempo cumplido»: sí significa que la condición ya duró todo el tiempo pedido. Las memorias (autorretención y set/reset) se calculan solas; en la pestaña Señales puede pasarlas a manual.')}</h4><div class="sws">` + memo.map(x => {
         const n = E.nodes[x];
-        if (n.k === 'sd') { const on = x in E.state.elapsed ? E.state.elapsed[x] : true; return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="sd" title="${esc(x + ': ' + n.d + '. Toque para cambiar si el tiempo ya se cumplió.')}"><span class="sa">${esc(x)}</span><span class="sn">tiempo ${esc(n.pt)} ${on ? 'cumplido' : 'sin cumplir'}</span><b>${on ? 'sí' : 'no'}</b></button>`; }
+        if (n.k === 'sd') { const on = x in E.state.elapsed ? E.state.elapsed[x] : !n.nel; return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="sd" title="${esc(x + ': ' + n.d + '. Toque para cambiar si el tiempo ya se cumplió.')}"><span class="sa">${esc(x)}</span><span class="sn">tiempo ${esc(n.pt)} ${on ? 'cumplido' : 'sin cumplir'}</span><b>${on ? 'sí' : 'no'}</b></button>`; }
         if (n.k === 'sf') { const on = !!E.state.hold[x]; return `<button type="button" class="sw ${on ? 'on' : 'off'}" data-tm="${esc(x)}" data-kind="sf" title="${esc(x + ': ' + n.d + '. Toque para cambiar si el retardo sigue corriendo.')}"><span class="sa">${esc(x)}</span><span class="sn">retardo de ${esc(n.pt)} ${on ? 'corriendo' : 'sin correr'}</span><b>${on ? 'sí' : 'no'}</b></button>`; }
         const on = !!E.state.mem[x];
         if (autoMem()) return `<div class="sw ro ${E.value(x) ? 'on' : 'off'}" title="${esc(x + ': ' + n.d + '. En modo automático la memoria se calcula sola. Cambie a manual en la pestaña Señales para ajustarla.')}"><span class="sa">${esc(x)}</span><span class="sn">memoria automática</span><b>${E.value(x) ? 1 : 0}</b></div>`;
@@ -2070,12 +2206,27 @@ if (typeof module !== 'undefined') module.exports = { DB };
     const n = E.nodes[id], v = E.value(id);
     return `<b class="da">${esc(id)}</b><span class="ssd" title="${esc(n.d + (n.on1 ? '. ' + n.on1 : ''))}">${esc(n.d)}</span><span class="pill ${v ? 'on' : 'no'}">${v ? 1 : 0}</span>`;
   }
+  function affHTML(id) {
+    const outs = new Set(M.sections.flatMap(x => x.outs));
+    const list = E.affects(id, o => outs.has(o)).sort((a, b) => (a < b ? -1 : 1));
+    const chip = o => `<button type="button" class="chip ${E.outStatus(o) === 'on' ? 'hi' : E.outStatus(o) === 'blocked' ? 'wn' : ''}" data-goout="${esc(o)}" title="${esc(o + ': ' + E.nodes[o].d + '. Toque para abrir su ficha.')}">${esc(o)}</button>`;
+    if (!list.length) {
+      const users = [...(E.usedBy[id] || [])];
+      const opq = users.filter(u => E.nodes[u] && E.nodes[u].k === 'opq');
+      const why = opq.length
+        ? 'Solo entra en ' + opq.map(esc).join(', ') + ', una marca cuya ecuación no se pudo leer de los PDF. Por eso todavía no mueve ninguna salida. Con una captura del renglón la ato.'
+        : users.length ? 'Solo se usa en ' + users.slice(0, 4).map(esc).join(', ') + ', que actúan fuera de las salidas de esta guía.' : 'No se usa en ninguna ecuación de esta guía.';
+      return '<div class="sc-a small muted"><b>Afecta a:</b> ninguna salida de la lista. ' + why + '</div>';
+    }
+    return `<div class="sc-a small"><b>Afecta a:</b> ${list.map(chip).join('')} ${qm('Salidas que cambian si esta señal cambia, directa o indirectamente (pasando por órdenes y permisos). Toque una para ir a su ficha. Con el vínculo activado, el cambio se ve en Señales y en Salidas a la vez.')}</div>`;
+  }
   function sigInfoHTML() {
     const id = app.sigSel;
     if (!id || !E.nodes[id]) return '<p class="muted small sighint">Toque una señal de la tabla: aquí verá qué es y podrá elegir si es mantenida o momentánea.</p>';
     const n = E.nodes[id], v = E.value(id), m = sigMode(id);
     return `<div class="sigcard"><div class="sc-h"><span class="da">${esc(id)}</span><span class="ds">${esc(symOf(id))}</span><span class="pill ${v ? 'on' : 'no'}">vale ${v ? 1 : 0}</span><span class="muted small">reposo ${restVal(id) ? 1 : 0}</span>${chip(id)}</div>
       <div class="sc-d"><b>${esc(n.d)}</b>${n.on1 ? ` <span class="muted">· ${esc(n.on1)}</span>` : ''}</div>
+      ${affHTML(id)}
       <div class="row"><span class="small">Esta señal es:</span><div class="seg" data-sigfor="${esc(id)}"><button type="button" class="${m === 'm' ? 'sel' : ''}" data-sigmode="m">Mantenida</button><button type="button" class="${m === 'p' ? 'sel' : ''}" data-sigmode="p">Momentánea</button></div>${qm('Mantenida: queda como la deje hasta que la toque otra vez, como un interruptor o un final de carrera. Momentánea: cambia solo mientras mantiene el dedo presionado y vuelve sola al soltar, como un pulsador.')}</div></div>`;
   }
   function sigBarHTML() {
@@ -2169,7 +2320,7 @@ if (typeof module !== 'undefined') module.exports = { DB };
     if (t.id === 'btnAutoMem') { store.autoMem = !autoMem(); save(); renderAll(); return; }
     if (t.dataset.tm) {
       const id = t.dataset.tm, k = t.dataset.kind;
-      if (k === 'sd') E.state.elapsed[id] = !(id in E.state.elapsed ? E.state.elapsed[id] : true);
+      if (k === 'sd') E.state.elapsed[id] = !(id in E.state.elapsed ? E.state.elapsed[id] : !E.nodes[id].nel);
       else if (k === 'sf') E.state.hold[id] = !E.state.hold[id];
       else E.state.mem[id] = !E.state.mem[id];
       renderAll(); return;
