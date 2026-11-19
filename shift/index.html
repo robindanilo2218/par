@@ -4630,7 +4630,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       quincena 2 (la que cierra el mes, donde se pagan); el ISR retenido, en la quincena que corresponda. per = E.quincena(...). */
   E.boletaQuincena = (emp, st, per, o) => {
     o = o || {};
-    emp = E.empEn(emp, per.fin); // versión 31: el sueldo que tenía en esta quincena
+    emp = E.empPer(emp, per, st); // versión 31: el sueldo que tenía en esta quincena (versión 32: la quincena que empieza antes de la catorcena del aumento conserva el de antes)
     const a = E.ajDe(emp, per.ini), adic = dato(a, 'adic'), asu = dato(a, 'asu'), isr = dato(a, 'isr'), caf = dato(a, 'caf');
     const hExt = adic === null ? num(emp.extrasAdic) : adic, asuetos = asu === null ? num(emp.feriados) : asu;
     return { b: E.boletaQ(emp, st.params, { cierre: per.cierre, hExt, asuetos, isrCat: o.isrCat, isrReal: isr, cafeteria: caf }), per, aj: a, hExt, asuetos, isrReal: isr, cafReal: caf };
@@ -4665,7 +4665,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     let prevIsr = 0, iHasta = -1;
     periodos.forEach((p, idx) => {
       let r;
-      const isrC = o.isrPr ? E.isrDelPago(P, o.isrPr, p.cat || p.per) : o.isrCat;
+      // versión 32: con cambios de sueldo con fecha, cada pago retiene con la proyección que conocía (el sueldo de ese pago), no con la del sueldo de hoy ni con el promedio del año
+      const isrC = o.isrPr ? E.isrDelPago(P, E.shTiene(emp) ? E.isrPrEn(emp, st, which, anio, p.cat || p.per, cache) : o.isrPr, p.cat || p.per) : o.isrCat;
       if (mens) r = E.boletaQuincena(emp, st, p.per, { isrCat: isrC });
       else {
         const kk = p.cat.k, keyS = 's|' + which + '|' + emp.cuadrilla + '|' + kk, keyF = 'f|' + which + '|' + emp.cuadrilla + '|' + kk;
@@ -5059,8 +5060,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     E.labels(R.m).forEach((l) => { crews[l] = E.extRotCatorcena(st, l, k, which); });
     const isrDe = (e, per) => {
       if (!P.isrActivo) return 0;
-      const anio = E.isrAnioDe(P, per.fin), key = e.id + '|' + anio;
-      return E.isrDelPago(P, proy[key] || (proy[key] = E.isrProyeccion(e, st, which, anio)), per);
+      return E.isrDelPago(P, E.isrPrEn(e, st, which, E.isrAnioDe(P, per.fin), per, proy), per); // versión 32: con el sueldo que tenía en ese pago, sin ver los aumentos de después
     };
     const filas = [], quin = [], sin = [], pq = E.regQuincenas(cat);
     (emps || []).forEach((e) => {
@@ -5069,7 +5069,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
         pq.forEach((per) => {
           const r = E.boletaQuincena(e, st, per, { isrCat: isrDe(e, per) });
           // las horas extra y los asuetos del mes solo se pagan en la quincena que cierra el mes: en la otra no hay nada que registrar
-          quin.push(Object.assign({}, p, { sueldo: Math.max(0, red(E.sueldoPer(e, per))), per: { q: per.q, ini: U.fmtISO(per.ini), fin: U.fmtISO(per.fin) }, b: r.b, aj: r.aj, adic: per.cierre ? r.hExt : 0, asu: per.cierre ? r.asuetos : 0 }));
+          quin.push(Object.assign({}, p, { sueldo: Math.max(0, red(E.sueldoPer(e, per, st))), per: { q: per.q, ini: U.fmtISO(per.ini), fin: U.fmtISO(per.fin) }, b: r.b, aj: r.aj, adic: per.cierre ? r.hExt : 0, asu: per.cierre ? r.asuetos : 0 }));
         });
         return;
       }
@@ -7060,7 +7060,9 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
    «desde la fecha f el sueldo cambió y antes era `antes`». Así emp.sueldo sigue siendo el sueldo actual para todo lo demás (presupuesto, planta, carrera…)
    y quien no tiene historial no cambia en nada.
    (1) E.shNormalizar: el historial guardado, limpio y en orden.
-   (2) E.sueldoEn / E.empEn / E.empPer / E.sueldoPer: el sueldo de un día o de un período de pago (catorcena o quincena).
+   (2) E.sueldoEn / E.empEn / E.empPer / E.sueldoPer: el sueldo de un día o de un período de pago (catorcena o quincena). Versión 32: una boleta NUNCA lleva un aumento de una catorcena que empieza
+       después de ella (la quincena del personal mensual que empieza antes de esa catorcena, aunque contenga la fecha, conserva el sueldo de antes) y el ISR que retiene una boleta se proyecta
+       con el sueldo que tenía en ese pago (E.isrPrEn), sin ver los aumentos que vienen después.
    (3) E.sueldoVentana: el sueldo promedio de un rango de días (proyección del ISR del año, promedios de la liquidación).
    (4) E.shTramos / E.shPonerAumento / E.shQuitar / E.shQuitarClaves: los cambios con fecha; devuelven el parche { sueldo, sh } para la persona (SM.updEmp).
    (5) E.shResumen: lo que muestra la pantalla (cada cambio con la catorcena o quincena en que cae).
@@ -7105,9 +7107,45 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     delete c.sh;
     return c;
   };
-  /** El sueldo del período de pago per ({ ini, fin }: una catorcena o una quincena): el que rige en su ÚLTIMO día. Un aumento a mitad de la catorcena vale para la catorcena entera. */
-  E.sueldoPer = (emp, per) => E.sueldoEn(emp, per ? per.fin : NaN);
-  E.empPer = (emp, per) => E.empEn(emp, per ? per.fin : NaN);
+  /** El primer día de la catorcena que contiene el día d: desde ahí vale un aumento con fecha d («a partir de esa catorcena»). Sin calendario (st), el propio día. */
+  E.shInicioCat = (st, d) => (st && Number.isFinite(d) ? E.catorcena(st, E.catorcenaIdx(st, d)).ini : d);
+  /** La primera quincena (E.quincena) que empieza en o después del día d. */
+  E.shPrimeraQuincena = (d) => {
+    const c = U.ymd(d);
+    for (let i = 0; i < 4; i++) {
+      const m0 = c.m - 1 + (i >> 1), p = E.quincena(c.y + Math.floor(m0 / 12), (m0 % 12) + 1, (i & 1) + 1);
+      if (p.ini >= d) return p;
+    }
+    return E.quincena(c.y, c.m, 2);
+  };
+  /** El sueldo de una QUINCENA del personal mensual (versión 32): un aumento con fecha vale desde la primera quincena que EMPIEZA en o después del inicio de la catorcena de su fecha; la quincena
+      que empieza antes, aunque contenga la fecha, conserva el sueldo de antes. Así una boleta nunca lleva un aumento de una catorcena que empieza después de ella. */
+  E.sueldoQuin = (emp, per, st) => {
+    const h = emp && emp.sh, cur = num(emp && emp.sueldo);
+    if (!Array.isArray(h) || !h.length || !per || !Number.isFinite(per.ini)) return cur;
+    for (let i = 0; i < h.length; i++) if (E.shInicioCat(st, U.parseISO(h[i].f)) > per.ini) return num(h[i].antes);
+    return cur;
+  };
+  /** El sueldo del período de pago per. Una catorcena (o { fin }): el que rige en su ÚLTIMO día, de modo que un aumento a mitad de la catorcena vale para la catorcena entera. Una quincena
+      (la tiene el personal mensual; lleva `q`): E.sueldoQuin, que necesita el calendario st. */
+  E.sueldoPer = (emp, per, st) => (per && per.q !== undefined ? E.sueldoQuin(emp, per, st) : E.sueldoEn(emp, per ? per.fin : NaN));
+  /** La persona con el sueldo que tenía en ese período de pago (copia sin historial, para pasarla a las boletas). Sin historial devuelve la misma persona, sin copiar. */
+  E.empPer = (emp, per, st) => {
+    if (!E.shTiene(emp)) return emp;
+    const c = Object.assign({}, emp, { sueldo: E.sueldoPer(emp, per, st) });
+    delete c.sh;
+    return c;
+  };
+  /** La proyección anual del ISR (E.isrProyeccion) que conoce la boleta de UN pago (versión 32): la de la persona con el sueldo que regía en ese pago, sin los aumentos que vienen después.
+      Así lo que retiene una boleta no cambia porque se dé un aumento más adelante, y desde el aumento cada boleta retiene como quien siempre hubiera ganado el sueldo nuevo. Sin cambios de
+      sueldo con fecha es E.isrProyeccion tal cual. `cache` (un objeto por pintado) evita repetir el cálculo entre pagos con el mismo sueldo. per = catorcena, quincena o { fin }. */
+  E.isrPrEn = (emp, st, which, anio, per, cache) => {
+    const e2 = E.empPer(emp, per, st), key = (emp && emp.id) + '|' + which + '|' + anio + '|' + num(e2 && e2.sueldo);
+    if (cache && cache[key]) return cache[key];
+    const r = E.isrProyeccion(e2, st, which, anio);
+    if (cache) cache[key] = r;
+    return r;
+  };
 
   /** Los tramos del sueldo de la persona: el primero es el de siempre (f '' y d -Infinity) y cada cambio abre un tramo nuevo. [{ f, d, s (sueldo del tramo), nota, k }]. */
   E.shTramos = (emp) => {
@@ -7163,17 +7201,16 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     return tot / (fin - ini + 1);
   };
 
-  /** Lo que muestra la pantalla: cada cambio con fecha, de antiguo a reciente: { f, d, antes, s (sueldo desde esa fecha), delta, pct, nota, k, per, quincena }.
-      per = la catorcena (E.catorcena) o la quincena (E.quincena, en el personal mensual) que contiene la fecha: desde ese período la boleta usa el sueldo nuevo. */
+  /** Lo que muestra la pantalla: cada cambio con fecha, de antiguo a reciente: { f, d, antes, s (sueldo desde esa fecha), delta, pct, nota, k, cat, per, quincena }.
+      cat = la catorcena (E.catorcena) que contiene la fecha. per = la primera boleta que lleva el sueldo nuevo: esa misma catorcena o, en el personal mensual, la primera quincena (E.quincena)
+      que empieza en o después del inicio de esa catorcena (versión 32). */
   E.shResumen = (emp, st) => {
     const t = E.shTramos(emp), mens = E.esMensual(emp), out = [];
     for (let i = 1; i < t.length; i++) {
       const x = t[i], a = t[i - 1].s;
-      let per = null;
-      if (st) {
-        if (mens) { const c = U.ymd(x.d); per = E.quincena(c.y, c.m, c.d <= 15 ? 1 : 2); } else per = E.catorcena(st, E.catorcenaIdx(st, x.d));
-      }
-      out.push({ f: x.f, d: x.d, antes: a, s: x.s, delta: r2(x.s - a), pct: a > 0 ? (x.s - a) / a * 100 : null, nota: x.nota, k: x.k, per, quincena: mens });
+      let per = null, cat = null;
+      if (st) { cat = E.catorcena(st, E.catorcenaIdx(st, x.d)); per = mens ? E.shPrimeraQuincena(cat.ini) : cat; }
+      out.push({ f: x.f, d: x.d, antes: a, s: x.s, delta: r2(x.s - a), pct: a > 0 ? (x.s - a) / a * 100 : null, nota: x.nota, k: x.k, cat, per, quincena: mens });
     }
     return out;
   };
@@ -12611,16 +12648,17 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   });
 
   /* ---------- 5. Personal mensual (quincenas) ---------- */
-  T('Personal con sueldo mensual: la quincena que contiene la fecha ya lleva el sueldo nuevo entero y las anteriores, el de antes', () => {
+  T('Personal con sueldo mensual: el aumento vale desde la primera quincena que EMPIEZA en o después de la catorcena de su fecha; la quincena que empieza antes, aunque contenga la fecha, conserva el sueldo de antes (regla de la versión 32)', () => {
     const s = mk(), base = persona({ cuadrilla: E.MQ, sueldo: 6000 }), e = con(base, E.shPonerAumento(base, '2026-11-10', 6600));
     const q = (m, n) => E.boletaQuincena(e, s, E.quincena(2026, m, n), {}).b;
     eq(q(10, 2).sueldoMes, 6000); eq(q(10, 2).sueldo, 3000, 'la quincena del 16 al 31 de octubre: la mitad del sueldo de antes');
-    eq(q(11, 1).sueldoMes, 6600); eq(q(11, 1).sueldo, 3300, 'la del 1 al 15 de noviembre: el 10 cae en ella'); eq(q(11, 2).sueldo, 3300);
-    igualesB(q(10, 2), E.boletaQuincena(base, s, E.quincena(2026, 10, 2), {}).b, 'quincena anterior');
-    const r = E.shResumen(e, s); eq(r.length, 1); eq(r[0].per.q, 1); eq(r[0].quincena, true); eq(iso(r[0].per.ini), '2026-11-01'); eq(iso(r[0].per.fin), '2026-11-15');
+    eq(q(11, 1).sueldoMes, 6000); eq(q(11, 1).sueldo, 3000, 'la del 1 al 15 de noviembre contiene el 10, pero la catorcena del aumento (23) empieza el 9: esta quincena empezó antes y sale con el sueldo de antes');
+    eq(q(11, 2).sueldoMes, 6600); eq(q(11, 2).sueldo, 3300, 'la del 16 al 30 de noviembre ya empieza dentro de la catorcena 23: sueldo nuevo'); eq(q(12, 1).sueldo, 3300);
+    igualesB(q(11, 1), E.boletaQuincena(base, s, E.quincena(2026, 11, 1), {}).b, 'quincena anterior');
+    const r = E.shResumen(e, s); eq(r.length, 1); eq(r[0].quincena, true); eq(r[0].cat.num, 23, 'la catorcena que contiene la fecha');
+    eq(r[0].per.q, 2, 'la primera quincena con el sueldo nuevo'); eq(iso(r[0].per.ini), '2026-11-16'); eq(iso(r[0].per.fin), '2026-11-30');
   });
 
-  /* ---------- 6. Acumulado, registro y proyección del ISR ---------- */
   T('El acumulado del año suma cada catorcena con su sueldo: hasta la catorcena anterior al aumento es idéntico al de la persona sin aumento', () => {
     const s = mk(), base = persona({ sueldo: 5000 }), e = con(base, E.shPonerAumento(base, '2026-11-12', 5500));
     const A = E.acumulado(e, s, 'act', 2), B = E.acumulado(base, s, 'act', 2);
@@ -12743,6 +12781,153 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     ok(rb.ordinario < r6.ordinario && r6.ordinario < rn.ordinario, 'el promedio de 6 meses queda entre los dos sueldos');
     const dias = D('2026-11-16') - D('2026-05-17') + 1, dNuevo = D('2026-11-16') - D('2026-09-01') + 1;
     near(r6.ordinario, rb.ordinario + (rn.ordinario - rb.ordinario) * dNuevo / dias, 1e-6, 'proporcional a los días con cada sueldo');
+  });
+})(typeof globalThis !== 'undefined' ? globalThis : window);
+
+;
+/* ============================================================
+   22v-selftests-v32.js — autopruebas de la versión 32: una boleta no ve el aumento de después.
+   Al dar un aumento con fecha (versión 31), la boleta anterior a la catorcena del aumento podía salir con él: (1) en el personal mensual, la quincena del 1 al 15 de noviembre contiene
+   el 12 y llevaba el sueldo nuevo aunque la catorcena del aumento empieza el 9; (2) el ISR de cada boleta se proyectaba con el sueldo promedio de todo el año y «veía» el aumento de después.
+   Regla de esta versión: una boleta lleva un aumento solo si EMPIEZA en o después del inicio de la catorcena de su fecha (la quincena que empieza antes lo conserva fuera) y su ISR se
+   proyecta con el sueldo que la persona tenía en ese pago. La prueba central: cada boleta sale idéntica a la de una persona que siempre hubiera ganado el sueldo de ese pago.
+   Se ejecutan en Node (tests/engine.test.js) y dentro del simulador (Validación → «Ejecutar autopruebas»).
+   ============================================================ */
+(function (g) {
+  'use strict';
+  const SM = g.SM, U = SM.U, E = SM.E;
+  const tests = SM.tests;
+  const G = 'Una boleta no ve el aumento de después (v32)';
+  const T = (nombre, fn) => tests.push({ grupo: G, nombre, fn });
+  const eq = (a, b, msg) => { if (a !== b) throw new Error((msg || 'eq') + ': esperado ' + JSON.stringify(b) + ' y se obtuvo ' + JSON.stringify(a)); };
+  const ok = (c, msg) => { if (!c) throw new Error(msg || 'condición falsa'); };
+  const near = (a, b, tol, msg) => { if (!(Math.abs(a - b) <= tol)) throw new Error((msg || 'near') + ': esperado ≈' + b + ' y se obtuvo ' + a); };
+  const D = U.parseISO, iso = U.fmtISO;
+  // catorcena 20: 28/9–11/10; 21: 12–25/10; 22: 26/10–8/11; 23: 9–22/11; 24: 23/11–6/12; 25: 7–20/12
+  const mk = (f) => { const s = SM.normalizeState({ fechaInicio: '2026-10-12', catorcenaAncla: '2026-10-12' }); s.params.isrActivo = true; if (f) f(s); SM.normalizeParams(s.params); return s; };
+  const persona = (o) => SM.normalizeEmp(Object.assign({ id: 'p1', codigo: '1', nombre: 'Uno', cargo: 'Electricista', cuadrilla: 'C', sueldo: 5000, cafeteria: 0 }, o || {}));
+  const con = (e, patch) => { const n = SM.normalizeEmp(Object.assign({}, e, patch)); const c = Object.assign({}, e); if (!('sh' in n)) delete c.sh; return Object.assign(c, n); };
+  const CAMPOS = ['vh', 'vhx', 'hExt', 'horasOrd', 'ordinario', 'extras', 'septimo', 'feriado', 'adicionales', 'asueto', 'bonoEmp', 'bonoInc', 'igss', 'isr', 'cafeteria', 'otras', 'devengado', 'deducciones', 'liquido', 'sueldoMes'];
+  const igualesB = (a, b, id) => CAMPOS.forEach((k) => { if (a[k] === undefined && b[k] === undefined) return; near(a[k], b[k], 1e-9, id + ' · ' + k); });
+  /** La boleta de la catorcena k con el ISR que retiene ese pago (como lo pinta la planilla: con el sueldo que la persona tenía entonces). */
+  const bolCat = (e, s, k) => { const cat = E.catorcena(s, k), pr = E.isrPrEn(e, s, 'act', E.isrAnioDe(s.params, cat.fin), cat); return E.boletaCat(e, s, 'act', k, { isrCat: E.isrDelPago(s.params, pr, cat) }).b; };
+  const bolQ = (e, s, per) => { const pr = E.isrPrEn(e, s, 'act', E.isrAnioDe(s.params, per.fin), per); return E.boletaQuincena(e, s, per, { isrCat: E.isrDelPago(s.params, pr, per) }).b; };
+  /** Los días que se prueban como fecha del aumento: cada dos días de finales de octubre a principios de diciembre y los límites de las catorcenas 22, 23 y 24. */
+  const fechas = (() => { const a = []; for (let d = D('2026-10-20'); d <= D('2026-12-10'); d += 2) a.push(iso(d)); ['2026-10-25', '2026-10-26', '2026-11-08', '2026-11-09', '2026-11-22', '2026-11-23', '2026-12-06', '2026-12-07'].forEach((f) => { if (!a.includes(f)) a.push(f); }); return a; })();
+
+  /* ---------- 1. Las reglas de cada período ---------- */
+  T('El inicio de la catorcena de la fecha y la primera quincena que empieza desde ahí: los límites del 8, 9, 22 y 23 de noviembre y el cambio de año', () => {
+    const s = mk(), c0 = (f) => iso(E.shInicioCat(s, D(f)));
+    eq(c0('2026-11-08'), '2026-10-26'); eq(c0('2026-11-09'), '2026-11-09'); eq(c0('2026-11-12'), '2026-11-09'); eq(c0('2026-11-22'), '2026-11-09'); eq(c0('2026-11-23'), '2026-11-23');
+    eq(E.shInicioCat(null, D('2026-11-12')), D('2026-11-12'), 'sin calendario, el propio día');
+    const q = (f) => { const p = E.shPrimeraQuincena(D(f)); return p.y + '-' + p.m + '-' + p.q; };
+    eq(q('2026-11-01'), '2026-11-1'); eq(q('2026-11-02'), '2026-11-2'); eq(q('2026-11-16'), '2026-11-2'); eq(q('2026-11-17'), '2026-12-1'); eq(q('2026-12-17'), '2027-1-1'); eq(q('2026-12-31'), '2027-1-1');
+    eq(q('2026-10-26'), '2026-11-1', 'el 26 de octubre: la quincena del 16 al 31 ya empezó; la primera que empieza desde ahí es la del 1 de noviembre');
+  });
+  T('Sueldo de una quincena (personal mensual): el aumento llega a la primera quincena que empieza en o después de la catorcena de su fecha; la que empieza antes lo conserva fuera aunque contenga la fecha', () => {
+    const s = mk(), base = persona({ cuadrilla: E.MQ, sueldo: 5000 });
+    const cuando = (f) => { const e = con(base, E.shPonerAumento(base, f, 5500)); return [[10, 2], [11, 1], [11, 2], [12, 1], [12, 2]].map(([m, n]) => E.sueldoPer(e, E.quincena(2026, m, n), s)).join(','); };
+    eq(cuando('2026-11-08'), '5000,5500,5500,5500,5500', 'el 8: catorcena 22 (desde el 26/10): la del 16 al 31/10 empezó antes; desde el 1/11 sí');
+    eq(cuando('2026-11-09'), '5000,5000,5500,5500,5500', 'el 9: catorcena 23 (desde el 9/11): la del 1 al 15/11 empezó antes');
+    eq(cuando('2026-11-12'), '5000,5000,5500,5500,5500'); eq(cuando('2026-11-15'), '5000,5000,5500,5500,5500'); eq(cuando('2026-11-22'), '5000,5000,5500,5500,5500');
+    eq(cuando('2026-11-23'), '5000,5000,5000,5500,5500', 'el 23: catorcena 24 (desde el 23/11): la del 16 al 30/11 empezó antes; desde el 1/12 sí');
+    eq(cuando('2026-12-06'), '5000,5000,5000,5500,5500');
+    eq(cuando('2026-12-07'), '5000,5000,5000,5000,5500', 'el 7 de diciembre: catorcena 25 (desde el 7/12): la del 1 al 15/12 empezó antes');
+  });
+  T('E.sueldoPer y E.empPer distinguen la catorcena (el sueldo de su último día) de la quincena (la regla nueva) y sin historial devuelven a la misma persona', () => {
+    const s = mk(), base = persona({ cuadrilla: E.MQ, sueldo: 5000 }), e = con(base, E.shPonerAumento(base, '2026-11-12', 5500));
+    const cat22 = E.catorcena(s, 1), cat23 = E.catorcena(s, 2), q1 = E.quincena(2026, 11, 1), q2 = E.quincena(2026, 11, 2);
+    eq(E.sueldoPer(e, cat22, s), 5000); eq(E.sueldoPer(e, cat23, s), 5500); eq(E.sueldoPer(e, { fin: cat23.fin }, s), 5500, 'un { fin } se trata como catorcena');
+    eq(E.sueldoPer(e, q1, s), 5000); eq(E.sueldoPer(e, q2, s), 5500); eq(E.sueldoPer(e, NaN), 5500, 'sin período, el sueldo de hoy');
+    ok(E.empPer(base, q1, s) === base, 'sin historial, la misma persona'); const c = E.empPer(e, q1, s);
+    eq(c.sueldo, 5000); ok(!('sh' in c), 'la copia no lleva historial (no se aplica dos veces)'); eq(e.sueldo, 5500, 'la original no cambia'); ok(Array.isArray(e.sh), 'ni su historial');
+  });
+  T('E.isrPrEn: sin cambios con fecha es E.isrProyeccion tal cual; con cambios usa el sueldo del pago y la caché no mezcla sueldos distintos', () => {
+    const s = mk(), base = persona({ sueldo: 5000 }), anio = 2026, cat21 = E.catorcena(s, 0), cat23 = E.catorcena(s, 2);
+    const a = E.isrProyeccion(base, s, 'act', anio), b = E.isrPrEn(base, s, 'act', anio, cat21);
+    ['renta', 'isr', 'isrMes', 'isrCat', 'margen'].forEach((k) => near(b[k], a[k], 1e-9, 'sin historial · ' + k));
+    const e = con(base, E.shPonerAumento(base, '2026-11-12', 5500)), nuevo = persona({ sueldo: 5500 }), cache = {};
+    const antes = E.isrPrEn(e, s, 'act', anio, cat21, cache), despues = E.isrPrEn(e, s, 'act', anio, cat23, cache);
+    near(antes.isrMes, a.isrMes, 1e-9, 'antes del aumento: la proyección de quien gana 5,000'); near(despues.isrMes, E.isrProyeccion(nuevo, s, 'act', anio).isrMes, 1e-9, 'desde el aumento: la de quien gana 5,500');
+    ok(despues.isrMes > antes.isrMes + 1, 'el aumento sube el ISR mensual desde su catorcena');
+    ok(E.isrPrEn(e, s, 'act', anio, cat21, cache) === antes && E.isrPrEn(e, s, 'act', anio, cat23, cache) === despues, 'la caché devuelve lo mismo y no mezcla los dos sueldos');
+    const anual = E.isrProyeccion(e, s, 'act', anio); ok(anual.isrMes > antes.isrMes && anual.isrMes < despues.isrMes, 'la proyección del año de la persona (con el aumento desde su fecha) queda entre las dos: eso no cambia');
+  });
+
+  /* ---------- 2. Una boleta nunca cambia por un aumento que empieza después de ella ---------- */
+  const catorcenal = (nombre, extra) => T('Con el ISR encendido, cada boleta de ' + nombre + ' sale idéntica a la de quien siempre ganó el sueldo de esa catorcena: el aumento no toca lo anterior (ni su ISR) y desde su catorcena sale entero (fechas de todo el 20/10 al 10/12)', () => {
+    const s = mk(), base = persona(Object.assign({ sueldo: 5000 }, extra)), nuevo = persona(Object.assign({ sueldo: 5500 }, extra)), ks = [-3, -2, -1, 0, 1, 2, 3, 4, 5];
+    const b0 = {}, b1 = {}; ks.forEach((k) => { b0[k] = bolCat(base, s, k); b1[k] = bolCat(nuevo, s, k); });
+    let conIsr = 0; ks.forEach((k) => { if (b0[k].isr > 0) conIsr++; }); ok(conIsr >= 3, 'la prueba cubre varias boletas que cierran el mes con ISR (' + conIsr + ')');
+    fechas.forEach((f) => {
+      const e = con(base, E.shPonerAumento(base, f, 5500)), d = D(f);
+      ks.forEach((k) => {
+        const cat = E.catorcena(s, k), lleva = cat.fin >= d; // lleva el aumento la catorcena que contiene la fecha y las siguientes
+        igualesB(bolCat(e, s, k), lleva ? b1[k] : b0[k], 'aumento del ' + f + ' · catorcena ' + cat.num + (lleva ? ' (con el aumento)' : ' (sin el aumento)'));
+      });
+    });
+  });
+  catorcenal('rotación', {});
+  catorcenal('horario fijo de lunes a viernes', { cuadrilla: E.LV });
+  T('Con el ISR encendido, cada quincena del personal mensual sale idéntica a la de quien siempre ganó el sueldo de esa quincena: la que empieza antes de la catorcena del aumento no lo lleva (fechas de todo el 20/10 al 10/12)', () => {
+    const s = mk(), base = persona({ cuadrilla: E.MQ, sueldo: 5000 }), nuevo = persona({ cuadrilla: E.MQ, sueldo: 5500 }), pers = [];
+    [[9, 2], [10, 1], [10, 2], [11, 1], [11, 2], [12, 1], [12, 2], [13, 1]].forEach(([m, n]) => pers.push(m > 12 ? E.quincena(2027, 1, n) : E.quincena(2026, m, n)));
+    const b0 = pers.map((p) => bolQ(base, s, p)), b1 = pers.map((p) => bolQ(nuevo, s, p));
+    ok(b0.filter((b) => b.isr > 0).length >= 3, 'la prueba cubre varias quincenas que cierran el mes con ISR');
+    fechas.forEach((f) => {
+      const e = con(base, E.shPonerAumento(base, f, 5500)), c0 = E.shInicioCat(s, D(f));
+      pers.forEach((p, i) => { const lleva = p.ini >= c0; igualesB(bolQ(e, s, p), lleva ? b1[i] : b0[i], 'aumento del ' + f + ' · quincena ' + iso(p.ini) + (lleva ? ' (con el aumento)' : ' (sin el aumento)')); });
+    });
+  });
+  T('El caso de la queja: aumento del 12 de noviembre al personal mensual; en la vista de la catorcena 22 el primer recibo (quincena del 1 al 15 de noviembre) sale con el sueldo de antes y el segundo, con el nuevo', () => {
+    const s = mk(), base = persona({ cuadrilla: E.MQ, sueldo: 5000 }), e = con(base, E.shPonerAumento(base, '2026-11-12', 5500));
+    const mes = E.mesDeCatorcenas(s, 1); eq(mes.y + '-' + mes.m, '2026-11', 'la vista de la catorcena 22 muestra las quincenas de noviembre');
+    const q1 = bolQ(e, s, E.quincena(mes.y, mes.m, 1)), q2 = bolQ(e, s, E.quincena(mes.y, mes.m, 2));
+    eq(q1.sueldoMes, 5000); eq(q2.sueldoMes, 5500); igualesB(q1, bolQ(base, s, E.quincena(2026, 11, 1)), 'quincena 1'); eq(q1.isr, 0, 'la 1 no cierra el mes'); ok(q2.isr > 0, 'la 2 retiene el ISR del mes con el sueldo nuevo');
+    const antes = bolQ(base, s, E.quincena(2026, 10, 2)), despues = bolQ(e, s, E.quincena(2026, 10, 2));
+    igualesB(despues, antes, 'octubre, quincena 2 (cierra el mes): el ISR no cambia por un aumento de noviembre');
+  });
+  T('Varios aumentos en el año, de rotación y mensual: cada boleta sale como la de quien ganaba el sueldo que le toca por la regla (catorcena: su último día; quincena: su primer día con cada aumento desde su catorcena)', () => {
+    const s = mk();
+    ['C', E.LV, E.MQ].forEach((cuad) => {
+      const base = persona({ cuadrilla: cuad, sueldo: 4000 });
+      let e = con(base, E.shPonerAumento(base, '2026-10-20', 4400)); e = con(e, E.shPonerAumento(e, '2026-12-01', 5000));
+      const esperado = (per, mens) => { const c0 = (f) => E.shInicioCat(s, D(f)); return mens ? (per.ini >= c0('2026-12-01') ? 5000 : per.ini >= c0('2026-10-20') ? 4400 : 4000) : (per.fin >= D('2026-12-01') ? 5000 : per.fin >= D('2026-10-20') ? 4400 : 4000); };
+      if (cuad === E.MQ) {
+        [[9, 2], [10, 1], [10, 2], [11, 1], [11, 2], [12, 1], [12, 2]].forEach(([m, n]) => { const p = E.quincena(2026, m, n), x = esperado(p, true); igualesB(bolQ(e, s, p), bolQ(persona({ cuadrilla: cuad, sueldo: x }), s, p), cuad + ' · quincena ' + iso(p.ini)); });
+      } else {
+        for (let k = -2; k <= 5; k++) { const p = E.catorcena(s, k), x = esperado(p, false); igualesB(bolCat(e, s, k), bolCat(persona({ cuadrilla: cuad, sueldo: x }), s, k), cuad + ' · catorcena ' + p.num); }
+      }
+    });
+  });
+
+  /* ---------- 3. Acumulado, registro y año ---------- */
+  T('Boletas del año y acumulado con el ISR encendido: cada fila sale como la de quien siempre ganó el sueldo de esa fila, también la retención de las boletas anteriores al aumento', () => {
+    const s = mk(), base = persona({ sueldo: 5000 }), nuevo = persona({ sueldo: 5500 }), e = con(base, E.shPonerAumento(base, '2026-11-12', 5500));
+    const B = E.boletasAnio(e, s, 'act', 2), B0 = E.boletasAnio(base, s, 'act', 2), B1 = E.boletasAnio(nuevo, s, 'act', 2);
+    eq(B.filas.length, 26);
+    let conAum = 0, sinAum = 0;
+    B.filas.forEach((f, i) => { const lleva = f.cat.fin >= D('2026-11-12'); if (lleva) conAum++; else sinAum++; igualesB(f.b, (lleva ? B1 : B0).filas[i].b, 'fila ' + (i + 1) + ' (catorcena ' + f.cat.num + ')'); });
+    ok(sinAum >= 20 && conAum >= 4, 'hay filas con y sin el aumento (' + sinAum + ' y ' + conAum + ')');
+    const cierre = B.filas.find((f) => f.cat.num === 21); ok(cierre.b.isr > 0, 'la catorcena 21 cierra octubre y retiene ISR'); near(cierre.b.isr, B0.filas.find((f) => f.cat.num === 21).b.isr, 1e-9, 'el mismo ISR que sin aumento');
+    near(B.acum.filas[0].acRenta, B0.acum.filas[0].acRenta, 1e-9, 'la renta acumulada de la primera catorcena');
+  });
+  T('El registro de las catorcenas: la 22 y las anteriores con el sueldo de antes y su ISR de antes; la 23 con el nuevo; en el personal mensual, la quincena que cierra dentro de la 23 pero empezó antes de ella sale con el sueldo de antes', () => {
+    const s = mk(), P = s.params, bs = persona({ id: 'b', sueldo: 5000 }), ms = persona({ id: 'm', cuadrilla: E.MQ, sueldo: 5000, codigo: '2' });
+    const emps = [bs, ms].map((x) => con(x, E.shPonerAumento(x, '2026-11-12', 5500)));
+    const r = (k) => E.regCalcular(s, emps, 'act', k);
+    const r21 = r(0), r22 = r(1), r23 = r(2), r24 = r(3);
+    eq(r22.filas[0].sueldo, 5000); eq(r23.filas[0].sueldo, 5500); eq(r22.filas[0].b.sueldoMes, 5000); eq(r23.filas[0].b.sueldoMes, 5500);
+    igualesB(r21.filas[0].b, bolCat(bs, s, 0), 'catorcena 21'); igualesB(r23.filas[0].b, bolCat(persona({ id: 'b', sueldo: 5500 }), s, 2), 'catorcena 23');
+    ok(r21.filas[0].b.isr > 0 && P.isrActivo, 'la 21 cierra octubre con ISR'); near(r21.filas[0].b.isr, bolCat(bs, s, 0).isr, 1e-9, 'su ISR es el de quien siempre ganó 5,000');
+    eq(r23.quin.length, 1, 'la quincena del 1 al 15 de noviembre cierra dentro de la catorcena 23'); eq(r23.quin[0].per.ini, '2026-11-01');
+    eq(r23.quin[0].sueldo, 5000, 'pero empezó antes de la catorcena 23: sueldo de antes'); eq(r23.quin[0].b.sueldoMes, 5000);
+    eq(r24.quin.length, 1); eq(r24.quin[0].per.ini, '2026-11-16'); eq(r24.quin[0].sueldo, 5500); eq(r24.quin[0].b.sueldoMes, 5500); ok(r24.quin[0].b.isr > 0, 'la quincena que cierra noviembre retiene con el sueldo nuevo');
+  });
+  T('Sin cambios con fecha el ISR de cada boleta es exactamente el de antes de esta versión (la proyección de la persona sin tocar)', () => {
+    const s = mk(), e = persona({ sueldo: 5001.6 }), q = persona({ cuadrilla: E.MQ, sueldo: 3816.9 });
+    for (let k = -3; k <= 5; k++) { const cat = E.catorcena(s, k), pr = E.isrProyeccion(e, s, 'act', E.isrAnioDe(s.params, cat.fin)); near(bolCat(e, s, k).isr, E.isrDelPago(s.params, pr, cat), 0.0051, 'catorcena ' + cat.num); }
+    for (let m = 9; m <= 12; m++) [1, 2].forEach((n) => { const per = E.quincena(2026, m, n), pr = E.isrProyeccion(q, s, 'act', 2026); near(bolQ(q, s, per).isr, E.isrDelPago(s.params, pr, per), 0.0051, 'quincena ' + m + '/' + n); });
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
@@ -16237,7 +16422,8 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       (true). Sin cálculo si el parámetro «isrActivo» está apagado. */
   UI.isrCatDe = (e, S, which, per, cache) => {
     if (!S.params.isrActivo) return 0;
-    return E.isrDelPago(S.params, UI.isrDe(e, S, which, per.fin, cache), per);
+    // versión 32: la proyección que conocía ese pago (el sueldo que tenía la persona entonces), no la del año completo con los aumentos de después
+    return E.isrDelPago(S.params, E.isrPrEn(e, S, which, E.isrAnioDe(S.params, per.fin), per, cache), per);
   };
   const lista = (pc) => {
     const q = (pc.S.ui.busqPlan || '').trim().toLowerCase(), f = UI.filtroVigente(pc);
@@ -16444,15 +16630,18 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
   const q = (x) => K.q(x);
   const nombreDe = (e) => e.nombre || e.codigo || 'sin nombre';
 
-  /** El período de pago que contiene el día d: la catorcena (o, en el personal mensual, la quincena). */
+  /** Dónde cae el día d: la catorcena que lo contiene (cat) y la primera boleta con el sueldo nuevo (per): esa catorcena o, en el personal mensual, la primera quincena que empieza en o después
+      del inicio de esa catorcena (la quincena que empieza antes conserva el sueldo de antes). */
   const periodoDe = (e, d) => {
-    if (E.esMensual(e)) { const c = U.ymd(d); return Object.assign(E.quincena(c.y, c.m, c.d <= 15 ? 1 : 2), { mens: true }); }
-    return E.catorcena(SM.S, E.catorcenaIdx(SM.S, d));
+    const cat = E.catorcena(SM.S, E.catorcenaIdx(SM.S, d)), mens = E.esMensual(e);
+    return { cat, mens, per: mens ? E.shPrimeraQuincena(cat.ini) : cat };
   };
-  const textoPer = (p) => (p.mens ? 'la quincena del ' + dm(p.ini) + ' al ' + dm(p.fin) : 'la catorcena ' + p.num + ' (del ' + dm(p.ini) + ' al ' + dm(p.fin) + ')');
-  const textoAnt = (p) => (p.mens ? 'las quincenas anteriores' : 'la catorcena ' + E.catorcena(SM.S, p.k - 1).num + ' y las anteriores');
+  const textoCat = (p) => 'la catorcena ' + p.cat.num + ' (del ' + dm(p.cat.ini) + ' al ' + dm(p.cat.fin) + ')';
+  const textoQuin = (x) => 'la quincena del ' + dm(x.ini) + ' al ' + dm(x.fin);
+  /** La quincena que va justo antes de x. */
+  const quinAntes = (x) => (x.q === 2 ? E.quincena(x.y, x.m, 1) : E.quincena(x.m === 1 ? x.y - 1 : x.y, x.m === 1 ? 12 : x.m - 1, 2));
   /** Cuántas catorcenas registradas (Boletas → Registro), desde ese período, traen a la persona: conservan el sueldo con que se registraron. */
-  const registradas = (e, p) => SM.REG.filter((r) => r.fin >= U.fmtISO(p.ini) && (r.filas.some((f) => f.id === e.id) || r.quin.some((f) => f.id === e.id))).length;
+  const registradas = (e, p) => SM.REG.filter((r) => r.fin >= U.fmtISO(p.mens ? p.per.fin : p.cat.ini) && (r.filas.some((f) => f.id === e.id) || r.quin.some((f) => f.id === e.id))).length;
 
   /** Lo que explica el cuadro mientras se escribe: en qué catorcena cae la fecha, con qué sueldo sale cada boleta y cuántas catorcenas registradas no se mueven.
       o = { modo: 'fecha' | 'corregir', f: 'AAAA-MM-DD', nuevo: Q }. Devuelve HTML. */
@@ -16467,8 +16656,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     }
     const d = U.parseISO(o.f);
     if (!Number.isFinite(d)) return '<span class="note">Escriba la fecha desde la que vale el sueldo nuevo.</span>';
-    const p = periodoDe(e, d), antes = E.sueldoEn(e, p.ini - 1), n = registradas(e, p);
-    return 'El <b>' + dmy(d) + '</b> cae en <b>' + textoPer(p) + '</b>. Desde ' + (p.mens ? 'esa quincena' : 'esa catorcena') + ' la boleta usa <b>' + q(nuevo) + '</b>; <b>' + textoAnt(p) + '</b> siguen con <b>' + q(antes) + '</b>.' +
+    const p = periodoDe(e, d), antes = E.sueldoEn(e, p.cat.ini - 1), n = registradas(e, p);
+    const regla = p.mens
+      ? 'El personal mensual cobra por quincena: el sueldo nuevo vale desde la primera quincena que empieza en esa catorcena o después, <b>' + textoQuin(p.per) + '</b> (<b>' + q(nuevo) + '</b>); ' + textoQuin(quinAntes(p.per)) + ' y las anteriores siguen con <b>' + q(antes) + '</b>.'
+      : 'Desde esa catorcena la boleta usa <b>' + q(nuevo) + '</b>; <b>la catorcena ' + E.catorcena(SM.S, p.cat.k - 1).num + ' y las anteriores</b> siguen con <b>' + q(antes) + '</b>.';
+    return 'El <b>' + dmy(d) + '</b> cae en <b>' + textoCat(p) + '</b>. ' + regla +
       (nuevo < antes - 0.004 ? ' El sueldo nuevo es <b>menor</b> que el anterior.' : '') +
       (n ? ' ' + (n === 1 ? '1 catorcena registrada' : n + ' catorcenas registradas') + ' (Boletas → Registro) desde esa ' + (n === 1 ? 'conserva' : 'conservan') + ' el sueldo con que se ' + (n === 1 ? 'registró' : 'registraron') + '; para que lleve' + (n === 1 ? '' : 'n') + ' el aumento, actualizar' + (n === 1 ? 'la' : 'las') + ' allí.' : '');
   };
@@ -16484,7 +16676,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       '<div class="field" id="cs-ff"><label for="cs-f">Vale desde</label><input class="in" id="cs-f" type="date" value="' + U.fmtISO(U.todayNum()) + '"></div>' +
       '<div class="field wide"><label for="cs-t">Nota (opcional)</label><input class="in" id="cs-t" type="text" maxlength="60" placeholder="Por ejemplo: aumento por ascenso"></div></div>' +
       '<fieldset class="cs-modo" style="border:0;margin:.6rem 0 0;padding:0"><legend class="sr">Qué es este cambio</legend>' +
-      '<label class="cs-op" style="display:flex;gap:.5rem;align-items:flex-start;margin:.25rem 0"><input type="radio" name="cs-m" value="fecha" checked><span><b>Es un aumento con fecha.</b> Vale desde la catorcena en que cae esa fecha; las catorcenas anteriores conservan el sueldo de antes.</span></label>' +
+      '<label class="cs-op" style="display:flex;gap:.5rem;align-items:flex-start;margin:.25rem 0"><input type="radio" name="cs-m" value="fecha" checked><span><b>Es un aumento con fecha.</b> Vale desde la catorcena en que cae esa fecha' + (E.esMensual(e) ? ' (en el personal mensual, desde la primera quincena que empieza en ella o después)' : '') + '; lo anterior conserva el sueldo de antes.</span></label>' +
       '<label class="cs-op" style="display:flex;gap:.5rem;align-items:flex-start;margin:.25rem 0"><input type="radio" name="cs-m" value="corregir"><span><b>Es una corrección.</b> ' + (ult ? 'Cambia el sueldo desde el último aumento en adelante.' : 'Cambia el sueldo de todas las catorcenas, también las que ya pasaron.') + '</span></label></fieldset>' +
       '<p class="note" id="cs-info" aria-live="polite" style="margin-bottom:0"></p>';
     const leer = (d) => ({ modo: (d.querySelector('input[name="cs-m"]:checked') || {}).value === 'corregir' ? 'corregir' : 'fecha', nuevo: parseFloat(d.querySelector('#cs-n').value), f: d.querySelector('#cs-f').value, nota: d.querySelector('#cs-t').value.trim() });
@@ -16494,7 +16686,10 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       validate: (x) => (!(x.nuevo >= 0) ? 'Escriba el sueldo nuevo (un número mayor o igual a 0).' : x.modo === 'fecha' && !Number.isFinite(U.parseISO(x.f)) ? 'Escriba la fecha desde la que vale el sueldo nuevo.' : ''),
       onOpen: (d) => {
         const act = () => { const x = leer(d); d.querySelector('#cs-ff').style.display = x.modo === 'fecha' ? '' : 'none'; d.querySelector('#cs-info').innerHTML = UI.shInfo(e, x); };
-        d.addEventListener('input', act); d.addEventListener('change', act); act();
+        // el cuadro de diálogo es un solo elemento que usan todos los cuadros: los oyentes se quitan al cerrar, o seguirían corriendo (y fallando) en los cuadros siguientes
+        d.addEventListener('input', act); d.addEventListener('change', act);
+        d.addEventListener('close', function fin() { d.removeEventListener('input', act); d.removeEventListener('change', act); d.removeEventListener('close', fin); });
+        act();
       }
     });
     if (o.desdeCelda) UI._focusFk = 'emp:' + id + ':sueldo'; // con el teclado, el foco vuelve a la celda del sueldo (la tabla se vuelve a dibujar)
@@ -16507,7 +16702,7 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
       SM.updEmp(id, p);
     }
     const per = x.modo === 'fecha' ? periodoDe(e, U.parseISO(x.f)) : null;
-    UI.toast('Sueldo de ' + nombreDe(e) + ': ' + q(x.nuevo) + (per ? ' desde ' + textoPer(per).replace(/ \(del .*\)$/, '') : ' (corregido)'), 'ok', { label: 'Deshacer', fn: () => SM.updEmp(id, antes) });
+    UI.toast('Sueldo de ' + nombreDe(e) + ': ' + q(x.nuevo) + (per ? ' desde ' + (per.mens ? textoQuin(per.per) : 'la catorcena ' + per.cat.num) : ' (corregido)'), 'ok', { label: 'Deshacer', fn: () => SM.updEmp(id, antes) });
     return x;
   };
 
@@ -16525,11 +16720,11 @@ break;case"<bookViews":;case"<bookViews>":;case"</bookViews>":break;case"<workbo
     let cuerpo;
     if (!r.length) cuerpo = '<p class="note" style="margin:.2rem 0 .5rem">Sin cambios con fecha: el sueldo de ' + q(e.sueldo) + ' vale para todas las catorcenas, también las que ya pasaron.</p>';
     else {
-      const filas = r.map((x) => '<tr><td class="ttl" data-l="Vale desde">' + dmy(x.d) + '</td><td data-l="' + (mens ? 'Quincena' : 'Catorcena') + '">' + (x.per ? (mens ? 'del ' + dm(x.per.ini) + ' al ' + dm(x.per.fin) : x.per.num + ' <span class="note">(' + dm(x.per.ini) + ' al ' + dm(x.per.fin) + ')</span>') : '—') + '</td>' +
+      const filas = r.map((x) => '<tr><td class="ttl" data-l="Vale desde">' + dmy(x.d) + '</td><td data-l="' + (mens ? 'Primera quincena con el sueldo nuevo' : 'Catorcena') + '">' + (x.per ? (mens ? 'del ' + dm(x.per.ini) + ' al ' + dm(x.per.fin) + ' <span class="note">(catorcena ' + x.cat.num + ')</span>' : x.per.num + ' <span class="note">(' + dm(x.per.ini) + ' al ' + dm(x.per.fin) + ')</span>') : '—') + '</td>' +
         '<td class="n" data-l="Antes">' + q(x.antes) + '</td><td class="n" data-l="Sueldo nuevo"><b>' + q(x.s) + '</b></td><td class="n" data-l="Cambio">' + (x.delta >= 0 ? '+ ' : '− ') + q(Math.abs(x.delta)) + (x.pct === null ? '' : ' <span class="note">(' + U.fmt(x.pct, 2) + ' %)</span>') + '</td>' +
         '<td data-l="Nota">' + esc(x.nota) + '</td><td class="nolabel acts noprint">' + K.btn('shQuitar', '', { cls: 'icon sm ghost danger', ico: 'trash', data: 'data-id="' + e.id + '" data-f="' + esc(x.f) + '"', title: 'Quitar este cambio de sueldo', label: 'Quitar el cambio de sueldo del ' + dmy(x.d) }) + '</td></tr>').join('');
-      cuerpo = '<div class="tblwrap"><table class="tbl rsp sh-tbl"><caption class="sr">Cambios de sueldo de ' + esc(nombreDe(e)) + ', del más antiguo al más reciente</caption><thead><tr><th scope="col">Vale desde</th><th scope="col">' + (mens ? 'Quincena' : 'Catorcena') + '</th><th class="n" scope="col">Antes</th><th class="n" scope="col">Sueldo nuevo</th><th class="n" scope="col">Cambio</th><th scope="col">Nota</th><th scope="col"><span class="sr">Acciones</span></th></tr></thead><tbody>' + filas + '</tbody></table></div>' +
-        '<p class="note" style="margin:.3rem 0 .5rem">Hasta el primer cambio el sueldo era ' + q(r[0].antes) + '. Cada boleta usa el sueldo que regía en su catorcena.</p>';
+      cuerpo = '<div class="tblwrap"><table class="tbl rsp sh-tbl"><caption class="sr">Cambios de sueldo de ' + esc(nombreDe(e)) + ', del más antiguo al más reciente</caption><thead><tr><th scope="col">Vale desde</th><th scope="col">' + (mens ? 'Primera quincena con el sueldo nuevo' : 'Catorcena') + '</th><th class="n" scope="col">Antes</th><th class="n" scope="col">Sueldo nuevo</th><th class="n" scope="col">Cambio</th><th scope="col">Nota</th><th scope="col"><span class="sr">Acciones</span></th></tr></thead><tbody>' + filas + '</tbody></table></div>' +
+        '<p class="note" style="margin:.3rem 0 .5rem">Hasta el primer cambio el sueldo era ' + q(r[0].antes) + '. ' + (mens ? 'Cada quincena usa el sueldo que regía al empezar la catorcena del cambio: la quincena que empieza antes conserva el de antes.' : 'Cada boleta usa el sueldo que regía en su catorcena.') + '</p>';
     }
     return '<div class="sh-blk" style="margin-top:.75rem;max-width:min(100%,46rem,calc(100vw - 6rem));position:sticky;left:.5rem"><h4 class="sh-t" style="margin:0 0 .3rem">Sueldo por fecha</h4>' + cuerpo +
       '<div class="btns noprint">' + K.btn('shAumento', 'Dar un aumento…', { cls: 'sm', ico: 'plus', data: 'data-id="' + e.id + '"', title: 'Cambiar el sueldo desde una fecha: las catorcenas anteriores no cambian' }) + '</div></div>';
@@ -17372,7 +17567,7 @@ Las metas marcadas «(definir)» se acuerdan con la planta antes de empezar; el 
     'La canasta ampliada del INE incluye un rubro de vivienda, pero no cuotas de créditos ni ahorro. Comparar el ingreso líquido de la boleta tipo (sin horas extra) con la canasta es una referencia: no mide el nivel de vida de un hogar ni la capacidad de crédito real, que fija la institución financiera con una cotización. Los costos de los apoyos de la empresa valen 0 mientras no se ingresen.',
     'La pirámide de Maslow se usa como marco de lectura y no como medición: las necesidades no se satisfacen necesariamente en un orden fijo (Tay y Diener, 2011) y el índice interno promedia prácticas que califica la propia empresa. No sustituye una encuesta de clima ni el Trust Index de Great Place to Work, y ninguna certificación, lista o mención de prensa puede garantizarse.',
     'La transición por olas (Planta → Transición y el plan piloto de la Propuesta) reparte al personal rotativo según el sueldo de cada persona en Planilla frente al salario mínimo de referencia: quien gana más del mínimo entra en la primera ola y quien gana el mínimo o menos, en la segunda; si la planilla no tiene personal rotativo, se usa la estructura de Planta. Ese orden es un criterio de la propuesta, no un requisito legal, y debe confirmarse con el asesor laboral y comunicarse al personal antes de aplicarse. Un equipo o un puesto cambia de cuadrillas con todos sus integrantes, de modo que las áreas con personas de ambas olas (mixtas) obligan a decidir si pasan completas o se parten; el cálculo muestra la mezcla, pero no resuelve esa decisión. El personal nuevo se costea con el sueldo de la plaza que ocupa y sin prorratear beneficios no salariales; la inversión inicial por persona nueva vale 0 mientras no se ingrese en Parámetros (Transición, únicos por empleado nuevo). El salario mínimo de referencia es un parámetro editable que debe verificarse contra el acuerdo gubernativo vigente, y el personal de lunes a viernes no entra en las olas porque no rota.',
-    'El sueldo por fecha (versión 31) toma, para cada catorcena, el sueldo que la persona tenía el último día de esa catorcena (en el personal mensual, de la quincena): un aumento cuya fecha cae a mitad de catorcena vale para la catorcena entera, y las anteriores conservan el sueldo de antes. El simulador no prorratea esa catorcena por días ni sabe cómo la planilla real trata un aumento a mitad de período: debe confirmarse con la boleta de la catorcena en que cae el aumento. Las catorcenas ya registradas en Boletas → Registro conservan el sueldo con que se registraron hasta que se actualicen, y el presupuesto de aumentos futuros sí prorratea por días la catorcena en que cae cada aumento.'
+    'El sueldo por fecha (versión 31) toma, para cada catorcena, el sueldo que la persona tenía el último día de esa catorcena: un aumento cuya fecha cae a mitad de catorcena vale para la catorcena entera, y las anteriores conservan el sueldo de antes. En el personal mensual (versión 32) el aumento vale desde la primera quincena que empieza en o después del inicio de la catorcena de su fecha: la quincena que empieza antes, aunque contenga la fecha, conserva el sueldo de antes. El ISR que retiene cada boleta se proyecta con el sueldo que la persona tenía en ese pago, sin ver los aumentos de después (versión 32). El simulador no prorratea esa catorcena por días ni sabe cómo la planilla real trata un aumento a mitad de período: debe confirmarse con la boleta de la catorcena en que cae el aumento. Las catorcenas ya registradas en Boletas → Registro conservan el sueldo con que se registraron hasta que se actualicen, y el presupuesto de aumentos futuros sí prorratea por días la catorcena en que cae cada aumento.'
   ];
 })(typeof globalThis !== 'undefined' ? globalThis : window);
 
@@ -18584,16 +18779,16 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     c: 'Cada boleta usa el sueldo que la persona tenía en esa catorcena: un aumento vale desde la catorcena que contiene su fecha y las anteriores no cambian.',
     d: [
       'Cada persona tiene su sueldo de hoy y, si hubo cambios, un historial con la fecha desde la que vale cada uno (Planilla → Más datos → «Sueldo por fecha»). Al cambiar el sueldo en la tabla de Planilla, el simulador pregunta desde cuándo vale: «Es un aumento con fecha» lo guarda en el historial; «Es una corrección» cambia el sueldo desde el último aumento en adelante (si no hay historial, el de todas las catorcenas).',
-      'La boleta de una catorcena usa el sueldo que la persona tenía el último día de esa catorcena. Si el aumento cae a mitad de catorcena, esa catorcena sale entera con el sueldo nuevo y la anterior, con el de antes. En el personal mensual la regla es la misma con la quincena. El acumulado del año, el recibo, las vacaciones y la liquidación leen el sueldo de cada período; el ISR proyectado del año y los promedios de la liquidación usan el sueldo promedio ponderado por días.',
+      'La boleta de una catorcena usa el sueldo que la persona tenía el último día de esa catorcena. Si el aumento cae a mitad de catorcena, esa catorcena sale entera con el sueldo nuevo y la anterior, con el de antes. El personal mensual cobra por quincena: el sueldo nuevo vale desde la primera quincena que empieza en esa catorcena o después, y la quincena que empieza antes, aunque contenga la fecha, conserva el de antes. Una boleta nunca cambia por un aumento que empieza después de ella: tampoco su ISR, que se proyecta con el sueldo de ese pago. El acumulado del año, el recibo, las vacaciones y la liquidación leen el sueldo de cada período; el ISR proyectado del año y los promedios de la liquidación usan el sueldo promedio ponderado por días.',
       'Las catorcenas que ya se registraron en Boletas → Registro conservan el sueldo con que se registraron: para que lleven el aumento hay que volver a registrarlas. «Aplicar a la planilla» (Presupuesto → Aumentos) deja cada aumento con su fecha en este historial y «Deshacer» lo quita.'
     ],
-    f: ['Sueldo de una catorcena = sueldo vigente el último día de esa catorcena', 'Sueldo promedio de un período = Σ (días con cada sueldo × ese sueldo) ÷ días del período'],
+    f: ['Sueldo de una catorcena = sueldo vigente el último día de esa catorcena', 'Sueldo de una quincena (personal mensual) = sueldo vigente el primer día de la quincena, con cada aumento válido desde el inicio de su catorcena', 'Sueldo promedio de un período = Σ (días con cada sueldo × ese sueldo) ÷ días del período'],
     v: (c) => {
       const e = SM.EMP.find((x) => E.shTiene(x));
       if (!e) return ul(['Ninguna persona de la planilla tiene cambios de sueldo con fecha: el sueldo de cada ficha vale para todas las catorcenas.']);
       const r = E.shResumen(e, c.S), x = r[r.length - 1], quien = esc(e.nombre || e.codigo || 'La primera persona con cambios');
-      return ul([quien + ' tiene ' + r.length + (r.length === 1 ? ' cambio' : ' cambios') + ' con fecha; el último vale desde el <b>' + U.fmtDMY(x.d) + '</b>' + (x.per && !x.quincena ? ' (catorcena ' + x.per.num + ')' : '') + ': de ' + q(x.antes) + ' a <b>' + q(x.s) + '</b>.',
-        'Las boletas anteriores a esa catorcena siguen con ' + q(x.antes) + '.']);
+      return ul([quien + ' tiene ' + r.length + (r.length === 1 ? ' cambio' : ' cambios') + ' con fecha; el último vale desde el <b>' + U.fmtDMY(x.d) + '</b>' + (x.cat ? ' (catorcena ' + x.cat.num + ')' : '') + ': de ' + q(x.antes) + ' a <b>' + q(x.s) + '</b>.',
+        (x.quincena ? 'La primera quincena con el sueldo nuevo es la del ' + U.fmtDMY(x.per.ini).slice(0, 5) + ' al ' + U.fmtDMY(x.per.fin).slice(0, 5) + '; las anteriores siguen con ' + q(x.antes) + '.' : 'Las boletas anteriores a esa catorcena siguen con ' + q(x.antes) + '.')]);
     },
     u: [['planilla', 'Sueldo y Más datos → Sueldo por fecha'], ['boletas', 'Sueldo del recibo'], ['presupuesto', 'Aplicar a la planilla']], rel: ['catorcena', 'presAplicar', 'registroCat', 'mensualQ']
   });
@@ -19109,7 +19304,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
     return '<article class="bol" aria-label="Recibo de pago de ' + esc(e.nombre || 'empleado sin nombre') + ', ' + cual + '"><header><b>' + esc(em.nombre || '') + (em.nit ? ' <span class="nit">Nit: ' + esc(em.nit) + '</span>' : '') + '</b><span>RECIBO DE PAGO</span><span>' + titulo + '</span></header>' +
       '<div class="bid"><div>Código empleado : ' + esc(e.codigo) + ' – <b>' + esc(e.nombre || '(sin nombre)') + '</b></div><div class="r">NIT : ' + esc(e.nit || '') + '</div>' +
       '<div>Cargo : ' + esc(e.cargo) + '</div><div class="r">Sup : ' + esc(e.sup || '') + '</div>' +
-      '<div class="rate">Sueldo : ' + q2(Number.isFinite(b.sueldoMes) ? b.sueldoMes : E.sueldoEn(e, per && per.fin)) + ' <i></i> Hora: ' + q2(b.vh) + ' <i></i> H. extra: ' + q2(b.vhx) + '</div></div>' +
+      '<div class="rate">Sueldo : ' + q2(Number.isFinite(b.sueldoMes) ? b.sueldoMes : E.sueldoPer(e, per, S)) + ' <i></i> Hora: ' + q2(b.vh) + ' <i></i> H. extra: ' + q2(b.vhx) + '</div></div>' +
       '<table class="bt"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup><thead><tr><th scope="col">Ingresos</th><th class="n" scope="col"><span class="sr">Cantidad</span></th><th class="n" scope="col">Devengado</th><th class="dl" scope="col">Deducciones</th><th class="n" scope="col"><span class="sr">Monto de la deducción</span></th></tr></thead><tbody>' + rows + '</tbody><tfoot><tr><td></td><td></td><td class="n">' + q2(b.devengado) + '</td><td></td><td class="n">' + q2(b.deducciones) + '</td></tr></tfoot></table>' +
       '<div class="neto"><span>Neto a pagar Q.</span> ' + q2(b.liquido) + '</div>' +
       '<footer><div class="sig">Recibí conforme</div><div class="stamp">' + sello() + '</div></footer>' +
@@ -20187,6 +20382,12 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       : '<p class="note">Ninguna persona con pago catorcenal en la selección.</p>';
   };
 
+  /** El «Sueldo mensual» de la fila de una persona mensual: el de la segunda quincena (la que cierra el mes) y, si un aumento con fecha hizo que la primera saliera con otro, el de la primera entre paréntesis. */
+  const sueldoMes = (m, S) => {
+    const s1 = E.sueldoPer(m.e, m.q[0].per, S), s2 = E.sueldoPer(m.e, m.q[1].per, S);
+    return q2(s2) + (Math.abs(s1 - s2) > 0.004 ? ' <span class="note">(quincena 1: ' + q2(s1) + ')</span>' : '');
+  };
+
   /** HTML de la planilla de pagos de la catorcena de `pc` para las personas `emps`. o.aviso: texto de revisión que se imprime bajo el título (por omisión, el estándar).
       o.pantalla: vista previa para la pantalla (sin encabezado de hoja) que muestra solo las primeras o.limite filas del personal catorcenal; los totales son siempre los de todas las personas. */
   UI.pagosHtml = (emps, pc, o) => {
@@ -20202,7 +20403,7 @@ Calculado por el simulador para el ciclo completo de cada rotación (validación
       const fm = D.mens.map((m, i) => {
         const a = m.q[0].b, b = m.q[1].b;
         totQ.d1 += a.devengado; totQ.c1 += a.deducciones; totQ.n1 += a.liquido; totQ.d2 += b.devengado; totQ.c2 += b.deducciones; totQ.n2 += b.liquido;
-        return '<tr><td class="n">' + (i + 1) + '</td><td>' + esc(m.e.codigo) + '</td><td class="nm">' + esc(m.e.nombre || '(sin nombre)') + '</td><td class="n">' + q2(E.sueldoPer(m.e, m.q[1].per)) + '</td>' +
+        return '<tr><td class="n">' + (i + 1) + '</td><td>' + esc(m.e.codigo) + '</td><td class="nm">' + esc(m.e.nombre || '(sin nombre)') + '</td><td class="n">' + sueldoMes(m, S) + '</td>' +
           '<td class="n">' + q2(a.devengado) + '</td><td class="n">' + q2(a.deducciones) + '</td><td class="n"><b>' + q2(a.liquido) + '</b></td>' +
           '<td class="n">' + q2(b.devengado) + (m.q[1].hExt ? ' <span class="note">(' + hh(m.q[1].hExt) + ' h extra)</span>' : '') + '</td><td class="n">' + q2(b.deducciones) + '</td><td class="n"><b>' + q2(b.liquido) + '</b></td><td class="firma"></td></tr>';
       }).join('');
