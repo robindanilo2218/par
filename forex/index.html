@@ -843,6 +843,76 @@ body.ch-open{overflow:hidden}
 /* the eight bar sizes were 320px wide on their own: tighten them on the narrowest phones so the page does not widen */
 @media (max-width:23rem){.ch .lg-seg button{padding-inline:.32rem}}
 
+/* ---- BMC (version 15): the business-model canvas of trading funded accounts ---- */
+body[data-view="bmc"][data-v]{--band-bg:var(--panel);--band-fg:var(--ink);--verdict:var(--ink)}
+.bm-canvas,.bm-band{display:grid;gap:.6rem;grid-template-columns:minmax(0,1fr);min-width:0}
+.bm-blk,.bm-pan{display:grid;grid-template-rows:auto auto auto 1fr;align-content:start;gap:.4rem;min-width:0;padding:.7rem .8rem;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.bm-pan{grid-template-rows:none;grid-auto-rows:auto}
+.bm-blk>header,.bm-pan>header{display:flex;align-items:center;gap:.5rem;min-width:0}
+.bm-n{flex:none;display:grid;place-items:center;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--ink);color:var(--bg);font:600 .75rem/1 var(--f-mono)}
+.bm-t{margin:0;font:600 1rem/1.2 var(--f-cond);letter-spacing:.01em;overflow-wrap:anywhere}
+.bm-q{margin:0;font:500 .75rem/1.3 var(--f-cond);color:var(--ink-2)}
+.bm-sub{margin:.35rem 0 0;font:600 .6875rem/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.bm-l{margin:0;padding-left:1.05rem;display:grid;gap:.3rem;font:400 .8125rem/1.42 var(--f-text);color:var(--ink);overflow-wrap:anywhere}
+.bm-l li::marker{color:var(--ink-3)}
+.bm-blk[data-bm="val"]{border-top:3px solid var(--buy)}
+.bm-blk[data-bm="ing"]{border-top:3px solid var(--ok)}
+.bm-blk[data-bm="cos"]{border-top:3px solid var(--sell)}
+.bm-my{display:flex;flex-direction:column;gap:.2rem;margin-top:.25rem;min-height:0}
+.bm-my label{font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.bm-my textarea{display:block;flex:1 1 auto;width:100%;min-height:4.25rem;resize:vertical;font:400 .8125rem/1.4 var(--f-text);color:var(--ink);background:var(--key);border:1px solid var(--line);border-radius:5px;padding:.45rem .55rem}
+.bm-my textarea:focus-visible{outline-offset:0;border-color:var(--ink)}
+.bm-out{margin:0;font:500 .8125rem/1.4 var(--f-cond);color:var(--ink-2)}
+.bm-out:empty{display:none}
+.bm-out b{color:var(--ink);font-weight:600}
+.pf-v.bm-out{font:400 .8125rem/1.45 var(--f-text);color:var(--ink)}
+.bm-out .ln{display:block}
+.bm-out .ln+.ln{margin-top:.25rem}
+.own>.bm-lab{flex:none;font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.bm-keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(6.4rem,1fr));gap:.3rem;min-width:0}
+.bm-keys.two{display:flex;flex-wrap:wrap;flex:1 1 12rem}
+.bm-keys.two .bm-k{flex:1 1 7rem}
+.bm-k{appearance:none;display:grid;gap:.05rem;justify-items:center;align-content:center;min-width:0;min-height:2.5rem;padding:.25rem .45rem;border:1px solid var(--edge);border-radius:5px;background:var(--key);color:var(--ink-2);font:500 .8125rem/1.2 var(--f-cond);cursor:pointer;text-align:center}
+.bm-k small{font:500 .6875rem/1.2 var(--f-mono);color:inherit;opacity:.85}
+.bm-k[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:600}
+.bm-sks{display:grid}
+.bm-sk{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.25rem .5rem;padding:.3rem 0;border-top:1px solid var(--line)}
+.bm-skn{flex:1 1 9rem;min-width:0;font:500 .8125rem/1.3 var(--f-text)}
+.bm-skb{display:flex;gap:.25rem}
+.bm-skb .bm-k{min-width:2.25rem;min-height:2.25rem;padding:.2rem}
+.bm-go{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.3rem}
+.bm-go .act{min-height:2.25rem}
+.bm-as{display:grid;gap:.4rem;padding:.7rem .8rem;border:1px solid var(--line);border-radius:8px;background:var(--panel);min-width:0}
+.bm-as .lbl{margin:0}
+.bm-chks{display:grid;gap:.1rem}
+.bm-chk{display:flex;gap:.55rem;align-items:flex-start;padding:.3rem 0;font:400 .8125rem/1.4 var(--f-text);cursor:pointer;min-width:0}
+.bm-chk input{flex:none;width:1.2rem;height:1.2rem;margin:.1rem 0 0;accent-color:var(--ink)}
+.bm-chk span{min-width:0;overflow-wrap:anywhere}
+.bm-sheet .lbl{margin:0}
+.bm-sheet .bk-row .filebtn{flex:1 1 14rem}
+.bm-srcb{display:grid;gap:.5rem;padding:.4rem .75rem .75rem}
+.bm-srcl{margin:0;padding-left:1.1rem;display:grid;gap:.3rem;font:400 .8125rem/1.4 var(--f-text)}
+.bm-srcl a{color:var(--ink);text-decoration:underline;text-underline-offset:.15em;overflow-wrap:anywhere}
+.thbar-in{flex-wrap:wrap}
+@media (min-width:40rem){.bm-canvas{grid-template-columns:repeat(2,minmax(0,1fr))}.bm-blk[data-bm="cos"]{grid-column:1/-1}}
+@media (min-width:48rem){.bm-band{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.bm-chks{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1.25rem}}
+@media (min-width:60rem){.bm-canvas{grid-template-columns:repeat(3,minmax(0,1fr))}.bm-blk[data-bm="cos"]{grid-column:auto}}
+/* from 80rem the nine blocks take the shape of the classic canvas: partners, activities and resources, value, relationships and channels, segments, and costs beside revenue */
+@media (min-width:80rem){
+  .bm-canvas{grid-template-columns:repeat(10,minmax(0,1fr));align-items:stretch}
+  .bm-blk[data-bm="soc"]{grid-column:1/3;grid-row:1/3}
+  .bm-blk[data-bm="act"]{grid-column:3/5;grid-row:1}
+  .bm-blk[data-bm="rec"]{grid-column:3/5;grid-row:2}
+  .bm-blk[data-bm="val"]{grid-column:5/7;grid-row:1/3}
+  .bm-blk[data-bm="rel"]{grid-column:7/9;grid-row:1}
+  .bm-blk[data-bm="can"]{grid-column:7/9;grid-row:2}
+  .bm-blk[data-bm="seg"]{grid-column:9/11;grid-row:1/3}
+  .bm-blk[data-bm="cos"]{grid-column:1/6;grid-row:3}
+  .bm-blk[data-bm="ing"]{grid-column:6/11;grid-row:3}
+}
+/* six buttons in the tape: they may take two rows on the narrowest phones */
+@media (max-width:47.99rem){.tapebtns{flex-wrap:wrap}}
+
 /* ---- version 14: typed boxes beside the preset keys, fixed lots, the funding panel and the backup panel ---- */
 .own{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem .5rem;margin-top:.4rem}
 .own>label{flex:none;font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
@@ -904,7 +974,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <span class="cnt"><span id="gcount">0/7</span><small>permisos</small></span>
       <span class="tooltiptext"><span class="p"><b>Resumen.</b> Cuatro luces de dirección: macro, tendencia, nivel y gatillo. Triángulo hacia arriba: a favor de comprar. Hacia abajo: a favor de vender. Círculo lleno: macro dividido.</span><span class="p">El contador son los permisos de los pasos 3 y 4. Solo dice COMPRAR o VENDER cuando las cuatro luces apuntan al mismo lado y están los 7 permisos.</span></span>
     </button>
-    <div class="tapebtns"><button type="button" class="clear" data-go="logica">Lógica</button><button type="button" class="clear" data-go="grafico">Gráfico</button><button type="button" class="clear" data-go="lab">Lab<span class="hs">oratorio</span></button><button type="button" class="clear" data-go="teoria">Teoría</button><button type="button" class="clear tooltip" id="clear" data-teoria="veredicto">Limpiar<span class="tooltiptext">Suelta todos los botones de los pasos 1 a 6. Tu capital, riesgo y precios se conservan. La lista también se limpia sola a las 8 horas, para no decidir con condiciones de ayer.</span></button></div>
+    <div class="tapebtns"><button type="button" class="clear" data-go="logica">Lógica</button><button type="button" class="clear" data-go="grafico">Gráfico</button><button type="button" class="clear" data-go="bmc">BMC</button><button type="button" class="clear" data-go="lab">Lab<span class="hs">oratorio</span></button><button type="button" class="clear" data-go="teoria">Teoría</button><button type="button" class="clear tooltip" id="clear" data-teoria="veredicto">Limpiar<span class="tooltiptext">Suelta todos los botones de los pasos 1 a 6. Tu capital, riesgo y precios se conservan. La lista también se limpia sola a las 8 horas, para no decidir con condiciones de ayer.</span></button></div>
   </div>
 </header>
 
@@ -916,7 +986,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
   </div>
 </section>
 
-<p class="wrap hint">Toca lo que se cumpla; queda marcado hasta que lo toques otra vez. Cada botón trae su regla en pequeño; son reglas prácticas, no garantías. Mantén presionado un botón, o toca su «?», para ver cómo comprobarla paso a paso. Cada ayuda termina con «Ver teoría ↗», y el botón «Teoría», arriba, abre todos los temas. «Lab» abre el laboratorio: cuartiles de cada indicador por hora del día, día de la semana, mes y semana, con las velas en alza o en baja. «Lógica» dibuja el veredicto como un circuito, con tu archivo de MT5, el calendario y el reloj. «Gráfico» dibuja las velas de tu archivo, como MT5, con el plan del día en azul (compra) y rojo (venta).</p>
+<p class="wrap hint">Toca lo que se cumpla; queda marcado hasta que lo toques otra vez. Cada botón trae su regla en pequeño; son reglas prácticas, no garantías. Mantén presionado un botón, o toca su «?», para ver cómo comprobarla paso a paso. Cada ayuda termina con «Ver teoría ↗», y el botón «Teoría», arriba, abre todos los temas. «Lab» abre el laboratorio: cuartiles de cada indicador por hora del día, día de la semana, mes y semana, con las velas en alza o en baja. «Lógica» dibuja el veredicto como un circuito, con tu archivo de MT5, el calendario y el reloj. «Gráfico» dibuja las velas de tu archivo, como MT5, con el plan del día en azul (compra) y rojo (venta). «BMC» arma el modelo de negocio de operar cuentas de fondeo, con tu tiempo, tu dinero y tus habilidades, y lo saca en una hoja A0 para imprimir.</p>
 
 <main class="wrap board" id="board">
 
@@ -1280,17 +1350,25 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
     <button type="button" class="clear" data-go="teoria" data-only="teoria">Temas</button>
     <button type="button" class="clear" data-go="logica" data-only="teoria">Lógica</button>
     <button type="button" class="clear" data-go="grafico" data-only="teoria">Gráfico</button>
+    <button type="button" class="clear" data-go="bmc" data-only="teoria">BMC</button>
     <button type="button" class="clear" data-go="lab" data-only="teoria">Lab<span class="hs">oratorio</span></button>
     <button type="button" class="clear" data-go="logica" data-only="lab" hidden>Lógica</button>
     <button type="button" class="clear" data-go="grafico" data-only="lab" hidden>Gráfico</button>
+    <button type="button" class="clear" data-go="bmc" data-only="lab" hidden>BMC</button>
     <button type="button" class="clear" data-go="teoria" data-only="lab" hidden>Teoría</button>
     <button type="button" class="clear" data-go="grafico" data-only="logica" hidden>Gráfico</button>
+    <button type="button" class="clear" data-go="bmc" data-only="logica" hidden>BMC</button>
     <button type="button" class="clear" data-go="lab" data-only="logica" hidden>Lab<span class="hs">oratorio</span></button>
     <button type="button" class="clear" data-go="teoria" data-only="logica" hidden>Teoría</button>
     <button type="button" class="clear" data-go="logica" data-only="grafico" hidden>Lógica</button>
+    <button type="button" class="clear" data-go="bmc" data-only="grafico" hidden>BMC</button>
     <button type="button" class="clear" data-go="lab" data-only="grafico" hidden>Lab<span class="hs">oratorio</span></button>
     <button type="button" class="clear" data-go="teoria" data-only="grafico" hidden>Teoría</button>
-    <h1 class="thtitle"><span data-only="teoria">Teoría</span><span data-only="lab" hidden>Lab<span class="hs">oratorio</span></span><span data-only="logica" hidden>Lógica</span><span data-only="grafico" hidden>Gráfico</span></h1>
+    <button type="button" class="clear" data-go="logica" data-only="bmc" hidden>Lógica</button>
+    <button type="button" class="clear" data-go="grafico" data-only="bmc" hidden>Gráfico</button>
+    <button type="button" class="clear" data-go="lab" data-only="bmc" hidden>Lab<span class="hs">oratorio</span></button>
+    <button type="button" class="clear" data-go="teoria" data-only="bmc" hidden>Teoría</button>
+    <h1 class="thtitle"><span data-only="teoria">Teoría</span><span data-only="lab" hidden>Lab<span class="hs">oratorio</span></span><span data-only="logica" hidden>Lógica</span><span data-only="grafico" hidden>Gráfico</span><span data-only="bmc" hidden>BMC</span></h1>
   </div>
 </header>
 
@@ -1309,7 +1387,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <div><h3>Paso 4 · Riesgo y tamaño</h3><p class="ixl"><a href="#teoria-atr" data-ir="atr">ATR</a><a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a><a href="#teoria-margen" data-ir="margen">Margen y swap</a><a href="#teoria-stopr" data-ir="stopr">Stop y objetivo</a><a href="#teoria-limites" data-ir="limites">Límites del día</a><a href="#teoria-fondeo" data-ir="fondeo">Cuentas de fondeo</a></p></div>
       <div><h3>Pasos 5 y 6</h3><p class="ixl"><a href="#teoria-plan" data-ir="plan">Plan y precios</a><a href="#teoria-salida" data-ir="salida">Salida</a></p></div>
       <div><h3>Datos</h3><p class="ixl"><a href="#teoria-tramos" data-ir="tramos">Tramos y rebotes</a><a href="#teoria-cuartiles" data-ir="cuartiles">Cuartiles y percentiles</a><a href="#teoria-perfil" data-ir="perfil">Perfil por horario</a><a href="#teoria-calendario" data-ir="calendario">Calendario</a><a href="#teoria-direccion" data-ir="direccion">Alzas y bajas</a><a href="#teoria-dirhora" data-ir="dirhora">Dirección por hora</a><a href="#teoria-nivelesdatos" data-ir="nivelesdatos">Niveles en tus datos</a><a href="#teoria-datos" data-ir="datos">Tus datos</a><a href="#lab" data-go="lab">Laboratorio ↗</a></p></div>
-      <div><h3>Decidir</h3><p class="ixl"><a href="#teoria-veredicto" data-ir="veredicto">El veredicto</a><a href="#teoria-algoritmo" data-ir="algoritmo">El algoritmo</a><a href="#teoria-logica" data-ir="logica">Leer el circuito</a><a href="#teoria-grafico" data-ir="grafico">Gráfico y plan del día</a><a href="#logica" data-go="logica">Lógica ↗</a><a href="#grafico" data-go="grafico">Gráfico ↗</a></p></div>
+      <div><h3>Decidir</h3><p class="ixl"><a href="#teoria-veredicto" data-ir="veredicto">El veredicto</a><a href="#teoria-algoritmo" data-ir="algoritmo">El algoritmo</a><a href="#teoria-logica" data-ir="logica">Leer el circuito</a><a href="#teoria-grafico" data-ir="grafico">Gráfico y plan del día</a><a href="#teoria-bmc" data-ir="bmc">Modelo de negocio (BMC)</a><a href="#logica" data-go="logica">Lógica ↗</a><a href="#grafico" data-go="grafico">Gráfico ↗</a><a href="#bmc" data-go="bmc">BMC ↗</a></p></div>
       <div><h3>Alcance</h3><p class="ixl"><a href="#teoria-alcance" data-ir="alcance">Qué cubre y qué no</a><a href="#teoria-binarias" data-ir="binarias">Opciones binarias</a></p></div>
       <div><h3>Base</h3><p class="ixl"><a href="#teoria-proceso" data-ir="proceso">Proceso y roles</a><a href="#teoria-guardado" data-ir="guardado">Guardado y copia</a><a href="#teoria-glosario" data-ir="glosario">Glosario</a><a href="#teoria-errores" data-ir="errores">Errores típicos</a><a href="#teoria-avisos" data-ir="avisos">Avisos</a></p></div>
     </nav>
@@ -1835,7 +1913,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <li><b>Las reglas que no son de pérdida:</b> lotes máximos, consistencia, días mínimos de operación, horario de noticias. Están en tu contrato.</li>
       <li><b>Los costos.</b> El spread, la comisión y el deslizamiento hacen la pérdida real algo mayor que la calculada. Deja un colchón.</li>
     </ul>
-    <p class="note">Sirve para ordenar tu decisión; no es asesoría financiera. El tamaño, el riesgo y los lotes están en <a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a>; el tope de pérdida por día, en <a href="#teoria-limites" data-ir="limites">Límites del día</a>.</p>
+    <p class="note">Sirve para ordenar tu decisión; no es asesoría financiera. El tamaño, el riesgo y los lotes están en <a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a>; el tope de pérdida por día, en <a href="#teoria-limites" data-ir="limites">Límites del día</a>. El negocio completo (cuotas, intentos, tiempo y habilidades): <a href="#teoria-bmc" data-ir="bmc">Modelo de negocio (BMC)</a>.</p>
   </article>
 
   <article class="th" id="teoria-plan" data-short="Plan y precios" tabindex="-1">
@@ -2364,6 +2442,53 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
     </ol>
   </article>
 
+  <article class="th" id="teoria-bmc" data-short="Modelo de negocio (BMC)" tabindex="-1">
+    <p class="kick">Decidir · Negocio</p>
+    <h2>Modelo de negocio (BMC): operar cuentas de fondeo</h2>
+    <p>La pestaña <a href="#bmc" data-go="bmc">BMC</a> llena el lienzo de nueve bloques (Business Model Canvas, de Osterwalder) con el negocio de operar cuentas de fondeo como trader independiente, con FTMO como referencia. Lo particular de este negocio es que <b>la firma es a la vez tu proveedor y tu cliente</b>: te vende el desafío y, si lo pasas, te paga un reparto de las ganancias. Cada bloque trae un borrador y una caja «Lo tuyo» para tus propias cifras. <b>Es una hoja para pensar, no una promesa de ingresos ni asesoría financiera.</b> Se guarda en tu navegador, entra en la copia de seguridad y no se envía a ningún lado.</p>
+    <h3>Los nueve bloques, aquí</h3>
+    <div class="tblwrap"><table class="tt">
+      <thead><tr><th>Bloque</th><th>En este negocio</th></tr></thead>
+      <tbody>
+        <tr><td>1 · Segmentos de clientes</td><td>La firma de fondeo, que te paga una parte de las ganancias; después, otra firma o tu propia cuenta.</td></tr>
+        <tr><td>2 · Propuesta de valor</td><td>Rendimiento dentro de los límites de pérdida, con el tamaño calculado desde el riesgo y un proceso escrito.</td></tr>
+        <tr><td>3 · Canales</td><td>La plataforma y el panel de la firma, y los retiros; la Mesa y tu archivo de MT5 para preparar y revisar.</td></tr>
+        <tr><td>4 · Relación con clientes</td><td>Cumplir las reglas a diario y releerlas cada mes, porque las firmas las cambian.</td></tr>
+        <tr><td>5 · Fuentes de ingresos</td><td>El reparto de ganancias (80% en 2 pasos, hasta 90% al escalar; 90% en 1 paso) y, solo en 2 pasos, la cuota que se devuelve con el primer pago.</td></tr>
+        <tr><td>6 · Recursos clave</td><td>Tu tiempo, el dinero para las cuotas, tus habilidades y la Mesa.</td></tr>
+        <tr><td>7 · Actividades clave</td><td>Los pasos de la Mesa cada día, el tope propio, el Laboratorio cada semana y el pedido de pago cuando toca cobrar.</td></tr>
+        <tr><td>8 · Asociaciones clave</td><td>La firma, su plataforma y su bróker, el calendario y los datos, un contador y alguien que revise tus operaciones.</td></tr>
+        <tr><td>9 · Estructura de costos</td><td>La cuota de cada intento, el spread, la comisión y el swap, tu tiempo y los impuestos.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Tiempo, dinero, habilidades y lo que ofrece la Mesa</h3>
+    <ul>
+      <li><b>Tiempo.</b> Escribes las horas por semana y la pestaña las pasa a horas al mes. Sirve para ver si la ventana de mercado que usas cabe en tu horario real.</li>
+      <li><b>Dinero.</b> Eliges la cuota de FTMO (o escribes otra), si te la devuelven, cuánto puedes gastar en cuotas y cada cuántos intentos esperas pasar uno. La pestaña solo hace la cuenta: cuánto gastas en promedio, cuánto queda neto y qué probabilidad tienes de pasar al menos una vez con tu presupuesto.</li>
+      <li><b>Habilidades.</b> Seis habilidades que calificas de 1 a 5, solo para ti. La pestaña señala la más baja y qué hacer con ella.</li>
+      <li><b>Lo que ofrece la Mesa.</b> Qué hace (calcula el tamaño desde el riesgo y lo compara con los límites de la firma, ordena el veredicto, mide tu archivo de MT5 y dibuja el plan) y qué no (no tiene una ventaja probada ni predice el precio).</li>
+    </ul>
+    <h3>La cuenta que decide</h3>
+    <p>Si pasas 1 de cada <i>n</i> intentos, hasta pasar gastas en promedio <b>cuota × n</b>. Con la cuenta de 100 000 de FTMO en 2 pasos (cuota de 540 EUR, que te devuelven con el primer pago) y <i>n</i> = 7, son <b>3 780 EUR</b> en cuotas, o <b>3 240 EUR</b> netos con la devolución. Con 7 intentos, la probabilidad de pasar al menos una vez es 1 − (6/7)<sup>7</sup>, o sea <b>66%</b>; para llegar a 50% bastan <b>5 intentos</b>, que son <b>2 700 EUR</b>.</p>
+    <p>El <i>n</i> es el supuesto que más pesa y el más incierto. Un estudio de FPFX Tech (más de 100 000 traders, 10 firmas) halló que 14% de los traders llegó a una cuenta fondeada y 7% llegó a cobrar, con un pago típico cercano a 4% del tamaño de la cuenta. Pero ese 14% cuenta traders, no intentos: por intento la tasa es menor, así que 1 de cada 7 es un ejemplo optimista. FTMO no publica su tasa y no hay cifras auditadas. Tu <i>n</i> real sale de tu historial en una cuenta de prueba, y FTMO ofrece prueba gratuita.</p>
+    <h3>Lo que no es</h3>
+    <ul>
+      <li><b>No es un ingreso.</b> Las firmas ganan sobre todo con las cuotas de quienes no pasan, y la mayoría de los desafíos se falla por romper las reglas. Mientras no tengas un historial propio que lo respalde, trátalo como una prueba con un costo conocido.</li>
+      <li><b>La Mesa no te da una ventaja.</b> Da proceso y control del riesgo. En tus datos ni los niveles ni las horas del día muestran una dirección estable: <a href="#teoria-nivelesdatos" data-ir="nivelesdatos">Niveles en tus datos</a> y <a href="#teoria-dirhora" data-ir="dirhora">Dirección por hora</a>.</li>
+      <li><b>Las reglas cambian.</b> Las cuotas, el reparto y los límites son de ftmo.com y de terceros, consultados el 21 nov 2026, y las firmas los cambian sin aviso. Manda tu contrato: <a href="#teoria-fondeo" data-ir="fondeo">Cuentas de fondeo</a>.</li>
+    </ul>
+    <h3>Los cinco supuestos</h3>
+    <p>Al final de la pestaña hay cinco supuestos que marcas solo cuando los compruebas: que tu método tiene ventaja en 100 o más operaciones en una cuenta de prueba, que tu «1 de cada n» sale de tu propio historial, que las reglas de la firma no cambiaron este mes, que tu horario alcanza para tu ventana de mercado y que el presupuesto de cuotas es dinero que puedes perder. Mientras falte alguno, el lienzo dice que es una prueba, no un ingreso.</p>
+    <h3>La hoja A0</h3>
+    <ol>
+      <li>Escribe tus notas en cada bloque y tus cifras en los paneles.</li>
+      <li>Toca «Guardar hoja A0». Guarda un archivo <b>.html</b> con el lienzo completo, tus notas en azul y las cuentas. Si el botón no aparece, usa «Copiar hoja como texto» y pega el texto en un archivo con extensión .html.</li>
+      <li>Ábrelo en Chrome o Edge y pulsa Ctrl+P (⌘P en Mac). Destino: «Guardar como PDF»; márgenes: «Ninguno»; activa «Gráficos de fondo». El tamaño A0 apaisado (1189 × 841 mm) ya viene en el archivo.</li>
+      <li>Lleva el PDF a la imprenta. Tus notas quedan guardadas en el navegador y en la copia de seguridad: <a href="#teoria-guardado" data-ir="guardado">Guardado y copia</a>.</li>
+    </ol>
+    <p class="note">Cifras de ftmo.com, propfirmapp.com y BabyPips, y estudios de terceros (FPFX Tech, a través de Finance Magnates), consultadas el 21 nov 2026; los enlaces están al pie de la pestaña. Sirve para ordenar tu decisión; no es asesoría financiera.</p>
+  </article>
+
   <article class="th" id="teoria-alcance" data-short="Qué cubre" tabindex="-1">
     <p class="kick">Alcance</p>
     <h2>Qué cubre esta página y qué no</h2>
@@ -2459,7 +2584,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
     <div class="tblwrap"><table class="tt">
       <thead><tr><th>Qué</th><th>Dónde</th><th>Cuánto dura</th></tr></thead>
       <tbody>
-        <tr><td>Casillas y botones de la Mesa, el Laboratorio, la Lógica y el Gráfico, y los límites de fondeo</td><td>localStorage: texto pequeño</td><td>Hasta que limpies los datos del sitio. Las marcas del día y el máximo y mínimo de hoy se borran a las 8 horas; los niveles, al cambiar el día o la semana.</td></tr>
+        <tr><td>Casillas y botones de la Mesa, el Laboratorio, la Lógica, el Gráfico y el BMC (con tus notas), y los límites de fondeo</td><td>localStorage: texto pequeño</td><td>Hasta que limpies los datos del sitio. Las marcas del día y el máximo y mínimo de hoy se borran a las 8 horas; los niveles, al cambiar el día o la semana.</td></tr>
         <tr><td>Tu archivo de MT5, el último que cargaste</td><td>IndexedDB: la base de datos del navegador, que aguanta archivos grandes</td><td>Hasta que lo olvides o limpies los datos del sitio. Se carga con un toque, pero no se actualiza solo.</td></tr>
         <tr><td>Tu copia de seguridad</td><td>Un archivo .forex.json que guardas tú, fuera del navegador</td><td>Lo que dure ese archivo.</td></tr>
       </tbody>
@@ -2487,6 +2612,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <dt>ATR</dt><dd>Rango medio verdadero: cuántos pips recorre el precio en un día normal, en promedio de 14 días.</dd>
       <dt>Bandas de Bollinger</dt><dd>Una media de 20 con una banda a 2 desviaciones estándar arriba y otra abajo. Miden la volatilidad; tocarlas no es una señal.</dd>
       <dt>Bid</dt><dd>Precio al que vendes. El gráfico de MT5 dibuja este.</dd>
+      <dt>BMC (modelo de negocio)</dt><dd>Business Model Canvas: un lienzo de nueve bloques (segmentos, propuesta de valor, canales, relación con clientes, ingresos, recursos, actividades, socios y costos) para describir cómo un negocio crea y cobra valor. La pestaña BMC lo llena con el negocio de operar cuentas de fondeo.</dd>
       <dt>Break-even</dt><dd>Punto de equilibrio. Como acierto: 1 ÷ (1 + R). Como stop: llevarlo al precio de entrada.</dd>
       <dt>Circuito de decisión</dt><dd>La pestaña Lógica: el veredicto de la Mesa dibujado como escalera y como compuertas. No agrega reglas, solo muestra las pruebas de «El algoritmo» con cables. Siempre hay una sola salida encendida.</dd>
       <dt>Compuerta lógica</dt><dd>Un bloque que combina señales de 0 y 1. «Y» da 1 solo si todas sus entradas valen 1; «O» da 1 si al menos una vale 1; «NO» invierte el valor y se dibuja con un circulito.</dd>
@@ -2494,6 +2620,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <dt>Contacto y bobina</dt><dd>En un diagrama de escalera, el contacto deja pasar la corriente si su señal vale 1 (el de la raya inclinada, si vale 0) y la bobina se enciende cuando la corriente llega hasta ella. Contactos en serie son un «y»; en paralelo, un «o».</dd>
       <dt>Cuartil</dt><dd>Cada uno de los tres cortes que dividen las lecturas, ordenadas de menor a mayor, en cuatro partes iguales. Q1 deja debajo el 25%, Q2 (la mediana) el 50% y Q3 el 75%.</dd>
       <dt>Cuenta de fondeo</dt><dd>Una cuenta con dinero de una firma (prop firm) que te dan si pasas su evaluación y te quitan si rompes sus límites de pérdida. El panel del paso 4 compara tu tamaño con esos límites. Cada firma tiene reglas propias: manda tu contrato.</dd>
+      <dt>Desafío (challenge)</dt><dd>La evaluación que pagas a una firma de fondeo: una o dos fases con una meta de ganancia y los límites de pérdida. Si la pasas, te dan la cuenta fondeada. La cuota se paga antes de empezar y, en FTMO, solo en la modalidad de 2 pasos se devuelve con el primer pago.</dd>
       <dt>Deslizamiento</dt><dd>Diferencia entre el precio que pediste y el que te dieron.</dd>
       <dt>Divergencia</dt><dd>El precio hace un máximo más alto y el indicador uno más bajo, o al revés. Es un aviso de agotamiento, no una orden.</dd>
       <dt>EMA</dt><dd>Media móvil exponencial: pesa más los cierres recientes. Cada vez se acerca k = 2 ÷ (N + 1) de la distancia al cierre nuevo.</dd>
@@ -2515,6 +2642,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <dt>Mediana</dt><dd>El valor del centro: la mitad de las lecturas queda debajo y la otra mitad, encima. A diferencia del promedio, un valor extremo no la mueve.</dd>
       <dt>Nivel de margen</dt><dd>Equity ÷ margen usado × 100. Si baja mucho, el bróker avisa (margin call) y luego cierra posiciones (stop out).</dd>
       <dt>Orden pendiente</dt><dd>Orden que espera en el mercado hasta que el precio llegue: Límite, Stop o Stop Limit.</dd>
+      <dt>Pasar 1 de cada n</dt><dd>En el panel de dinero del BMC, cada cuántos intentos del desafío esperas pasar uno. Hasta pasar gastas, en promedio, cuota × n, y con k intentos la probabilidad de pasar al menos una vez es 1 − (1 − 1/n)^k. Es un supuesto tuyo, no un dato de la firma.</dd>
       <dt>Percentil</dt><dd>El valor bajo el cual queda cierto porcentaje de las lecturas. Con el P90, el 90% queda debajo y solo 1 de cada 10 lo supera.</dd>
       <dt>Pérdida máxima diaria</dt><dd>El límite de cuánto puede bajar tu cuenta en un día, en porcentaje del saldo inicial. Cuenta el equity (el saldo más lo que flotan las operaciones abiertas), no solo lo cerrado. En FTMO, 5% en 2 pasos y 3% en 1 paso.</dd>
       <dt>Pérdida máxima total</dt><dd>El límite de cuánto puede bajar tu cuenta en total, en porcentaje del saldo inicial. Si es fijo, el piso no se mueve; si es móvil, sube con tu máximo. En FTMO, 10%.</dd>
@@ -2524,6 +2652,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <dt>Punto</dt><dd>Una décima de pip (0.00001), el quinto decimal. 10 puntos = 1 pip.</dd>
       <dt>R</dt><dd>Lo que arriesgas en una operación: la distancia al stop. Un objetivo de 2R gana el doble de lo arriesgado.</dd>
       <dt>Rango intercuartílico</dt><dd>La distancia entre Q1 y Q3: el ancho de la mitad central de las lecturas. Cuanto mayor es, más varía el indicador a esa hora.</dd>
+      <dt>Reparto de ganancias</dt><dd>La parte de las ganancias de la cuenta fondeada que se queda el trader y la que se queda la firma. En FTMO, 80% para ti en 2 pasos (hasta 90% al escalar) y 90% en 1 paso.</dd>
       <dt>Requote</dt><dd>Aviso de que el precio cambió: te ofrecen uno nuevo para aceptar o rechazar. Pasa con ejecución Instant.</dd>
       <dt>Resistencia</dt><dd>Nivel encima del precio donde antes frenó una subida.</dd>
       <dt>Retroceso</dt><dd>Lo que el precio devuelve del camino que acaba de recorrer antes de seguir o de girar. En el Gráfico se mide como porcentaje del último tramo (38%, 50% y 62%). Es una referencia para escalonar entradas, no una promesa de que el precio se detenga ahí.</dd>
@@ -2953,6 +3082,193 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
   <div class="ch-plan" id="ch-plan" aria-live="polite"></div>
 </section>
 
+<section class="wrap lg bm" id="bmc" aria-labelledby="bm-h" data-teoria="bmc" hidden>
+  <header class="lg-head">
+    <p class="kick">BMC · Modelo de negocio</p>
+    <h2 id="bm-h" tabindex="-1">Operar cuentas de fondeo, como un negocio de una sola persona</h2>
+    <p class="note">El BMC (lienzo de modelo de negocio) resume en nueve bloques cómo un negocio crea y cobra valor. Aquí está llenado para un trader independiente que opera cuentas de fondeo con la Mesa. La firma es a la vez tu proveedor (te vende el desafío) y tu cliente (te paga un reparto de las ganancias). Cada bloque trae un borrador y un cuadro «Lo tuyo», que se guarda en este navegador. Abajo están tu tiempo, tu dinero y tus habilidades, con las cuentas hechas. Las cifras son de FTMO y de estudios del sector, consultadas el 21 nov 2026; las firmas las cambian. No es asesoría financiera.</p>
+  </header>
+
+  <div class="bm-canvas" id="bm-canvas">
+    <article class="bm-blk" data-bm="seg">
+      <header><span class="bm-n" aria-hidden="true">1</span><h3 class="bm-t">Segmentos de clientes</h3></header>
+      <p class="bm-q">¿Quién te paga?</p>
+      <ul class="bm-l"><li>La firma de fondeo: te paga una parte de las ganancias de una cuenta simulada.</li><li>Hoy: FTMO, que publica sus reglas de pérdida y su reparto.</li><li>Mañana: otra firma con reglas que tu método pueda cumplir.</li><li>Después: tu propia cuenta real, con el historial que armes.</li></ul>
+      <div class="bm-my"><label for="bm-n-seg">Lo tuyo<span class="vh"> en segmentos de clientes</span></label><textarea id="bm-n-seg" data-bmn="seg" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+    <article class="bm-blk" data-bm="val">
+      <header><span class="bm-n" aria-hidden="true">2</span><h3 class="bm-t">Propuesta de valor</h3></header>
+      <p class="bm-q">¿Qué ofreces?</p>
+      <ul class="bm-l"><li>Rendimiento dentro de los límites: la pérdida diaria y la total no se rompen.</li><li>Cada operación con el tamaño calculado desde el riesgo y el stop, no a ojo.</li><li>Un proceso escrito: sesgo, nivel, momento, riesgo, plan, salida y seguimiento.</li><li>Para ti: operar de 25,000 a 200,000 USD de la firma arriesgando solo la cuota.</li></ul>
+      <div class="bm-my"><label for="bm-n-val">Lo tuyo<span class="vh"> en propuesta de valor</span></label><textarea id="bm-n-val" data-bmn="val" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+    <article class="bm-blk" data-bm="can">
+      <header><span class="bm-n" aria-hidden="true">3</span><h3 class="bm-t">Canales</h3></header>
+      <p class="bm-q">¿Cómo llegas y cobras?</p>
+      <ul class="bm-l"><li>Plataforma de la firma: MT5, MT4 o cTrader.</li><li>Panel de la firma: cuenta, identidad y pedido de pago.</li><li>Retiros: banco, Visa Direct, Mastercard Send, Skrill o cripto.</li><li>La Mesa y tu archivo de MT5, para preparar y revisar.</li></ul>
+      <div class="bm-my"><label for="bm-n-can">Lo tuyo<span class="vh"> en canales</span></label><textarea id="bm-n-can" data-bmn="can" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+    <article class="bm-blk" data-bm="rel">
+      <header><span class="bm-n" aria-hidden="true">4</span><h3 class="bm-t">Relación con clientes</h3></header>
+      <p class="bm-q">¿Cómo mantienes la relación?</p>
+      <ul class="bm-l"><li>Cumplir las reglas a diario: límite diario, límite total y días mínimos (4 por fase en 2 pasos).</li><li>En 1 paso, ningún día puede dar más de la mitad de la ganancia total.</li><li>Identidad (KYC) y formularios fiscales antes del primer pago; pregunta a tu contador cuáles te tocan.</li><li>Releer las reglas cada mes: las firmas las cambian.</li></ul>
+      <div class="bm-my"><label for="bm-n-rel">Lo tuyo<span class="vh"> en relación con clientes</span></label><textarea id="bm-n-rel" data-bmn="rel" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+    <article class="bm-blk" data-bm="ing">
+      <header><span class="bm-n" aria-hidden="true">5</span><h3 class="bm-t">Fuentes de ingresos</h3></header>
+      <p class="bm-q">¿Por qué te pagan?</p>
+      <ul class="bm-l"><li>Reparto de ganancias: 80% en 2 pasos (hasta 90% al escalar) y 90% en 1 paso.</li><li>La cuota se devuelve con el primer pago, solo en 2 pasos.</li><li>Escalado: más capital, hasta 2 millones de USD, si mantienes ganancias y retiros.</li><li>Entre quienes cobran, el pago típico en un estudio de FPFX Tech fue cerca de 4% del tamaño de la cuenta.</li><li>Prueba gratuita: no paga, pero practicas las reglas sin cuota.</li></ul>
+      <div class="bm-my"><label for="bm-n-ing">Lo tuyo<span class="vh"> en fuentes de ingresos</span></label><textarea id="bm-n-ing" data-bmn="ing" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+    <article class="bm-blk" data-bm="rec">
+      <header><span class="bm-n" aria-hidden="true">6</span><h3 class="bm-t">Recursos clave</h3></header>
+      <p class="bm-q">¿Qué necesitas?</p>
+      <ul class="bm-l"><li>Tiempo: ventana de mercado, análisis diario y revisión semanal (abajo).</li><li>Dinero: cuotas y colchón para reintentos (abajo).</li><li>Habilidades: estructura, riesgo, disciplina y datos (abajo).</li><li>Herramientas: la Mesa, MT5, el calendario económico y tu archivo de datos.</li></ul>
+      <div class="bm-my"><label for="bm-n-rec">Lo tuyo<span class="vh"> en recursos clave</span></label><textarea id="bm-n-rec" data-bmn="rec" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+    <article class="bm-blk" data-bm="act">
+      <header><span class="bm-n" aria-hidden="true">7</span><h3 class="bm-t">Actividades clave</h3></header>
+      <p class="bm-q">¿Qué haces?</p>
+      <ul class="bm-l"><li>Cada día: pasos 1 a 3 de la Mesa (sesgo, estructura y nivel, momento).</li><li>Paso 4: tamaño por riesgo y stop, con el panel de la cuenta de fondeo.</li><li>Tope propio del día: la mitad del límite diario de la firma.</li><li>Pasos 5 a 7: plan, salida y seguimiento del tramo.</li><li>Cada semana: el Laboratorio con tu archivo de MT5.</li><li>Cada vez que pidas un pago: releer las reglas.</li></ul>
+      <div class="bm-my"><label for="bm-n-act">Lo tuyo<span class="vh"> en actividades clave</span></label><textarea id="bm-n-act" data-bmn="act" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+    <article class="bm-blk" data-bm="soc">
+      <header><span class="bm-n" aria-hidden="true">8</span><h3 class="bm-t">Asociaciones clave</h3></header>
+      <p class="bm-q">¿Quién te ayuda?</p>
+      <ul class="bm-l"><li>La firma de fondeo: reglas, cuenta y pagos.</li><li>La plataforma y el bróker de la firma: ejecución, spread y comisión.</li><li>El calendario económico y los datos de precio.</li><li>Un contador, para ingresos del exterior e impuestos.</li><li>Alguien que revise tus operaciones: mentor o grupo.</li></ul>
+      <div class="bm-my"><label for="bm-n-soc">Lo tuyo<span class="vh"> en asociaciones clave</span></label><textarea id="bm-n-soc" data-bmn="soc" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+    <article class="bm-blk" data-bm="cos">
+      <header><span class="bm-n" aria-hidden="true">9</span><h3 class="bm-t">Estructura de costos</h3></header>
+      <p class="bm-q">¿Qué te cuesta?</p>
+      <ul class="bm-l"><li>Cuota del desafío, en EUR. 2 pasos: 25K €250, 50K €345, 100K €540, 200K €1,080.</li><li>1 paso: 25K €199, 50K €319, 100K €499, 200K €999.</li><li>Cada reintento es otra cuota.</li><li>Spread, comisión, swap y deslizamiento: cuentan en el equity.</li><li>Tu tiempo y lo que dejas de hacer por operar.</li><li>Impuestos y comisiones de retiro.</li><li>Punto de equilibrio: la cuota por los intentos hasta pasar (la calculadora está abajo).</li></ul>
+      <div class="bm-my"><label for="bm-n-cos">Lo tuyo<span class="vh"> en estructura de costos</span></label><textarea id="bm-n-cos" data-bmn="cos" rows="3" maxlength="2000" placeholder="Escribe aquí lo tuyo"></textarea></div>
+    </article>
+  </div>
+
+  <div class="bm-band">
+    <section class="bm-pan" data-bm="tiempo">
+      <header><h3 class="bm-t">Tiempo</h3></header>
+      <p class="bm-q">Lo que pide el modelo</p>
+      <ul class="bm-l">
+        <li>Plazo del desafío: sin límite.</li>
+        <li>2 pasos: al menos 4 días de operación por fase (8 en total). 1 paso: sin mínimo.</li>
+        <li>Primer cobro: desde el día 14 después de tu primera operación en la cuenta fondeada, con la cuenta en ganancia y sin operaciones abiertas. Confirma en tu contrato.</li>
+        <li>Más movimiento del EURUSD: el solape de Londres y Nueva York, de 07:00 a 11:00 en Guatemala (de 06:00 a 10:00 cuando Estados Unidos y Europa están en horario de verano).</li>
+        <li>Esperar también es operar: muchas veces el veredicto es ESPERAR.</li>
+      </ul>
+      <div class="own"><label for="bm-hrs">Horas por semana</label><input class="num" id="bm-hrs" type="text" inputmode="decimal" autocomplete="off" placeholder="10" maxlength="6"><span class="unit">horas</span><button type="button" class="help tooltip" aria-label="Ayuda: horas por semana">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Las horas que de verdad puedes dar cada semana a analizar, operar y revisar.</span><span class="p"><b>Ojo.</b> Cuenta solo horas libres de verdad. El modelo premia esperar el momento, no estar pegado a la pantalla.</span></span></button></div>
+      <p class="bm-out" id="bm-hrs-out" role="status"></p>
+      <div class="bm-my"><label for="bm-n-tiempo">Lo tuyo: días y horarios</label><textarea id="bm-n-tiempo" data-bmn="tiempo" rows="2" maxlength="2000" placeholder="Qué días y a qué horas puedes"></textarea></div>
+    </section>
+
+    <section class="bm-pan" data-bm="dinero">
+      <header><h3 class="bm-t">Dinero</h3></header>
+      <p class="bm-q">Cuánto cuesta intentar y cuántos intentos caben</p>
+      <ul class="bm-l">
+        <li>La firma gana sobre todo con las cuotas de quienes no pasan: tú le pagas primero.</li>
+        <li>Sector: un estudio de FPFX Tech (más de 100,000 traders, 10 firmas) halló 14% con cuenta fondeada y 7% con un pago.</li>
+        <li>Ese 14% cuenta traders, no intentos: por intento suele ser menor. FTMO no publica su tasa.</li>
+        <li>Tu «1 de cada N» real sale de tu historial en una cuenta de prueba.</li>
+      </ul>
+      <p class="lbl">Cuota del desafío (EUR)</p>
+      <div class="bm-keys" role="group" aria-label="Cuota de FTMO por modalidad y tamaño"><button type="button" class="bm-k" data-bm-fee="2s:25:250" aria-pressed="false">2 pasos · 25K<small>€250</small></button><button type="button" class="bm-k" data-bm-fee="2s:50:345" aria-pressed="false">2 pasos · 50K<small>€345</small></button><button type="button" class="bm-k" data-bm-fee="2s:100:540" aria-pressed="false">2 pasos · 100K<small>€540</small></button><button type="button" class="bm-k" data-bm-fee="2s:200:1080" aria-pressed="false">2 pasos · 200K<small>€1,080</small></button><button type="button" class="bm-k" data-bm-fee="1s:25:199" aria-pressed="false">1 paso · 25K<small>€199</small></button><button type="button" class="bm-k" data-bm-fee="1s:50:319" aria-pressed="false">1 paso · 50K<small>€319</small></button><button type="button" class="bm-k" data-bm-fee="1s:100:499" aria-pressed="false">1 paso · 100K<small>€499</small></button><button type="button" class="bm-k" data-bm-fee="1s:200:999" aria-pressed="false">1 paso · 200K<small>€999</small></button></div>
+      <div class="own"><label for="bm-fee">Otra cuota</label><input class="num" id="bm-fee" type="text" inputmode="decimal" autocomplete="off" placeholder="540" maxlength="8"><span class="unit">EUR</span><button type="button" class="help tooltip" aria-label="Ayuda: otra cuota">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Lo que pagas por un intento del desafío, en euros. Los botones de arriba escriben aquí la cuota de FTMO; si tu firma cobra otra cosa, escríbela.</span><span class="p"><b>Ojo.</b> Las firmas cambian sus precios y hacen ofertas: confirma el precio en su página antes de pagar.</span></span></button></div>
+      <div class="own"><span class="bm-lab" id="bm-ref-l">¿Te la devuelven?</span><span class="bm-keys two" role="group" aria-labelledby="bm-ref-l"><button type="button" class="bm-k" data-bm-ref="1" aria-pressed="false">Sí, con el primer pago</button><button type="button" class="bm-k" data-bm-ref="0" aria-pressed="false">No</button></span><button type="button" class="help tooltip" aria-label="Ayuda: devolución de la cuota">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Si la firma te devuelve la cuota con tu primer pago. En FTMO se devuelve en 2 pasos y no en 1 paso.</span><span class="p"><b>Ojo.</b> Solo vuelve si pasas, cobras y cumples sus condiciones (identidad y formularios). Si no cobras, no vuelve.</span></span></button></div>
+      <div class="own"><label for="bm-bud">Presupuesto</label><input class="num" id="bm-bud" type="text" inputmode="decimal" autocomplete="off" placeholder="1000" maxlength="8"><span class="unit">EUR para cuotas</span><button type="button" class="help tooltip" aria-label="Ayuda: presupuesto">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Lo máximo que pondrías en cuotas, en euros. Con él se cuenta cuántos intentos caben.</span><span class="p"><b>Ojo.</b> Que sea dinero que puedes perder sin que afecte los gastos de la casa. Si ya cuentas con él para otra cosa, no es presupuesto.</span></span></button></div>
+      <div class="own"><label for="bm-n">Pasas 1 de cada</label><input class="num" id="bm-n" type="text" inputmode="decimal" autocomplete="off" placeholder="7" maxlength="5"><span class="unit">intentos</span><button type="button" class="help tooltip" aria-label="Ayuda: 1 de cada N intentos">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Cada cuántos intentos esperas pasar uno. Con 1 de cada 7, la probabilidad de un intento es 1 entre 7, cerca de 14%.</span><span class="p"><b>Ojo.</b> No lo supongas: sale de tu historial en una cuenta de prueba (FTMO ofrece una gratis). Un promedio del sector no es tu número.</span></span></button></div>
+      <div class="bm-keys" role="group" aria-label="Valores usuales de 1 de cada N"><button type="button" class="bm-k" data-bm-n="3" aria-pressed="false">1 de 3</button><button type="button" class="bm-k" data-bm-n="5" aria-pressed="false">1 de 5</button><button type="button" class="bm-k" data-bm-n="7" aria-pressed="false">1 de 7</button><button type="button" class="bm-k" data-bm-n="10" aria-pressed="false">1 de 10</button><button type="button" class="bm-k" data-bm-n="20" aria-pressed="false">1 de 20</button></div>
+      <p class="pf-v bm-out" id="bm-m-out" role="status"></p>
+      <div class="bm-my"><label for="bm-n-dinero">Lo tuyo: de dónde sale el dinero</label><textarea id="bm-n-dinero" data-bmn="dinero" rows="2" maxlength="2000" placeholder="Ahorro, ingreso extra, quién más depende de él"></textarea></div>
+    </section>
+
+    <section class="bm-pan" data-bm="hab">
+      <header><h3 class="bm-t">Habilidades</h3></header>
+      <p class="bm-q">Lo que pide el modelo</p>
+      <ul class="bm-l">
+        <li>No romper límites: la mayoría de los desafíos que fallan lo hacen por romper una regla.</li>
+        <li>Tamaño por riesgo, siempre.</li>
+        <li>Registrar y revisar lo que haces.</li>
+        <li>Inglés para leer las reglas y hablar con soporte.</li>
+      </ul>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Cómo estás hoy, de 1 a 5<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> Una autoevaluación de 1 (recién empiezo) a 5 (lo hago sin pensar) en las seis cosas que más decide el modelo.</span><span class="p"><b>Ojo.</b> Nadie te mira: sé honesto. La más baja es la que más te va a costar en cuotas.</span></span></button></p>
+      <div class="bm-sks">
+        <div class="bm-sk" role="group" aria-label="Estructura y niveles"><span class="bm-skn">Estructura y niveles</span><span class="bm-skb"><button type="button" class="bm-k" data-bm-sk="est:1" aria-pressed="false" aria-label="Estructura y niveles: 1 de 5">1</button><button type="button" class="bm-k" data-bm-sk="est:2" aria-pressed="false" aria-label="Estructura y niveles: 2 de 5">2</button><button type="button" class="bm-k" data-bm-sk="est:3" aria-pressed="false" aria-label="Estructura y niveles: 3 de 5">3</button><button type="button" class="bm-k" data-bm-sk="est:4" aria-pressed="false" aria-label="Estructura y niveles: 4 de 5">4</button><button type="button" class="bm-k" data-bm-sk="est:5" aria-pressed="false" aria-label="Estructura y niveles: 5 de 5">5</button></span></div>
+        <div class="bm-sk" role="group" aria-label="Gestión del riesgo"><span class="bm-skn">Gestión del riesgo</span><span class="bm-skb"><button type="button" class="bm-k" data-bm-sk="rsk:1" aria-pressed="false" aria-label="Gestión del riesgo: 1 de 5">1</button><button type="button" class="bm-k" data-bm-sk="rsk:2" aria-pressed="false" aria-label="Gestión del riesgo: 2 de 5">2</button><button type="button" class="bm-k" data-bm-sk="rsk:3" aria-pressed="false" aria-label="Gestión del riesgo: 3 de 5">3</button><button type="button" class="bm-k" data-bm-sk="rsk:4" aria-pressed="false" aria-label="Gestión del riesgo: 4 de 5">4</button><button type="button" class="bm-k" data-bm-sk="rsk:5" aria-pressed="false" aria-label="Gestión del riesgo: 5 de 5">5</button></span></div>
+        <div class="bm-sk" role="group" aria-label="Disciplina (no romper reglas)"><span class="bm-skn">Disciplina (no romper reglas)</span><span class="bm-skb"><button type="button" class="bm-k" data-bm-sk="dis:1" aria-pressed="false" aria-label="Disciplina (no romper reglas): 1 de 5">1</button><button type="button" class="bm-k" data-bm-sk="dis:2" aria-pressed="false" aria-label="Disciplina (no romper reglas): 2 de 5">2</button><button type="button" class="bm-k" data-bm-sk="dis:3" aria-pressed="false" aria-label="Disciplina (no romper reglas): 3 de 5">3</button><button type="button" class="bm-k" data-bm-sk="dis:4" aria-pressed="false" aria-label="Disciplina (no romper reglas): 4 de 5">4</button><button type="button" class="bm-k" data-bm-sk="dis:5" aria-pressed="false" aria-label="Disciplina (no romper reglas): 5 de 5">5</button></span></div>
+        <div class="bm-sk" role="group" aria-label="Paciencia (esperar)"><span class="bm-skn">Paciencia (esperar)</span><span class="bm-skb"><button type="button" class="bm-k" data-bm-sk="pac:1" aria-pressed="false" aria-label="Paciencia (esperar): 1 de 5">1</button><button type="button" class="bm-k" data-bm-sk="pac:2" aria-pressed="false" aria-label="Paciencia (esperar): 2 de 5">2</button><button type="button" class="bm-k" data-bm-sk="pac:3" aria-pressed="false" aria-label="Paciencia (esperar): 3 de 5">3</button><button type="button" class="bm-k" data-bm-sk="pac:4" aria-pressed="false" aria-label="Paciencia (esperar): 4 de 5">4</button><button type="button" class="bm-k" data-bm-sk="pac:5" aria-pressed="false" aria-label="Paciencia (esperar): 5 de 5">5</button></span></div>
+        <div class="bm-sk" role="group" aria-label="Datos y programación"><span class="bm-skn">Datos y programación</span><span class="bm-skb"><button type="button" class="bm-k" data-bm-sk="dat:1" aria-pressed="false" aria-label="Datos y programación: 1 de 5">1</button><button type="button" class="bm-k" data-bm-sk="dat:2" aria-pressed="false" aria-label="Datos y programación: 2 de 5">2</button><button type="button" class="bm-k" data-bm-sk="dat:3" aria-pressed="false" aria-label="Datos y programación: 3 de 5">3</button><button type="button" class="bm-k" data-bm-sk="dat:4" aria-pressed="false" aria-label="Datos y programación: 4 de 5">4</button><button type="button" class="bm-k" data-bm-sk="dat:5" aria-pressed="false" aria-label="Datos y programación: 5 de 5">5</button></span></div>
+        <div class="bm-sk" role="group" aria-label="Inglés técnico"><span class="bm-skn">Inglés técnico</span><span class="bm-skb"><button type="button" class="bm-k" data-bm-sk="ing:1" aria-pressed="false" aria-label="Inglés técnico: 1 de 5">1</button><button type="button" class="bm-k" data-bm-sk="ing:2" aria-pressed="false" aria-label="Inglés técnico: 2 de 5">2</button><button type="button" class="bm-k" data-bm-sk="ing:3" aria-pressed="false" aria-label="Inglés técnico: 3 de 5">3</button><button type="button" class="bm-k" data-bm-sk="ing:4" aria-pressed="false" aria-label="Inglés técnico: 4 de 5">4</button><button type="button" class="bm-k" data-bm-sk="ing:5" aria-pressed="false" aria-label="Inglés técnico: 5 de 5">5</button></span></div>
+      </div>
+      <p class="bm-out" id="bm-sk-out" role="status"></p>
+      <div class="bm-my"><label for="bm-n-hab">Lo tuyo: qué practicar primero</label><textarea id="bm-n-hab" data-bmn="hab" rows="2" maxlength="2000" placeholder="Lo que vas a practicar esta semana"></textarea></div>
+    </section>
+
+    <section class="bm-pan" data-bm="mesa">
+      <header><h3 class="bm-t">Lo que ofrece la Mesa</h3></header>
+      <p class="bm-q">La Mesa EURUSD, con sus límites</p>
+      <p class="bm-sub">Lo que ofrece</p>
+      <ul class="bm-l">
+        <li>7 pasos con veredicto: OPERAR o ESPERAR.</li>
+        <li>Lotes por riesgo y stop, con casillas libres y lotes fijos con aviso.</li>
+        <li>Panel «Cuenta de fondeo»: límites, pérdidas que caben, riesgo prudente y tope propio.</li>
+        <li>Laboratorio, Lógica y Gráfico: tus datos por hora, día y calendario, y el plan dibujado.</li>
+        <li>Copia de seguridad (.forex.json) y archivo de MT5 guardado.</li>
+      </ul>
+      <p class="bm-sub">Lo que no ofrece</p>
+      <ul class="bm-l">
+        <li>No demuestra que tengas ventaja estadística.</li>
+        <li>No predice, no opera por ti ni lee tu cuenta.</li>
+        <li>No conoce las reglas de tu firma: manda su contrato.</li>
+      </ul>
+      <div class="bm-go"><button type="button" class="act" data-go="mesa">Mesa</button><button type="button" class="act" data-go="lab">Laboratorio</button><button type="button" class="act" data-go="logica">Lógica</button><button type="button" class="act" data-go="grafico">Gráfico</button></div>
+      <div class="bm-my"><label for="bm-n-mesa">Lo tuyo: qué falta</label><textarea id="bm-n-mesa" data-bmn="mesa" rows="2" maxlength="2000" placeholder="Lo que la Mesa no te da y necesitas"></textarea></div>
+    </section>
+  </div>
+
+  <section class="bm-as" data-bm-as aria-labelledby="bm-as-h">
+    <p class="lbl" id="bm-as-h"><button type="button" class="lblbtn tooltip">Supuestos a validar<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> Lo que el modelo da por cierto y no has comprobado. Márcalo solo cuando tengas con qué probarlo.</span><span class="p"><b>Ojo.</b> Mientras falten, trata el modelo como una prueba y no como un ingreso.</span></span></button></p>
+    <div class="bm-chks">
+        <label class="bm-chk"><input type="checkbox" data-bm-chk="s1"><span>Mi método tiene ventaja: lo probé en 100 o más operaciones en una cuenta de prueba.</span></label>
+        <label class="bm-chk"><input type="checkbox" data-bm-chk="s2"><span>Mi «1 de cada N» sale de mi propio historial, no de un promedio del sector.</span></label>
+        <label class="bm-chk"><input type="checkbox" data-bm-chk="s3"><span>Las reglas de la firma no cambiaron este mes.</span></label>
+        <label class="bm-chk"><input type="checkbox" data-bm-chk="s4"><span>Mi horario real alcanza para la ventana de mercado que uso.</span></label>
+        <label class="bm-chk"><input type="checkbox" data-bm-chk="s5"><span>El presupuesto de cuotas es dinero que puedo perder.</span></label>
+    </div>
+    <p class="bm-out" id="bm-as-out" role="status"></p>
+  </section>
+
+  <div class="lg-panel bm-sheet" id="bm-sheet">
+    <p class="lbl"><button type="button" class="lblbtn tooltip">Hoja A0 para imprimir<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué hace.</b> Arma una hoja con todo esto (el lienzo, tus notas y tus cuentas) en tamaño A0 apaisado, de 1189 por 841 mm, lista para imprimir.</span><span class="p"><b>Cómo se usa.</b> Se guarda como archivo .html. Ábrelo en Chrome o Edge, elige Imprimir y Guardar como PDF, con márgenes en ninguno y gráficos de fondo activados, y lleva el PDF a la imprenta. Es un dibujo vectorial: no se pixela al agrandarlo.</span><span class="p"><b>Ojo.</b> La plataforma te pide confirmar la descarga. Si tu navegador no deja guardar desde aquí, usa «Copiar hoja como texto» y pégalo en un archivo con extensión .html.</span></span></button></p>
+    <p class="note">La hoja sale en A0 apaisado (1189 × 841 mm), con tus notas y tus cuentas. Se guarda como un archivo .html: ábrelo en Chrome o Edge, imprime como PDF y llévalo a la imprenta.</p>
+    <div class="bk-row"><button type="button" class="filebtn" id="bm-save" hidden>Guardar hoja A0 (.html)</button><button type="button" class="filebtn" id="bm-copy">Copiar hoja como texto</button></div>
+    <p class="note" id="bm-st" role="status"></p>
+    <details class="lg-hand" id="bm-txt">
+      <summary>Ver el texto de la hoja <small>para copiarlo a mano</small></summary>
+      <textarea class="bk-ta" id="bm-ta" readonly aria-label="Texto de la hoja A0"></textarea>
+    </details>
+  </div>
+
+  <details class="lg-hand bm-src">
+    <summary>Fuentes <small>consultadas el 21 nov 2026</small></summary>
+    <div class="bm-srcb">
+      <ul class="bm-srcl">
+          <li><a href="https://ftmo.com/lp/modern-prop-trading-firm-that-you-can-trust/" target="_blank" rel="noopener noreferrer">FTMO: cuotas y reglas de los desafíos</a></li>
+          <li><a href="https://ftmo.oanda.com/faq/why-is-there-a-fee/" target="_blank" rel="noopener noreferrer">FTMO: por qué hay cuota y cuándo se devuelve</a></li>
+          <li><a href="https://ftmo.com/fr/drawdowns" target="_blank" rel="noopener noreferrer">FTMO: pérdida máxima, fija y móvil</a></li>
+          <li><a href="https://propfirmapp.com/?p=2233" target="_blank" rel="noopener noreferrer">Tabla de cuotas de 1 y 2 pasos</a></li>
+          <li><a href="https://www.babypips.com/prop-firms/firms/ftmo" target="_blank" rel="noopener noreferrer">Ficha de FTMO en BabyPips: pagos y regla del mejor día</a></li>
+          <li><a href="https://www.tradingview.com/news/financemagnates%3A3a251e333094b%3A0-exclusive-only-7-of-300-000-prop-trading-accounts-achieved-payouts/" target="_blank" rel="noopener noreferrer">Finance Magnates: de 300,000 cuentas, 14% de los traders pasó y 7% cobró (datos de FPFX Tech)</a></li>
+          <li><a href="https://fortunly.com/statistics/prop-firm-challenge-pass-rate-statistics/" target="_blank" rel="noopener noreferrer">Fortunly: estadísticas de aprobación</a></li>
+          <li><a href="https://thortradecopier.com/blog/prop-firm-challenge-pass-rate" target="_blank" rel="noopener noreferrer">Thor Trade Copier: tasas que publican las firmas</a></li>
+          <li><a href="https://www.babypips.com/trading/how-prop-firms-make-money-by-prropfirms" target="_blank" rel="noopener noreferrer">BabyPips: cómo ganan dinero las firmas</a></li>
+          <li><a href="https://daytradingtoolkit.com/psychology-and-risk/prop-firm-challenge-pass-rate-statistics" target="_blank" rel="noopener noreferrer">Day Trading Toolkit: por qué se fallan los desafíos</a></li>
+      </ul>
+      <p class="note">Las firmas cambian sus reglas y sus precios sin aviso, y casi ninguna publica una tasa de aprobación auditada. Usa estas cifras para ordenar tu decisión; manda el contrato de tu firma.</p>
+    </div>
+  </details>
+</section>
+
 <section class="wrap bk" id="copia" aria-label="Copia de seguridad y archivo de MT5 guardado">
   <details class="lv" id="bk" data-teoria="guardado">
     <summary><span class="lv-t">Copia de seguridad</span><small id="bk-sum">tus ajustes y tu archivo de MT5, en este navegador</small></summary>
@@ -2960,7 +3276,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <p class="note">Lo que escribes se guarda solo en este navegador y en este dispositivo. Si borras los datos del sitio, o abres la página en otro navegador o en otro teléfono, no estará. Una copia en un archivo tuyo lo resuelve.</p>
 
       <div class="bk-sec">
-        <p class="lbl"><button type="button" class="lblbtn tooltip">Tus ajustes<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué son.</b> Todo lo que has escrito o marcado en la Mesa, el Laboratorio, la Lógica y el Gráfico: capital, riesgo, stop, límites de fondeo, niveles, marcas del día.</span><span class="p"><b>Qué no incluye.</b> El archivo de MT5, que pesa mucho y se guarda aparte, más abajo.</span><span class="p"><b>Dónde queda.</b> En el archivo que tú guardes: nada sale de tu dispositivo.</span></span></button></p>
+        <p class="lbl"><button type="button" class="lblbtn tooltip">Tus ajustes<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué son.</b> Todo lo que has escrito o marcado en la Mesa, el Laboratorio, la Lógica, el Gráfico y el BMC: capital, riesgo, stop, límites de fondeo, niveles, marcas del día y las notas del BMC.</span><span class="p"><b>Qué no incluye.</b> El archivo de MT5, que pesa mucho y se guarda aparte, más abajo.</span><span class="p"><b>Dónde queda.</b> En el archivo que tú guardes: nada sale de tu dispositivo.</span></span></button></p>
         <div class="calrow" id="bk-save-row" hidden><button type="button" class="filebtn" id="bk-save">Guardar copia en un archivo</button><button type="button" class="help tooltip" aria-label="Ayuda: guardar copia en un archivo">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Crea un archivo con tus ajustes y te pide confirmar la descarga. El nombre termina en <b>.forex.json</b> (por ejemplo Mesa-EURUSD_2026-11-21.forex.json) para que lo distingas de otros .json.</span><span class="p"><b>Cuándo.</b> Después de cambiar algo importante, o una vez por semana. Guárdalo fuera del navegador: en tu nube o enviado a ti mismo.</span><span class="p"><b>Ojo.</b> Tu navegador puede dejar el archivo en Descargas con otro nombre si ya existe uno igual.</span></span></button></div>
         <div class="calrow"><button type="button" class="filebtn" id="bk-copy">Copiar copia como texto</button><button type="button" class="help tooltip" aria-label="Ayuda: copiar copia como texto">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Copia tus ajustes como texto, por si tu navegador no deja guardar archivos desde aquí. Pégalo en una nota o en un mensaje a ti mismo.</span><span class="p"><b>Para volver a usarlo.</b> Abre «Pegar o ver el texto», pega y toca «Restaurar desde el texto».</span></span></button></div>
         <div class="calrow"><label class="filebtn" for="bk-file">Restaurar desde un archivo</label><button type="button" class="help tooltip" aria-label="Ayuda: restaurar desde un archivo">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo .forex.json hecho por esta página y cambia los ajustes de este navegador por los del archivo. Después la página se recarga sola.</span><span class="p"><b>Ojo.</b> Lo que tengas ahora se reemplaza. Si dudas, guarda una copia antes.</span></span></button>
@@ -3504,7 +3820,7 @@ document.addEventListener('click', e => {
     e.preventDefault();
     const from = inTip(e.target) ? tipEl : (ir || nav);
     hide();
-    go(ir ? 'teoria-' + ir.dataset.ir : /^(mesa|grafico|lab(-[a-z]+)?|logica(-[a-z]+)?)$/.test(nav.dataset.go) ? nav.dataset.go : 'teoria', from);
+    go(ir ? 'teoria-' + ir.dataset.ir : /^(mesa|grafico|bmc|lab(-[a-z]+)?|logica(-[a-z]+)?)$/.test(nav.dataset.go) ? nav.dataset.go : 'teoria', from);
     return;
   }
   if (e.target.closest('#tip')) { hide(); return; }
@@ -6503,6 +6819,220 @@ try { new MutationObserver(() => chDrawSoon()).observe(document.documentElement,
 try { const mq = window.matchMedia('(prefers-color-scheme: dark)'); (mq.addEventListener ? mq.addEventListener('change', chDrawSoon) : mq.addListener(chDrawSoon)); } catch (e) { /* no media query */ }
 chReady = true;
 
+/* ---- BMC (version 15): the business-model canvas of trading funded accounts, as a tab ----
+   The drafts of the nine blocks and of the four panels are plain HTML (lab/bmc.html, written by th/c7/gen_bmc.py). What is yours (the notes, the fee, the budget, the hours, the skills and the checks)
+   is kept in this browser, goes into the backup file and is printed on the A0 sheet, which is built from the same HTML nodes. Nothing here is sent anywhere and nothing is advice:
+   the calculator only does the arithmetic of «cuota × intentos hasta pasar». It sits before the backup code because the backup lists its storage key. */
+var bmReady = false;
+const BMS = LS + '-bmc', BME = $('#bmc');
+const BMIDS = ['seg', 'val', 'can', 'rel', 'ing', 'rec', 'act', 'soc', 'cos', 'tiempo', 'dinero', 'hab', 'mesa'];
+const BMSK = [
+  ['est', 'Estructura y niveles', 'Practica con «Buscar niveles» y con el Gráfico, y compara con tu archivo de MT5.'],
+  ['rsk', 'Gestión del riesgo', 'El paso 4 y el panel de fondeo calculan el tamaño; lo tuyo es respetarlo.'],
+  ['dis', 'Disciplina (no romper reglas)', 'Usa el tope propio del día y anota cada vez que rompes una regla.'],
+  ['pac', 'Paciencia (esperar)', 'Esperar también es operar: muchas veces el veredicto es ESPERAR.'],
+  ['dat', 'Datos y programación', 'El Laboratorio y tu archivo de MT5; ajusta con calma para no sobreajustar.'],
+  ['ing', 'Inglés técnico', 'Lee completo el contrato y las reglas de la firma, que están en inglés.']];
+const BM = { notes: {}, hrs: '', fee: '', refund: null, bud: '', n: '', sk: {}, chk: {} };
+try {
+  const r = JSON.parse(localStorage.getItem(BMS) || 'null') || {};
+  if (r.notes && typeof r.notes === 'object') BMIDS.forEach(k => { if (typeof r.notes[k] === 'string' && r.notes[k]) BM.notes[k] = r.notes[k].slice(0, 2000); });
+  ['hrs', 'fee', 'bud', 'n'].forEach(k => { if (typeof r[k] === 'string' && /^[\d.,]{0,8}$/.test(r[k])) BM[k] = r[k]; });
+  if (typeof r.refund === 'boolean') BM.refund = r.refund;
+  if (r.sk && typeof r.sk === 'object') BMSK.forEach(([k]) => { const v = r.sk[k]; if (Number.isInteger(v) && v >= 1 && v <= 5) BM.sk[k] = v; });
+  if (r.chk && typeof r.chk === 'object') for (let i = 1; i <= 5; i++) if (r.chk['s' + i] === true) BM.chk['s' + i] = true;
+} catch (e) { /* nothing saved */ }
+const bmSave = () => { try { localStorage.setItem(BMS, JSON.stringify(BM)); } catch (e) { /* storage unavailable */ } };
+const bmI = { hrs: $('#bm-hrs'), fee: $('#bm-fee'), bud: $('#bm-bud'), n: $('#bm-n') };
+
+/* ---------- the arithmetic ---------- */
+const bmNum = s => { const t = String(s == null ? '' : s).trim().replace(',', '.'); return /^(\d+\.?\d*|\.\d+)$/.test(t) ? parseFloat(t) : NaN; };
+const bmEur = x => '€' + (Math.round(x * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const bmPct = x => { const v = x * 100; return (v < 0.5 ? '<1' : v >= 99.5 ? '>99' : String(Math.round(v))) + '%'; };
+const bmN = x => (Number.isInteger(x) ? String(x) : (Math.round(x * 10) / 10).toFixed(1));
+/* fee: one attempt; n: you pass 1 of every n attempts (p = 1/n); bud: what you would put in fees. Expected attempts until the first pass is n. */
+function bmCalc(fee, refund, n, bud) {
+  if (!(fee > 0) || !(n >= 1)) return null;
+  const p = 1 / n, o = { fee, n, spend: fee * n, net: refund === true ? fee * (n - 1) : null, k50: n === 1 ? 1 : Math.ceil(Math.log(0.5) / Math.log(1 - p) - 1e-9), k: null, pAny: null };
+  o.b50 = o.k50 * fee;
+  if (bud > 0) { o.k = Math.floor(bud / fee + 1e-9); o.pAny = 1 - Math.pow(1 - p, o.k); }
+  return o;
+}
+function bmMoneyHTML(o, bud) {
+  const L = ['Hasta pasar gastas, en promedio, <b>' + bmEur(o.spend) + '</b> en cuotas (' + bmN(o.n) + (o.n === 1 ? ' intento' : ' intentos') + ' de ' + bmEur(o.fee) + ').'];
+  if (o.net != null) L.push('Si cobras y te devuelven la cuota: <b>' + bmEur(o.net) + '</b> netos.');
+  if (bud > 0) L.push(o.k < 1 ? 'Tu presupuesto no alcanza para una cuota (' + bmEur(o.fee) + ').'
+    : 'Con tu presupuesto caben <b>' + o.k + (o.k === 1 ? ' intento' : ' intentos') + '</b>: <b>' + bmPct(o.pAny) + '</b> de pasar al menos una vez.');
+  L.push('Para tener 50% de probabilidad necesitas <b>' + o.k50 + (o.k50 === 1 ? ' intento' : ' intentos') + '</b>: <b>' + bmEur(o.b50) + '</b>.');
+  return L.map(x => '<span class="ln">' + x + '</span>').join('');
+}
+function bmSkHTML() {
+  const rated = BMSK.filter(([k]) => BM.sk[k]);
+  if (!rated.length) return 'Marca de 1 a 5 cómo estás hoy en cada una.';
+  const avg = rated.reduce((s, [k]) => s + BM.sk[k], 0) / rated.length, low = rated.reduce((a, b) => (BM.sk[b[0]] < BM.sk[a[0]] ? b : a));
+  return 'Marcaste ' + rated.length + ' de ' + BMSK.length + ', con promedio <b>' + avg.toFixed(1) + '</b> de 5. Lo más bajo: <b>' + low[1] + '</b> (' + BM.sk[low[0]] + '). ' + low[2];
+}
+const bmChkN = () => Object.keys(BM.chk).length;
+
+/* ---------- paint ---------- */
+function bmPaint() {
+  $$('[data-bmn]', BME).forEach(t => { const v = BM.notes[t.dataset.bmn] || ''; if (t.value !== v) t.value = v; });
+  Object.keys(bmI).forEach(k => {
+    if (document.activeElement !== bmI[k] && bmI[k].value !== BM[k]) bmI[k].value = BM[k];
+    const bad = BM[k] !== '' && !(bmNum(BM[k]) >= (k === 'n' ? 1 : 0));
+    bmI[k].setAttribute('aria-invalid', bad ? 'true' : 'false');
+  });
+  const fee = bmNum(BM.fee), n = bmNum(BM.n), bud = bmNum(BM.bud), h = bmNum(BM.hrs), on = (b, v) => b.setAttribute('aria-pressed', v ? 'true' : 'false');
+  $$('[data-bm-fee]', BME).forEach(b => { const [m, , f] = b.dataset.bmFee.split(':'); on(b, fee === +f && BM.refund === (m === '2s')); });
+  $$('[data-bm-ref]', BME).forEach(b => on(b, BM.refund === (b.dataset.bmRef === '1')));
+  $$('[data-bm-n]', BME).forEach(b => on(b, n === +b.dataset.bmN));
+  $$('[data-bm-sk]', BME).forEach(b => { const [k, v] = b.dataset.bmSk.split(':'); on(b, BM.sk[k] === +v); });
+  $$('[data-bm-chk]', BME).forEach(c => { c.checked = !!BM.chk[c.dataset.bmChk]; });
+  $('#bm-hrs-out').innerHTML = h > 0 ? '≈ <b>' + Math.round(h * 52 / 12) + '</b> horas al mes.' : '';
+  const mo = $('#bm-m-out'), o = bmCalc(fee, BM.refund, n, bud);
+  if (!(fee > 0)) { mo.removeAttribute('data-k'); mo.textContent = 'Elige una cuenta arriba, o escribe la cuota, para ver las cuentas.'; }
+  else if (!(n >= 1)) { mo.removeAttribute('data-k'); mo.textContent = 'Escribe cada cuántos intentos esperas pasar uno (1 o más), o toca un valor usual.'; }
+  else {
+    mo.innerHTML = bmMoneyHTML(o, bud);
+    if (o.k == null) mo.removeAttribute('data-k'); else mo.setAttribute('data-k', o.k < 1 ? 'bad' : o.pAny >= 0.5 ? 'ok' : 'warn');
+  }
+  $('#bm-sk-out').innerHTML = bmSkHTML();
+  const c = bmChkN();
+  $('#bm-as-out').innerHTML = '<b>' + c + '</b> de 5 supuestos validados.' + (c < 5 ? ' Mientras falten, es una prueba, no un ingreso.' : '');
+}
+function bmOpen() { try { bmPaint(); } catch (e) { console.error('[BMC]', e); } }
+
+/* ---------- events ---------- */
+BME.addEventListener('click', e => {
+  const f = e.target.closest('[data-bm-fee]');
+  if (f) { const [m, , v] = f.dataset.bmFee.split(':'); BM.fee = v; BM.refund = m === '2s'; bmSave(); bmPaint(); return; }
+  const r = e.target.closest('[data-bm-ref]');
+  if (r) { BM.refund = r.dataset.bmRef === '1'; bmSave(); bmPaint(); return; }
+  const n = e.target.closest('[data-bm-n]');
+  if (n) { BM.n = n.dataset.bmN; bmSave(); bmPaint(); return; }
+  const s = e.target.closest('[data-bm-sk]');
+  if (s) { const [k, v] = s.dataset.bmSk.split(':'); if (BM.sk[k] === +v) delete BM.sk[k]; else BM.sk[k] = +v; bmSave(); bmPaint(); }
+});
+BME.addEventListener('input', e => {
+  const t = e.target;
+  if (t.matches('[data-bmn]')) { if (t.value) BM.notes[t.dataset.bmn] = t.value.slice(0, 2000); else delete BM.notes[t.dataset.bmn]; bmSave(); return; }
+  const k = Object.keys(bmI).find(x => bmI[x] === t);
+  if (k) { const v = t.value.replace(/[^\d.,]/g, '').slice(0, 8); if (v !== t.value) t.value = v; BM[k] = v; bmSave(); bmPaint(); }
+});
+BME.addEventListener('change', e => {
+  const c = e.target.closest('[data-bm-chk]');
+  if (c) { if (c.checked) BM.chk[c.dataset.bmChk] = true; else delete BM.chk[c.dataset.bmChk]; bmSave(); bmPaint(); }
+});
+
+/* ---------- the A0 sheet: one self-contained page, 1189 x 841 mm, built from the same nodes ---------- */
+const BMCSS = [
+  '@page{size:1189mm 841mm;margin:0}', '*{box-sizing:border-box}', 'html{background:#c9d1da}',
+  'body{margin:0;font-family:Inter,"Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif;color:#111923;-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+  '.tip{margin:0 auto;padding:12px 16px;max-width:920px;font:14px/1.5 system-ui,Arial,sans-serif;color:#111923}',
+  '.stage{width:calc(1189mm*var(--k,1));height:calc(841mm*var(--k,1));margin:0 auto 24px;position:relative}',
+  '.sheet{position:absolute;left:0;top:0;width:1189mm;height:841mm;transform:scale(var(--k,1));transform-origin:0 0;background:#fff;padding:12mm;display:flex;flex-direction:column;gap:4.5mm;overflow:hidden}',
+  '.hd{flex:none;display:flex;justify-content:space-between;align-items:flex-end;gap:12mm}',
+  '.hd .k{margin:0 0 1.5mm;font-size:6.6mm;font-weight:700;letter-spacing:1.4mm;text-transform:uppercase;color:#475466}',
+  '.hd h1{margin:0;font-size:19mm;line-height:1.05;font-weight:800;letter-spacing:-.3mm}',
+  '.hd .s{margin:2.5mm 0 0;font-size:7.8mm;line-height:1.3;color:#475466}',
+  '.hd .r{flex:none;width:340mm;border:.8mm solid #111923;border-radius:3mm;padding:3.5mm 5mm;font-size:7.3mm;line-height:1.3}',
+  '.hd .r b{font-weight:700}.hd .r .bl{color:#0b3a8f;font-weight:700}',
+  '.cv{flex:1 1 0;min-height:0;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));grid-template-rows:minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr);gap:3.5mm}',
+  '.b-soc{grid-column:1/3;grid-row:1/3}.b-act{grid-column:3/5;grid-row:1}.b-rec{grid-column:3/5;grid-row:2}.b-val{grid-column:5/7;grid-row:1/3}',
+  '.b-rel{grid-column:7/9;grid-row:1}.b-can{grid-column:7/9;grid-row:2}.b-seg{grid-column:9/11;grid-row:1/3}.b-cos{grid-column:1/6;grid-row:3}.b-ing{grid-column:6/11;grid-row:3}',
+  '.b{border:.8mm solid #111923;border-radius:3mm;padding:3.6mm 4.6mm;display:flex;flex-direction:column;gap:1.8mm;min-width:0;min-height:0;overflow:hidden;background:#fff}',
+  '.b-val{border-top:2.4mm solid #1c5fd1}.b-ing{border-top:2.4mm solid #0a8f7d}.b-cos{border-top:2.4mm solid #c93226}',
+  '.b h3{margin:0;display:flex;align-items:center;gap:3mm;font-size:calc(10.6mm*var(--fs,1));line-height:1.1;font-weight:800}',
+  '.b h3 i{flex:none;display:grid;place-items:center;width:10.6mm;height:10.6mm;border-radius:50%;background:#111923;color:#fff;font-style:normal;font-size:6.4mm;font-weight:700}',
+  '.b .q{margin:0;font-size:calc(6.8mm*var(--fs,1));font-style:italic;color:#475466}',
+  '.b h4{margin:2mm 0 0;font-size:calc(6mm*var(--fs,1));letter-spacing:.9mm;text-transform:uppercase;color:#6c7989}',
+  '.b ul{margin:0;padding-left:6.5mm;font-size:calc(8.2mm*var(--fs,1));line-height:1.24}.b li{margin-bottom:1.6mm}',
+  '.b .nt{margin:auto 0 0;padding-top:2mm;border-top:.5mm dashed #9aa5b3;font-size:calc(7.6mm*var(--fs,1));line-height:1.25;color:#0b3a8f}',
+  '.b .fill{margin:.6mm 0 0;font-size:calc(8.2mm*var(--fs,1));line-height:1.3}.b .fill b{font-weight:700}',
+  '.b u.bl{display:inline-block;min-width:44mm;height:7mm;border-bottom:.5mm solid #111923;text-decoration:none;vertical-align:baseline}',
+  '.b .res{margin:1.5mm 0 0;padding:2.2mm 3mm;border-radius:2mm;background:#f1f4f7;font-size:calc(7.8mm*var(--fs,1));line-height:1.28}.b .res .ln{display:block}.b .res .ln+.ln{margin-top:1.2mm}.b .res b{font-weight:700}',
+  '.b .sk{display:flex;justify-content:space-between;align-items:center;gap:3mm;padding:1mm 0;border-top:.3mm solid #cdd5de;font-size:calc(7.8mm*var(--fs,1));line-height:1.2}',
+  '.b .dt{display:inline-block;width:6mm;height:6mm;margin-left:1.6mm;border:.6mm solid #111923;border-radius:50%}.b .dt.on{background:#111923}',
+  '.bd{flex:none;height:212mm;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3.5mm}',
+  '.as{flex:none;display:grid;grid-template-columns:64mm repeat(5,minmax(0,1fr));gap:4mm;align-items:start;border:.8mm solid #111923;border-radius:3mm;padding:3mm 4.6mm}',
+  '.as h3{margin:0;font-size:7mm;line-height:1.15;font-weight:800;text-transform:uppercase;letter-spacing:.6mm}',
+  '.as p{margin:0;display:flex;gap:2.4mm;font-size:7mm;line-height:1.2}',
+  '.as .bx{flex:none;width:7mm;height:7mm;margin-top:.5mm;border:.7mm solid #111923;border-radius:1mm}.as .bx.on{background:#111923}',
+  '.ft{flex:none;display:flex;justify-content:space-between;gap:10mm;font-size:5.8mm;line-height:1.3;color:#475466}',
+  '@media print{html{background:#fff}.tip{display:none}.stage{width:1189mm;height:841mm;margin:0;overflow:hidden}.sheet{transform:none}}'].join('\n');
+function bmSheet() {
+  const d = new Date(), when = p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear();
+  const esc = lvEsc, nt = id => (BM.notes[id] ? '<p class="nt">' + esc(BM.notes[id]).replace(/\n/g, '<br>') + '</p>' : '');
+  const fee = bmNum(BM.fee), n = bmNum(BM.n), bud = bmNum(BM.bud), h = bmNum(BM.hrs), o = bmCalc(fee, BM.refund, n, bud), bl = '<u class="bl"></u>';
+  const flow = el => [...el.children].map(c => (c.matches('.bm-q') ? '<p class="q">' + esc(c.textContent) + '</p>'
+    : c.matches('.bm-sub') ? '<h4>' + esc(c.textContent) + '</h4>'
+    : c.matches('ul.bm-l') ? '<ul>' + [...c.children].map(li => '<li>' + li.innerHTML + '</li>').join('') + '</ul>' : '')).join('');
+  const extra = {
+    tiempo: '<p class="fill"><b>Horas por semana:</b> ' + (h > 0 ? bmN(h) + ' (≈ ' + Math.round(h * 52 / 12) + ' al mes)' : bl) + '</p>',
+    dinero: '<p class="fill"><b>Cuota:</b> ' + (fee > 0 ? bmEur(fee) + (BM.refund === true ? ', se devuelve con el primer pago' : BM.refund === false ? ', no se devuelve' : '') : bl) + '</p>'
+      + '<p class="fill"><b>Presupuesto:</b> ' + (bud > 0 ? bmEur(bud) : bl) + '</p><p class="fill"><b>Pasas 1 de cada:</b> ' + (n >= 1 ? bmN(n) + ' intentos' : bl + ' intentos') + '</p>'
+      + (o ? '<div class="res">' + bmMoneyHTML(o, bud) + '</div>' : ''),
+    hab: BMSK.map(([k, t]) => '<div class="sk"><span>' + esc(t) + '</span><span>' + [1, 2, 3, 4, 5].map(v => '<i class="dt' + (BM.sk[k] >= v ? ' on' : '') + '"></i>').join('') + '</span></div>').join('')
+  };
+  const box = (id, num) => {
+    const el = $('[data-bm="' + id + '"]', BME), nEl = $('.bm-n', el);
+    return '<section class="b b-' + id + '"><h3>' + (nEl ? '<i>' + esc(nEl.textContent) + '</i>' : '') + esc($('.bm-t', el).textContent) + '</h3>' + flow(el) + (extra[id] || '') + nt(id) + '</section>';
+  };
+  const asm = $$('.bm-chk', BME).map((l, i) => '<p><i class="bx' + (BM.chk['s' + (i + 1)] ? ' on' : '') + '"></i><span>' + esc(l.textContent.trim()) + '</span></p>').join('');
+  const fit = 'function f(){var k=Math.min(1,Math.max(320,document.documentElement.clientWidth-24)/(1189*96/25.4));document.documentElement.style.setProperty("--k",k)}f();addEventListener("resize",f);'
+    + 'addEventListener("beforeprint",function(){document.documentElement.style.setProperty("--k",1)});addEventListener("afterprint",f);'
+    /* long notes: each box shrinks its own text, a step at a time, until it fits (fonts differ from one computer to another, so this is measured where the sheet is opened) */
+    + 'function g(){var b=document.querySelectorAll(".b"),i,s;for(i=0;i<b.length;i++){s=1;b[i].style.setProperty("--fs",1);while(b[i].scrollHeight>b[i].clientHeight+1&&s>.5){s-=.04;b[i].style.setProperty("--fs",s.toFixed(2))}}}'
+    + 'g();addEventListener("load",g);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(g);';
+  /* the file is made with the DOM, not pasted together as text: the page's own build looks for its closing style tag, and the escaping comes for free */
+  const doc = document.implementation.createHTMLDocument('BMC cuentas de fondeo · hoja A0');
+  const mk = (tag, attrs, text) => { const e = doc.createElement(tag); Object.keys(attrs || {}).forEach(k => e.setAttribute(k, attrs[k])); if (text != null) e.textContent = text; return e; };
+  doc.documentElement.setAttribute('lang', 'es');
+  doc.head.insertBefore(mk('meta', { charset: 'utf-8' }), doc.head.firstChild);
+  doc.head.appendChild(mk('meta', { name: 'viewport', content: 'width=device-width,initial-scale=1' }));
+  doc.head.appendChild(mk('style', null, BMCSS));
+  doc.body.innerHTML = '<div class="tip"><b>Para imprimir en A0:</b> Ctrl+P (en Mac, ⌘P) → Destino: <b>Guardar como PDF</b> → Márgenes: <b>Ninguno</b> → activa <b>Gráficos de fondo</b>. El tamaño A0 apaisado (1189 × 841 mm) ya viene en el archivo. Lo azul es lo que escribiste tú.</div>\n'
+    + '<div class="stage"><div class="sheet">\n'
+    + '<div class="hd"><div><p class="k">BMC · Mesa EURUSD</p><h1>' + esc($('#bm-h').textContent) + '</h1><p class="s">Lienzo del trader independiente que opera cuentas de fondeo, con FTMO como referencia y la Mesa EURUSD como herramienta. Cifras consultadas el 21 de noviembre de 2026.</p></div>'
+    + '<div class="r"><b>Cómo leerla.</b> La firma es tu proveedor (te vende el desafío) y tu cliente (te paga un reparto de las ganancias). Lo <span class="bl">azul</span> es lo que escribiste tú. Hoja del ' + when + '.</div></div>\n'
+    + '<div class="cv">' + ['seg', 'val', 'can', 'rel', 'ing', 'rec', 'act', 'soc', 'cos'].map(id => box(id)).join('') + '</div>\n'
+    + '<div class="bd">' + ['tiempo', 'dinero', 'hab', 'mesa'].map(id => box(id)).join('') + '</div>\n'
+    + '<div class="as"><h3>Supuestos a validar</h3>' + asm + '</div>\n'
+    + '<div class="ft"><span>No es asesoría financiera. Las firmas cambian reglas y precios sin aviso: manda el contrato de tu firma. Las tasas de aprobación del sector no son auditadas.</span>'
+    + '<span>Fuentes: ftmo.com · ftmo.oanda.com · propfirmapp.com · babypips.com · fortunly.com (FPFX Tech) · Finance Magnates · thortradecopier.com · daytradingtoolkit.com</span></div>\n'
+    + '</div></div>\n';
+  doc.body.appendChild(mk('script', null, fit));
+  return '<!' + 'DOCTYPE html>\n' + doc.documentElement.outerHTML + '\n';
+}
+const bmSt = $('#bm-st'), bmTa = $('#bm-ta'), bmSay = t => { bmSt.textContent = t; };
+const bmName = () => { const d = new Date(); return 'BMC-fondeo_A0_' + d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + '.html'; };
+function bmCap() { $('#bm-save').hidden = !bkDl; }   /* called by the backup code when the downloads capability answers */
+async function bmSaveFile() {
+  if (!bkDl) { bmSay('Este navegador no deja guardar archivos desde aquí. Usa «Copiar hoja como texto».'); return; }
+  const name = bmName();
+  bmSay('Esperando tu confirmación para guardar ' + name + '…');
+  try {
+    const r = await bkDl.save({ filename: name, data: bmSheet() });
+    bmSay(r && r.status === 'delivered' ? 'Hoja entregada.' : 'Guardé ' + name + '. Ábrela en Chrome o Edge, imprime como PDF (márgenes: ninguno, gráficos de fondo: sí) y llévala a la imprenta.');
+  } catch (e) {
+    const c = e && e.code;
+    bmSay(c === 'declined' ? 'No guardé nada: cancelaste.' : c === 'rate_limited' ? 'Ya hay una confirmación abierta o fueron muchas seguidas. Espera un momento.' : 'No pude guardar el archivo (' + (c || 'error') + '). Usa «Copiar hoja como texto» y pégalo en un archivo con extensión .html.');
+  }
+}
+async function bmCopy() {
+  const text = bmSheet();
+  bmTa.value = text; $('#bm-txt').open = true;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) { /* older app views refuse it */ }
+  if (!ok) { try { bmTa.focus(); bmTa.select(); ok = !!(document.execCommand && document.execCommand('copy')); } catch (e) { /* no luck */ } }
+  bmSay(ok ? 'Copié la hoja como texto (' + fInt(text.length) + ' caracteres). Pégala en un archivo nuevo con extensión .html (por ejemplo hoja-A0.html), ábrelo en Chrome o Edge e imprime como PDF.'
+    : 'No pude copiar solo: el texto quedó en el cuadro de abajo. Selecciónalo todo, cópialo y pégalo en un archivo .html.');
+}
+$('#bm-save').addEventListener('click', bmSaveFile);
+$('#bm-copy').addEventListener('click', bmCopy);
+bmPaint();
+bmReady = true;
+
 /* ---- version 14: typed boxes beside the preset keys, fixed lots, the funding-account panel, the backup file and the MT5 file kept in IndexedDB ---- */
 var bkReady = false;   /* var on purpose: render() may ask before this block has run */
 
@@ -6634,7 +7164,7 @@ function pfRender(P) {
 $('#pf-use').addEventListener('click', e => { S.pick.risk = e.currentTarget.dataset.v; RKB.risk.bad = false; save(); render(); });
 
 /* -- 4. Backup: one file with every setting (the name ends in .forex.json), or the same as text -- */
-const BKKEYS = [[LS, 'mesa'], [LSV, 'niveles'], [LSC, 'calendario'], [LLS, 'lab'], [LGS, 'logica'], [CHS, 'grafico']];
+const BKKEYS = [[LS, 'mesa'], [LSV, 'niveles'], [LSC, 'calendario'], [LLS, 'lab'], [LGS, 'logica'], [CHS, 'grafico'], [BMS, 'bmc']];
 const bkSt = $('#bk-st'), bkTa = $('#bk-ta');
 const bkSay = t => { bkSt.textContent = t; };
 let bkDl = null;
@@ -6694,7 +7224,7 @@ $('#bk-file').addEventListener('change', ev => {
   if (f.size > 5e6) { bkSay('Ese archivo es demasiado grande para ser una copia de esta página.'); return; }
   f.text().then(bkRestore, () => bkSay('No pude leer ese archivo.'));
 });
-try { if (window.claude && typeof window.claude.use === 'function') window.claude.use('downloads').then(d => { bkDl = d || null; $('#bk-save-row').hidden = !bkDl; }, () => { bkDl = null; }); } catch (e) { /* no runtime here */ }
+try { if (window.claude && typeof window.claude.use === 'function') window.claude.use('downloads').then(d => { bkDl = d || null; $('#bk-save-row').hidden = !bkDl; bmCap(); }, () => { bkDl = null; }); } catch (e) { /* no runtime here */ }
 
 /* -- 5. The MT5 file, kept in IndexedDB (it is too big for localStorage); only the last one -- */
 const BKDB = 'mesa-eurusd-archivo', BKST = 'mt5', BKID = 'ultimo', BKMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -6784,14 +7314,14 @@ function reveal(card) {
 function route(h) {
   if (/^(comment-|settings$|sidebar$|customize$|upgrade$|downloads$)/.test(h)) return; /* names claude.ai keeps for itself */
   hide();
-  const first = !view, isTh = h === 'teoria' || h.indexOf('teoria-') === 0, isLab = h === 'lab' || /^lab-[a-z]+$/.test(h), isLog = h === 'logica' || /^logica-[a-z]+$/.test(h), isChart = h === 'grafico';
-  const want = isTh ? 'teoria' : isLab ? 'lab' : isLog ? 'logica' : isChart ? 'grafico' : 'mesa', entered = want !== view;
+  const first = !view, isTh = h === 'teoria' || h.indexOf('teoria-') === 0, isLab = h === 'lab' || /^lab-[a-z]+$/.test(h), isLog = h === 'logica' || /^logica-[a-z]+$/.test(h), isChart = h === 'grafico', isBmc = h === 'bmc';
+  const want = isTh ? 'teoria' : isLab ? 'lab' : isLog ? 'logica' : isChart ? 'grafico' : isBmc ? 'bmc' : 'mesa', entered = want !== view;
   if (entered) {
     if (view === 'mesa') backY = window.scrollY;
     view = want;
     const m = want === 'mesa';
     FOLD.forEach(x => { x.hidden = !m; });
-    thbar.hidden = m; theory.hidden = want !== 'teoria'; labEl.hidden = want !== 'lab'; LGE.hidden = want !== 'logica'; CHE.hidden = want !== 'grafico';
+    thbar.hidden = m; theory.hidden = want !== 'teoria'; labEl.hidden = want !== 'lab'; LGE.hidden = want !== 'logica'; CHE.hidden = want !== 'grafico'; BME.hidden = want !== 'bmc';
     if (want !== 'logica' && LGE.classList.contains('full')) lgFull(false);
     if (want !== 'grafico' && chX.card.classList.contains('full')) chFull(false);
     $$('[data-only]', thbar).forEach(x => { x.hidden = x.dataset.only !== want; });
@@ -6811,6 +7341,9 @@ function route(h) {
   } else if (isChart) {
     chOpen();
     if (entered) { window.scrollTo(0, 0); $('#ch-h').focus({ preventScroll: true }); }
+  } else if (isBmc) {
+    bmOpen();
+    if (entered) { window.scrollTo(0, 0); $('#bm-h').focus({ preventScroll: true }); }
   }
 }
 function go(h, from) {
