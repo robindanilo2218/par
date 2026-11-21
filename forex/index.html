@@ -767,6 +767,123 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
 .lg-swbody .note{margin:0}
 @media (max-width:30rem){.lg-swgrid{grid-template-columns:4rem minmax(0,1fr)}.lg-swlabs span{font-size:.625rem;letter-spacing:.04em}.lg-sw .lg-bar{gap:.3rem}.lg-sw .lg-swpx{flex:1 1 100%;margin-left:0;text-align:left}}
 
+/* ---- Gráfico (version 13): MT5-like candles of your file with the day's plan drawn on them ---- */
+body[data-view="grafico"][data-v]{--band-bg:var(--panel);--band-fg:var(--ink);--verdict:var(--ink)}
+body.ch-open{overflow:hidden}
+.lg-seg button:disabled{opacity:.36;cursor:not-allowed}
+.ch-chips{display:flex;flex-wrap:wrap;gap:.3rem}
+.ch-chips button{appearance:none;border:1px solid var(--edge);border-radius:999px;background:var(--key);color:var(--ink-2);min-height:2.25rem;padding:.3rem .7rem;font:500 .8125rem/1.2 var(--f-cond);cursor:pointer}
+.ch-chips button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:600}
+.lg-grp select{min-width:0}
+.ch-card{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden;min-width:0}
+.ch-bar{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .5rem;padding:.4rem .5rem;border-bottom:1px solid var(--line);background:var(--key)}
+.ch-bt{font:600 .875rem/1.2 var(--f-cond);margin-right:.15rem}
+.ch-vd{font:600 .75rem/1.2 var(--f-cond);letter-spacing:.04em;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--edge);color:var(--ink-2);max-width:100%;overflow-wrap:anywhere}
+.ch-vd[data-k="buy"]{border-color:var(--buy);background:var(--buy-wash);color:var(--ink)}
+.ch-vd[data-k="sell"]{border-color:var(--sell);background:var(--sell-wash);color:var(--ink)}
+.ch-vd[data-k="hold"]{border-color:var(--hold);background:var(--hold-wash);color:var(--ink)}
+.ch-vd:empty{display:none}
+.ch-tools{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:.3rem}
+.ch-tools .act{min-height:2.125rem;padding:.25rem .6rem;min-width:2.25rem}
+.ch-ohlc{margin:0;padding:.3rem .6rem;min-height:3.4em;font:500 .75rem/1.4 var(--f-mono);color:var(--ink-2);overflow-wrap:anywhere;border-bottom:1px solid var(--line);background:var(--panel)}
+.ch-ohlc b{font-weight:600;color:var(--ink)}
+.ch-ohlc .m{display:inline-block;width:.7rem;height:.3rem;margin:0 .25rem 0 .5rem;border-radius:2px;vertical-align:middle}
+.ch-stage{position:relative;height:clamp(21rem,64vh,38rem);touch-action:pan-y;outline:none;background:var(--key);cursor:crosshair;user-select:none;-webkit-user-select:none;overflow:hidden}
+.ch-stage:focus-visible{outline:2px solid var(--ink-2);outline-offset:-2px}
+.ch-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ch-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:1rem;font:500 .875rem/1.4 var(--f-cond);color:var(--ink-2);background:var(--key)}
+.ch-empty[hidden]{display:none}
+.ch-leg{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .85rem;padding:.5rem .6rem;border-top:1px solid var(--line);font:500 .75rem/1.2 var(--f-cond);color:var(--ink-2)}
+.ch-leg>span{display:inline-flex;align-items:center;white-space:nowrap}
+.ch-leg .s{display:inline-block;width:1.1rem;height:.4rem;margin-right:.35rem;border-radius:2px;flex:none}
+.ch-leg .s.ema{background:var(--hold)}.ch-leg .s.m50{background:var(--ok)}.ch-leg .s.m200{background:var(--ink)}
+.ch-leg .s.buy{background:var(--buy)}.ch-leg .s.sell{background:var(--sell)}
+.ch-leg .s.news{height:.75rem;background:var(--hold-wash);border:1px solid var(--hold)}
+.ch-leg .s.ses{height:.75rem;background:color-mix(in srgb,var(--ink) 9%,var(--key));border:1px solid var(--line)}
+.ch-leg .s.now{width:2px;height:.9rem;background:var(--ink);border-radius:0}
+.ch-card.full{position:fixed;inset:0;z-index:15;border-radius:0;border:0;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.ch-card.full .ch-stage{height:auto;min-height:0}
+.ch-card.full .vh{display:none}
+
+.ch-plan{display:grid;gap:.6rem;min-width:0}
+.ch-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
+@media (max-width:44rem){.ch-cols{grid-template-columns:minmax(0,1fr)}}
+.ch-side{border:1px solid var(--line);border-left-width:5px;border-radius:8px;background:var(--panel);padding:.65rem .75rem;display:grid;gap:.5rem;min-width:0;align-content:start}
+.ch-side.buy{border-left-color:var(--buy)}.ch-side.sell{border-left-color:var(--sell)}
+.ch-side.dim{opacity:.66}
+.ch-side h3,.ch-news h3{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;font:600 1rem/1.2 var(--f-cond);letter-spacing:.005em}
+.ch-side.buy h3>b{color:var(--buy)}.ch-side.sell h3>b{color:var(--sell)}
+.ch-side h3 .tag{font:600 .6875rem/1.2 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);border:1px solid var(--edge);border-radius:999px;padding:.12rem .5rem}
+.ch-side h3 .tag.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ch-side p{margin:0;font:400 .8125rem/1.45 var(--f-text);color:var(--ink-2);overflow-wrap:anywhere}
+.ch-side p b{color:var(--ink);font-weight:600}
+.ch-dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.2rem .9rem;margin:0}
+.ch-dl dt{font:500 .75rem/1.4 var(--f-cond);letter-spacing:.03em;color:var(--ink-2);display:flex;align-items:center;gap:.25rem}
+.ch-dl dd{margin:0;font:500 .8125rem/1.4 var(--f-mono);color:var(--ink);text-align:right;overflow-wrap:anywhere}
+.ch-dl dd small{display:block;font:400 .6875rem/1.3 var(--f-cond);color:var(--ink-3)}
+.ch-dl .help{width:1.25rem;height:1.25rem;font-size:.625rem}
+.ch-news{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:.65rem .75rem;display:grid;gap:.5rem;min-width:0}
+.ch-ev{list-style:none;margin:0;padding:0;display:grid;gap:.3rem}
+.ch-ev li{display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:.1rem .5rem;align-items:baseline;padding:.35rem .5rem;border:1px solid var(--line);border-left:4px solid var(--hold);border-radius:6px;background:var(--key);font:400 .8125rem/1.35 var(--f-text);min-width:0}
+.ch-ev .h{font:600 .8125rem/1.35 var(--f-mono);color:var(--ink)}
+.ch-ev .c{font:600 .6875rem/1.35 var(--f-cond);letter-spacing:.05em;color:var(--ink-2)}
+.ch-ev .t{min-width:0;overflow-wrap:anywhere;color:var(--ink)}
+.ch-ev .w{grid-column:1/-1;font:400 .75rem/1.4 var(--f-cond);color:var(--ink-2)}
+.ch-ev li.past{opacity:.6}
+.ch-win{display:flex;flex-wrap:wrap;gap:.3rem}
+.ch-win span{font:600 .75rem/1.2 var(--f-mono);border:1px solid var(--edge);border-radius:5px;padding:.25rem .5rem;background:var(--key);color:var(--ink)}
+.ch-win span.now{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ch-hon{margin:0;font:400 .8125rem/1.45 var(--f-text);color:var(--ink-2);border-top:1px solid var(--line);padding-top:.5rem}
+.ch-hon b{color:var(--ink)}
+/* the bar of the secondary views now carries up to five buttons and the title: on the narrowest phones the title stays for screen readers only */
+/* The bar of the views now holds up to five buttons: «oratorio» goes first, then the title (the page already names its own view), then the buttons tighten. */
+@media (max-width:47.99rem){.thbar .hs{display:none}}
+@media (max-width:36rem){.thtitle{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
+@media (max-width:22.5rem){.thbar-in{gap:.2rem}.thbar .clear{padding-inline:.3rem;font-size:.66rem}}
+/* the eight bar sizes were 320px wide on their own: tighten them on the narrowest phones so the page does not widen */
+@media (max-width:23rem){.ch .lg-seg button{padding-inline:.32rem}}
+
+/* ---- version 14: typed boxes beside the preset keys, fixed lots, the funding panel and the backup panel ---- */
+.own{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem .5rem;margin-top:.4rem}
+.own>label{flex:none;font:500 .6875rem/1.2 var(--f-cond);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.own>input.num{flex:0 1 7rem;width:auto;min-width:4.5rem;text-align:center;padding-inline:.35rem}
+.own>.unit{flex:1 1 auto;min-width:0;font:500 .75rem/1.2 var(--f-cond);color:var(--ink-2)}
+.own>.act,.bk-row .act{min-height:2.5rem;padding-inline:.7rem}
+.own-m{margin:.25rem 0 0;font:500 .75rem/1.3 var(--f-cond);color:var(--sell)}
+input.num[aria-invalid="true"]{border-color:var(--sell)}
+.pf-v{margin:0;font-size:.8125rem;line-height:1.4;padding:.5rem .65rem;border-radius:5px;border:1px solid var(--edge);background:var(--key)}
+.pf-v[data-k="ok"]{background:var(--ok-wash);border-color:var(--ok)}
+.pf-v[data-k="warn"]{background:var(--hold-wash);border-color:var(--hold)}
+.pf-v[data-k="bad"]{background:var(--sell-wash);border-color:var(--sell)}
+.pf-v b{font-weight:600}
+.pf .tt small{display:block;margin-top:.1rem;font:400 .6875rem/1.3 var(--f-text);color:var(--ink-3)}
+.pf .tt.num td:first-child{white-space:normal}
+.pf .tt.num td:not(:first-child){white-space:nowrap}
+.keys .key.pick small{overflow-wrap:anywhere}
+.bk{margin-block:0 var(--gap)}
+.bk>.lv{margin-top:0}
+.bk-sec{display:grid;gap:.4rem;min-width:0}
+.bk-row{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.bk-row .filebtn{flex:1 1 11rem;min-width:0}
+.bk-ta{display:block;width:100%;min-height:6rem;max-height:14rem;font:400 .75rem/1.35 var(--f-mono);color:var(--ink);background:var(--key);border:1px solid var(--line);border-radius:5px;padding:.5rem .6rem;resize:vertical}
+.bk-ta:focus-visible{outline-offset:0;border-color:var(--ink)}
+.bk-saved{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .5rem;margin:0;padding:.4rem .6rem;border:1px solid var(--line);border-radius:5px;background:var(--key);font:500 .8125rem/1.3 var(--f-cond);color:var(--ink-2)}
+.bk-saved[hidden]{display:none}
+.bk-saved .bk-t{flex:1 1 12rem;min-width:0;overflow-wrap:anywhere}
+.bk-saved b{color:var(--ink);font-weight:600}
+.bk-saved .act{min-height:2.25rem}
+button.filebtn{appearance:none;color:inherit;text-align:center}
+/* the tape: five buttons do not fit beside the title on a phone (they pushed the page to 383px); below 48rem they take a row of their own */
+@media (max-width:47.99rem){
+  .tape-in{grid-template-areas:"eyebrow eyebrow" "verdict lamps" "why why" "nav nav"}
+  .tapebtns{grid-area:nav;width:100%;gap:.3rem;margin-top:.15rem}
+  .tapebtns .clear{flex:1 1 auto;min-width:0;display:flex;align-items:center;justify-content:center;padding-inline:.35rem;min-height:2.25rem}
+}
+@media (max-width:22.5rem){
+  .tapebtns{gap:.2rem}
+  .tapebtns .clear{padding-inline:.2rem;letter-spacing:.04em}
+}
+
 /* ---------- version 7: box plots in the Cuartiles card (same fills as the Laboratorio's chart) ---------- */
 .dg-q90{fill:var(--line);stroke:var(--edge);stroke-width:1}
 .dg-q50{fill:var(--edge)}
@@ -787,7 +904,7 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
       <span class="cnt"><span id="gcount">0/7</span><small>permisos</small></span>
       <span class="tooltiptext"><span class="p"><b>Resumen.</b> Cuatro luces de dirección: macro, tendencia, nivel y gatillo. Triángulo hacia arriba: a favor de comprar. Hacia abajo: a favor de vender. Círculo lleno: macro dividido.</span><span class="p">El contador son los permisos de los pasos 3 y 4. Solo dice COMPRAR o VENDER cuando las cuatro luces apuntan al mismo lado y están los 7 permisos.</span></span>
     </button>
-    <div class="tapebtns"><button type="button" class="clear" data-go="logica">Lógica</button><button type="button" class="clear" data-go="lab">Lab<span class="hs">oratorio</span></button><button type="button" class="clear" data-go="teoria">Teoría</button><button type="button" class="clear tooltip" id="clear" data-teoria="veredicto">Limpiar<span class="tooltiptext">Suelta todos los botones de los pasos 1 a 6. Tu capital, riesgo y precios se conservan. La lista también se limpia sola a las 8 horas, para no decidir con condiciones de ayer.</span></button></div>
+    <div class="tapebtns"><button type="button" class="clear" data-go="logica">Lógica</button><button type="button" class="clear" data-go="grafico">Gráfico</button><button type="button" class="clear" data-go="lab">Lab<span class="hs">oratorio</span></button><button type="button" class="clear" data-go="teoria">Teoría</button><button type="button" class="clear tooltip" id="clear" data-teoria="veredicto">Limpiar<span class="tooltiptext">Suelta todos los botones de los pasos 1 a 6. Tu capital, riesgo y precios se conservan. La lista también se limpia sola a las 8 horas, para no decidir con condiciones de ayer.</span></button></div>
   </div>
 </header>
 
@@ -799,7 +916,7 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
   </div>
 </section>
 
-<p class="wrap hint">Toca lo que se cumpla; queda marcado hasta que lo toques otra vez. Cada botón trae su regla en pequeño; son reglas prácticas, no garantías. Mantén presionado un botón, o toca su «?», para ver cómo comprobarla paso a paso. Cada ayuda termina con «Ver teoría ↗», y el botón «Teoría», arriba, abre todos los temas. «Lab» abre el laboratorio: cuartiles de cada indicador por hora del día, día de la semana, mes y semana, con las velas en alza o en baja. «Lógica» dibuja el veredicto como un circuito, con tu archivo de MT5, el calendario y el reloj.</p>
+<p class="wrap hint">Toca lo que se cumpla; queda marcado hasta que lo toques otra vez. Cada botón trae su regla en pequeño; son reglas prácticas, no garantías. Mantén presionado un botón, o toca su «?», para ver cómo comprobarla paso a paso. Cada ayuda termina con «Ver teoría ↗», y el botón «Teoría», arriba, abre todos los temas. «Lab» abre el laboratorio: cuartiles de cada indicador por hora del día, día de la semana, mes y semana, con las velas en alza o en baja. «Lógica» dibuja el veredicto como un circuito, con tu archivo de MT5, el calendario y el reloj. «Gráfico» dibuja las velas de tu archivo, como MT5, con el plan del día en azul (compra) y rojo (venta).</p>
 
 <main class="wrap board" id="board">
 
@@ -919,13 +1036,15 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
       <button type="button" class="key gate tooltip" data-gate="dup" data-teoria="limites" aria-pressed="false"><span class="kt">Sin apuesta repetida<small>nada igual abierto</small></span><span class="tooltiptext"><span class="p"><b>Qué es.</b> Dos operaciones que ganan o pierden juntas son una sola apuesta al doble de tamaño.</span><span class="p"><b>Cómo saberlo.</b> Mira tus posiciones abiertas. EURUSD, GBPUSD y AUDUSD suelen moverse juntos; USDCHF y USDJPY, al revés.</span><span class="p"><b>Márcalo si</b> no tienes abierta otra operación que dependa del dólar en la misma dirección.</span></span></button>
     </div>
     <div data-teoria="riesgo">
-      <p class="lbl"><button type="button" class="lblbtn tooltip">Riesgo por operación<i aria-hidden="true">?</i><span class="tooltiptext">Qué parte de tu cuenta aceptas perder si esta operación sale mal. Es la decisión que más pesa: con poco riesgo sobrevives a una mala racha. Si estás empezando, usa el más bajo.</span></button></p>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Riesgo por operación<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> Qué parte de tu cuenta aceptas perder si esta operación sale mal. Es la decisión que más pesa: con poco riesgo sobrevives a una mala racha.</span><span class="p"><b>Cómo elegirlo.</b> Toca un botón o escribe el tuyo en la casilla de abajo, por ejemplo 0.75. En scalping e intradía lo habitual es de 0.5 a 1%. Más de 2% ya es mucho: diez pérdidas seguidas cuestan más de 18%.</span><span class="p">Si estás empezando, usa el más bajo. Con una cuenta de fondeo mandan los límites de la firma: mira «Cuenta de fondeo», más abajo.</span></span></button></p>
       <div class="keys four">
         <button type="button" class="key pick tooltip" data-pick="risk" data-v="0.25" aria-pressed="false">0.25%<span class="tooltiptext">Con 0.25%, 10 pérdidas seguidas cuestan 2.5% de la cuenta. Si estás empezando, usa este: aprender sale más barato.</span></button>
         <button type="button" class="key pick tooltip" data-pick="risk" data-v="0.5" aria-pressed="true">0.5%<span class="tooltiptext">Con 0.5%, 10 pérdidas seguidas cuestan 4.9% de la cuenta.</span></button>
         <button type="button" class="key pick tooltip" data-pick="risk" data-v="1" aria-pressed="false">1%<span class="tooltiptext">Con 1%, 10 pérdidas seguidas cuestan 9.6% de la cuenta.</span></button>
         <button type="button" class="key pick tooltip" data-pick="risk" data-v="2" aria-pressed="false">2%<span class="tooltiptext">Con 2%, 10 pérdidas seguidas cuestan 18.3% de la cuenta, y recuperar eso exige ganar 22%. Es mucho para una sola idea.</span></button>
       </div>
+      <div class="own"><label for="f-risk">Otro riesgo</label><input class="num" id="f-risk" inputmode="decimal" autocomplete="off" aria-label="Riesgo por operación, en porcentaje de tu capital"><span class="unit">% de tu capital</span></div>
+      <p class="own-m" id="rk-risk-m" hidden>Escribe un número entre 0.01 y 10: es un porcentaje de tu capital. Mientras tanto uso el anterior.</p>
     </div>
     <div data-teoria="stopr">
       <p class="lbl"><button type="button" class="lblbtn tooltip">Stop: preajuste o pips a mano<i aria-hidden="true">?</i><span class="tooltiptext">El stop es la orden que cierra la operación si el precio va en contra. Elige una distancia en fracciones de ATR, o escribe los pips exactos en la casilla si tu nivel pide otra distancia. A más distancia, menos lotes: el riesgo en dinero no cambia.</span></button></p>
@@ -936,14 +1055,52 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
         <input class="num" id="f-stop" inputmode="decimal" autocomplete="off" value="18" aria-label="Stop en pips">
       </div>
     </div>
+    <div data-teoria="riesgo">
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Lotes: automáticos o fijos<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> El tamaño de la operación. Por defecto la Mesa lo calcula para que, si salta el stop, pierdas justo el riesgo que elegiste.</span><span class="p"><b>Si ya sabes cuántos lotes vas a usar</b> (por ejemplo 50), escríbelos: la Mesa calcula cuánto arriesgas con ellos y qué stop cabe en tu riesgo.</span><span class="p"><b>Ojo.</b> Un lote de EURUSD son 100 000 € y cada pip vale 10 USD por lote: 50 lotes son 500 USD por pip. Con una cuenta de 200 000 USD y 1% el riesgo es de 2 000 USD, y el stop que cabe es de 4 pips.</span><span class="p">Tu bróker pone un máximo de lotes por orden: míralo en MT5.</span></span></button></p>
+      <div class="own"><label for="f-lots">Lotes</label><input class="num" id="f-lots" inputmode="decimal" autocomplete="off" placeholder="auto" aria-label="Lotes fijos; vacío significa automático"><button type="button" class="act" id="lots-auto">Automático</button></div>
+      <p class="note" id="o-lotsnote"></p>
+    </div>
     <div data-teoria="stopr">
-      <p class="lbl"><button type="button" class="lblbtn tooltip">Objetivo<i aria-hidden="true">?</i><span class="tooltiptext">Dónde cobras. Se mide en R: cuántas veces lo que arriesgas. Con 2R, una ganancia paga dos pérdidas.</span></button></p>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Objetivo<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> Dónde cobras. Se mide en R: cuántas veces lo que arriesgas. Con 2R, una ganancia paga dos pérdidas.</span><span class="p"><b>Cómo elegirlo.</b> Toca un botón o escribe el tuyo, por ejemplo 2.5. En scalping e intradía lo habitual es 2R o más; con menos de 1.5R necesitas acertar más del 40% de las veces.</span></span></button></p>
       <div class="keys three">
         <button type="button" class="key pick tooltip" data-pick="rr" data-v="1.5" aria-pressed="false">1.5R<span class="tooltiptext">Ganas una vez y media lo que arriesgas. Necesitas acertar más del 40% de las veces para no perder, antes de costos.</span></button>
         <button type="button" class="key pick tooltip" data-pick="rr" data-v="2" aria-pressed="true">2R<span class="tooltiptext">Ganas el doble de lo que arriesgas. Te basta acertar más del 33% de las veces para no perder, antes de costos.</span></button>
         <button type="button" class="key pick tooltip" data-pick="rr" data-v="3" aria-pressed="false">3R<span class="tooltiptext">Ganas el triple. Te basta acertar más del 25%, pero el precio llega menos veces tan lejos.</span></button>
       </div>
+      <div class="own"><label for="f-rr">Otro objetivo</label><input class="num" id="f-rr" inputmode="decimal" autocomplete="off" aria-label="Objetivo en R, veces el riesgo"><span class="unit">R</span></div>
+      <p class="own-m" id="rk-rr-m" hidden>Escribe un número entre 0.2 y 20: son las veces que ganas lo que arriesgas. Mientras tanto uso el anterior.</p>
     </div>
+    <details class="lv pf" id="pf" data-teoria="fondeo">
+      <summary><span class="lv-t">Cuenta de fondeo</span><small id="pf-sum">opcional: los límites de tu firma</small></summary>
+      <div class="lv-body">
+        <p class="note">Si operas con el dinero de una firma de fondeo (FTMO y similares), te cortan la cuenta si pierdes más de un límite diario o total. Pon aquí esos límites y la Mesa dice cuántas pérdidas caben con el tamaño que elegiste. Es una guía: manda el contrato de tu firma.</p>
+        <div class="keys">
+          <button type="button" class="key pick tooltip" data-pf="ftmo2" aria-pressed="false">FTMO 2 pasos<small>5% diario · 10% total</small><span class="tooltiptext"><span class="p"><b>Qué es.</b> La modalidad clásica de FTMO, con dos fases de evaluación. Pérdida máxima diaria de 5% y pérdida máxima total de 10%, las dos sobre el saldo inicial. El total es fijo: no sube con tus ganancias.</span><span class="p"><b>Ojo.</b> Cifras de la página de FTMO del 21 nov 2026. Las firmas cambian sus reglas: confirma las de tu contrato.</span></span></button>
+          <button type="button" class="key pick tooltip" data-pf="ftmo1" aria-pressed="false">FTMO 1 paso<small>3% diario · 10% móvil</small><span class="tooltiptext"><span class="p"><b>Qué es.</b> Una sola fase de evaluación. Pérdida máxima diaria de 3% del saldo inicial y total de 10%. El total es móvil: sube cuando tu cuenta cierra el día en un máximo nuevo.</span><span class="p"><b>Ojo.</b> Cifras de la página de FTMO del 21 nov 2026. Confirma las de tu contrato.</span></span></button>
+          <button type="button" class="key pick tooltip" data-pf="otra" aria-pressed="false">Otra firma<small>escribe tus límites</small><span class="tooltiptext"><span class="p"><b>Qué es.</b> Escribe tú los límites de tu contrato en las casillas de abajo.</span><span class="p"><b>Rangos.</b> En las firmas más conocidas lo habitual es de 3 a 5% de pérdida diaria y de 8 a 10% de pérdida total. Cada firma tiene los suyos.</span></span></button>
+          <button type="button" class="key pick tooltip" data-pf="off" aria-pressed="true">Sin fondeo<small>sin límites de firma</small><span class="tooltiptext">Cuenta propia: la Mesa solo usa tu riesgo por operación, sin límites de una firma.</span></button>
+        </div>
+        <div class="fields">
+          <div class="field"><div class="fl"><label for="f-pfi">Saldo inicial (USD)</label><button type="button" class="help tooltip" aria-label="Ayuda: saldo inicial">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El tamaño con que empezó la cuenta de fondeo, por ejemplo 200000. Los límites se calculan sobre esta cifra, no sobre tu saldo de hoy.</span><span class="p"><b>Si lo dejas vacío</b> uso tu capital de arriba.</span></span></button></div><input class="num" id="f-pfi" inputmode="decimal" autocomplete="off" placeholder="tu capital"></div>
+          <div class="field"><div class="fl"><label for="f-pfx">Perdido hoy (USD)</label><button type="button" class="help tooltip" aria-label="Ayuda: perdido hoy">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Lo que llevas perdido hoy, sumando lo cerrado y lo que pierden ahora las operaciones abiertas (lo flotante). La firma mira el equity: el saldo más lo flotante.</span><span class="p"><b>Déjalo vacío</b> si no has operado hoy. Se borra solo a las 8 horas, como las marcas del día.</span><span class="p"><b>Cuándo empieza el día.</b> En FTMO, a las 00:00 de Centroeuropa (CE(S)T).</span></span></button></div><input class="num" id="f-pfx" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+          <div class="field"><div class="fl"><label for="f-pfd">Límite diario (%)</label><button type="button" class="help tooltip" aria-label="Ayuda: límite diario">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Lo máximo que puede bajar tu cuenta en un día, en porcentaje del saldo inicial. Si el equity cae más que eso, se rompe la regla y la firma cierra la cuenta.</span><span class="p"><b>Rango.</b> FTMO: 5% (2 pasos) o 3% (1 paso). En otras firmas, de 3 a 5%.</span></span></button></div><input class="num" id="f-pfd" inputmode="decimal" autocomplete="off" placeholder="5"></div>
+          <div class="field"><div class="fl"><label for="f-pft">Límite total (%)</label><button type="button" class="help tooltip" aria-label="Ayuda: límite total">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Lo máximo que puede bajar tu cuenta en total, en porcentaje del saldo inicial. Por debajo de ese piso, la cuenta se acaba.</span><span class="p"><b>Rango.</b> FTMO: 10%. En otras firmas, de 8 a 10%.</span></span></button></div><input class="num" id="f-pft" inputmode="decimal" autocomplete="off" placeholder="10"></div>
+        </div>
+        <div>
+          <p class="lbl"><button type="button" class="lblbtn tooltip">Cómo se mide el límite total<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Fijo.</b> El piso es el saldo inicial menos el límite y no se mueve, ganes lo que ganes.</span><span class="p"><b>Móvil.</b> El piso sube cuando tu cuenta llega a un máximo nuevo y no vuelve a bajar: lo ganado deja de ser colchón.</span><span class="p">Tu contrato dice cuál es el tuyo y cuándo se recalcula.</span></span></button></p>
+          <div class="keys">
+            <button type="button" class="key pick" data-pfm="static" aria-pressed="true">Fijo<small>desde el saldo inicial</small></button>
+            <button type="button" class="key pick" data-pfm="trail" aria-pressed="false">Móvil<small>sube con tu máximo</small></button>
+          </div>
+        </div>
+        <div class="field" id="pf-peakf" hidden><div class="fl"><label for="f-pfk">Máximo de la cuenta (USD)</label><button type="button" class="help tooltip" aria-label="Ayuda: máximo de la cuenta">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El punto más alto que ha alcanzado tu cuenta, según el cálculo de tu firma (en FTMO 1 paso, al cierre del día). El piso móvil es ese máximo menos el límite total.</span><span class="p"><b>Si lo dejas vacío</b> uso el saldo inicial, o sea, el piso de partida.</span></span></button></div><input class="num" id="f-pfk" inputmode="decimal" autocomplete="off" placeholder="saldo inicial"></div>
+        <div id="pf-out" hidden>
+          <p class="pf-v" id="pf-v" data-k="ok" role="status"></p>
+          <div class="tblwrap"><table class="tt num" id="pf-t" aria-label="Límites de la cuenta de fondeo contra tu operación"></table></div>
+          <div class="own"><button type="button" class="act" id="pf-use" hidden>Usar riesgo prudente</button></div>
+        </div>
+      </div>
+    </details>
   </section>
 
   <section class="desk" data-roles="pm" data-teoria="plan">
@@ -990,12 +1147,14 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
       <button type="button" class="key up tooltip" data-pick="leg" data-v="up" aria-pressed="false"><span class="kt">Sigo una subida<small>de un mínimo hacia arriba</small></span><span class="tooltiptext">Un tramo que nace en un mínimo y va marcando máximos más altos, con retrocesos por el camino. Termina cuando un retroceso alcanza el umbral.</span></button>
     </div>
     <div>
-      <p class="lbl"><button type="button" class="lblbtn tooltip">Umbral: qué rebote cuenta como cambio<i aria-hidden="true">?</i><span class="tooltiptext">Un tramo termina cuando el precio se devuelve más de cierto tamaño. Ese tamaño es el umbral, medido en fracciones del ATR del paso 4. Con un umbral más grande salen tramos más largos y menos giros al día.</span></button></p>
+      <p class="lbl"><button type="button" class="lblbtn tooltip">Umbral: qué rebote cuenta como cambio<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> Un tramo termina cuando el precio se devuelve más de cierto tamaño. Ese tamaño es el umbral, medido en fracciones del ATR del paso 4. Con un umbral más grande salen tramos más largos y menos giros al día.</span><span class="p"><b>Cómo elegirlo.</b> Toca un botón o escribe el tuyo, entre 0.1 y 2 (por ejemplo 0.45). Las cifras de duración y de giros al día de los botones valen solo para ⅓, 0.4 y ½.</span></span></button></p>
       <div class="keys three">
         <button type="button" class="key pick tooltip" data-pick="scale" data-v="0.33" aria-pressed="false">⅓ ATR<small>24 pips</small><span class="tooltiptext"><b>Tramos cortos.</b> En tus datos, la mitad dura menos de 3.6 horas y recorre 44 pips. Hay unos 4 giros al día.</span></button>
         <button type="button" class="key pick tooltip" data-pick="scale" data-v="0.4" aria-pressed="true">0.4 ATR<small>29 pips</small><span class="tooltiptext"><b>Tramos medios.</b> La mitad dura menos de 5 horas y 1 de cada 4 pasa de 12; el típico recorre 53 pips. Hay casi 3 giros al día.</span></button>
         <button type="button" class="key pick tooltip" data-pick="scale" data-v="0.5" aria-pressed="false">½ ATR<small>37 pips</small><span class="tooltiptext"><b>Tramos largos.</b> La mitad dura menos de 8 horas y 1 de cada 4 pasa de 19; el típico recorre 66 pips. Hay casi 2 giros al día.</span></button>
       </div>
+      <div class="own"><label for="f-scale">Otro umbral</label><input class="num" id="f-scale" inputmode="decimal" autocomplete="off" aria-label="Umbral del tramo, en fracciones del ATR"><span class="unit">× ATR</span></div>
+      <p class="own-m" id="rk-scale-m" hidden>Escribe un número entre 0.1 y 2: es una fracción del ATR. Mientras tanto uso el anterior.</p>
     </div>
     <div class="fields three">
       <div class="field"><div class="fl"><label for="f-l0"><span id="lb-l0">Máximo</span></label><button type="button" class="help tooltip" aria-label="Ayuda: Máximo">?<span class="tooltiptext">Donde nació el tramo que sigues: el máximo si es una bajada, el mínimo si es una subida. Léelo en tu gráfico de MT5.</span></button></div><input class="num" id="f-l0" inputmode="decimal" autocomplete="off" value="1.17625"></div>
@@ -1120,12 +1279,18 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
     <button type="button" class="clear" data-go="mesa">← Mesa</button>
     <button type="button" class="clear" data-go="teoria" data-only="teoria">Temas</button>
     <button type="button" class="clear" data-go="logica" data-only="teoria">Lógica</button>
+    <button type="button" class="clear" data-go="grafico" data-only="teoria">Gráfico</button>
     <button type="button" class="clear" data-go="lab" data-only="teoria">Lab<span class="hs">oratorio</span></button>
     <button type="button" class="clear" data-go="logica" data-only="lab" hidden>Lógica</button>
+    <button type="button" class="clear" data-go="grafico" data-only="lab" hidden>Gráfico</button>
     <button type="button" class="clear" data-go="teoria" data-only="lab" hidden>Teoría</button>
+    <button type="button" class="clear" data-go="grafico" data-only="logica" hidden>Gráfico</button>
     <button type="button" class="clear" data-go="lab" data-only="logica" hidden>Lab<span class="hs">oratorio</span></button>
     <button type="button" class="clear" data-go="teoria" data-only="logica" hidden>Teoría</button>
-    <h1 class="thtitle"><span data-only="teoria">Teoría</span><span data-only="lab" hidden>Lab<span class="hs">oratorio</span></span><span data-only="logica" hidden>Lógica</span></h1>
+    <button type="button" class="clear" data-go="logica" data-only="grafico" hidden>Lógica</button>
+    <button type="button" class="clear" data-go="lab" data-only="grafico" hidden>Lab<span class="hs">oratorio</span></button>
+    <button type="button" class="clear" data-go="teoria" data-only="grafico" hidden>Teoría</button>
+    <h1 class="thtitle"><span data-only="teoria">Teoría</span><span data-only="lab" hidden>Lab<span class="hs">oratorio</span></span><span data-only="logica" hidden>Lógica</span><span data-only="grafico" hidden>Gráfico</span></h1>
   </div>
 </header>
 
@@ -1141,12 +1306,12 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
       <div><h3>Paso 2 · Estructura y nivel</h3><p class="ixl"><a href="#teoria-velas" data-ir="velas">Velas</a><a href="#teoria-tendencia" data-ir="tendencia">Tendencia</a><a href="#teoria-ciclo" data-ir="ciclo">Fases de la tendencia</a><a href="#teoria-niveles" data-ir="niveles">Niveles</a><a href="#teoria-gatillo" data-ir="gatillo">Gatillo</a></p></div>
       <div><h3>Indicadores</h3><p class="ixl"><a href="#teoria-ema" data-ir="ema">Media móvil (EMA)</a><a href="#teoria-fuerza" data-ir="fuerza">ADX y MACD</a><a href="#teoria-extremos" data-ir="extremos">RSI, estocástico y Bollinger</a></p></div>
       <div><h3>Paso 3 · Momento</h3><p class="ixl"><a href="#teoria-noticia" data-ir="noticia">Noticia roja</a><a href="#teoria-sesion" data-ir="sesion">Sesión líquida</a><a href="#teoria-recorrido" data-ir="recorrido">Recorrido del día</a></p></div>
-      <div><h3>Paso 4 · Riesgo y tamaño</h3><p class="ixl"><a href="#teoria-atr" data-ir="atr">ATR</a><a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a><a href="#teoria-margen" data-ir="margen">Margen y swap</a><a href="#teoria-stopr" data-ir="stopr">Stop y objetivo</a><a href="#teoria-limites" data-ir="limites">Límites del día</a></p></div>
+      <div><h3>Paso 4 · Riesgo y tamaño</h3><p class="ixl"><a href="#teoria-atr" data-ir="atr">ATR</a><a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a><a href="#teoria-margen" data-ir="margen">Margen y swap</a><a href="#teoria-stopr" data-ir="stopr">Stop y objetivo</a><a href="#teoria-limites" data-ir="limites">Límites del día</a><a href="#teoria-fondeo" data-ir="fondeo">Cuentas de fondeo</a></p></div>
       <div><h3>Pasos 5 y 6</h3><p class="ixl"><a href="#teoria-plan" data-ir="plan">Plan y precios</a><a href="#teoria-salida" data-ir="salida">Salida</a></p></div>
       <div><h3>Datos</h3><p class="ixl"><a href="#teoria-tramos" data-ir="tramos">Tramos y rebotes</a><a href="#teoria-cuartiles" data-ir="cuartiles">Cuartiles y percentiles</a><a href="#teoria-perfil" data-ir="perfil">Perfil por horario</a><a href="#teoria-calendario" data-ir="calendario">Calendario</a><a href="#teoria-direccion" data-ir="direccion">Alzas y bajas</a><a href="#teoria-dirhora" data-ir="dirhora">Dirección por hora</a><a href="#teoria-nivelesdatos" data-ir="nivelesdatos">Niveles en tus datos</a><a href="#teoria-datos" data-ir="datos">Tus datos</a><a href="#lab" data-go="lab">Laboratorio ↗</a></p></div>
-      <div><h3>Decidir</h3><p class="ixl"><a href="#teoria-veredicto" data-ir="veredicto">El veredicto</a><a href="#teoria-algoritmo" data-ir="algoritmo">El algoritmo</a><a href="#teoria-logica" data-ir="logica">Leer el circuito</a><a href="#logica" data-go="logica">Lógica ↗</a></p></div>
+      <div><h3>Decidir</h3><p class="ixl"><a href="#teoria-veredicto" data-ir="veredicto">El veredicto</a><a href="#teoria-algoritmo" data-ir="algoritmo">El algoritmo</a><a href="#teoria-logica" data-ir="logica">Leer el circuito</a><a href="#teoria-grafico" data-ir="grafico">Gráfico y plan del día</a><a href="#logica" data-go="logica">Lógica ↗</a><a href="#grafico" data-go="grafico">Gráfico ↗</a></p></div>
       <div><h3>Alcance</h3><p class="ixl"><a href="#teoria-alcance" data-ir="alcance">Qué cubre y qué no</a><a href="#teoria-binarias" data-ir="binarias">Opciones binarias</a></p></div>
-      <div><h3>Base</h3><p class="ixl"><a href="#teoria-proceso" data-ir="proceso">Proceso y roles</a><a href="#teoria-glosario" data-ir="glosario">Glosario</a><a href="#teoria-errores" data-ir="errores">Errores típicos</a><a href="#teoria-avisos" data-ir="avisos">Avisos</a></p></div>
+      <div><h3>Base</h3><p class="ixl"><a href="#teoria-proceso" data-ir="proceso">Proceso y roles</a><a href="#teoria-guardado" data-ir="guardado">Guardado y copia</a><a href="#teoria-glosario" data-ir="glosario">Glosario</a><a href="#teoria-errores" data-ir="errores">Errores típicos</a><a href="#teoria-avisos" data-ir="avisos">Avisos</a></p></div>
     </nav>
   </section>
 
@@ -1578,6 +1743,8 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
     <p>Primero decides cuánto aceptas perder si salta el stop, un porcentaje de tu capital. Después el tamaño se calcula; no se adivina.</p>
     <p class="callout rule"><b>Lotes = riesgo en dólares ÷ (pips de stop × 10)</b><br>En EURUSD un lote son 100 000 € y cada pip vale 10 USD por lote. Se redondea hacia abajo al 0.01, que es lo mínimo que acepta MT5.</p>
     <p><b>Ejemplo con el panel:</b> capital $1 000 y riesgo 0.5% son $5. Con un stop de 18 pips: 5 ÷ (18 × 10) = 0.027, que se redondea a 0.02 lotes. Si salta el stop pierdes 0.02 × 18 × 10 = $3.60, un 0.36% de la cuenta.</p>
+    <p><b>Si ya sabes cuántos lotes quieres:</b> escríbelos en la casilla «Lotes» del paso 4. La Mesa deja de calcular el tamaño y calcula el riesgo: lotes × pips de stop × 10. Con una cuenta de 200 000 USD y 1% (2 000 USD), 50 lotes valen 500 USD por pip: el stop que cabe es de 4 pips, y con 18 pips arriesgarías 9 000 USD, que es 4.5% de la cuenta. Con una cuenta de fondeo, esos números se comparan con los límites de la firma: <a href="#teoria-fondeo" data-ir="fondeo">Cuentas de fondeo</a>.</p>
+    <p><b>Las casillas:</b> el riesgo, el objetivo, el umbral del tramo y los lotes se pueden escribir; los botones solo llenan la casilla. Rangos habituales: riesgo de 0.25 a 1% y objetivo de 1.5R a 3R.</p>
     <h3>Por qué un riesgo pequeño</h3>
     <ul>
       <li>Con 1%, diez pérdidas seguidas cuestan 9.6% de la cuenta; con 2%, 18.3%.</li>
@@ -1629,7 +1796,46 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
       <li><b>Límite diario.</b> Un tope de pérdida por día: menos de 2 operaciones perdidas y menos de 2% de la cuenta. En una mesa se llama límite de stop-loss. Existe para sacarte del mercado antes de que un mal día se vuelva un desastre.</li>
       <li><b>Apuesta repetida.</b> Dos operaciones que ganan o pierden juntas son una sola apuesta al doble de tamaño. EURUSD, GBPUSD y AUDUSD suelen moverse juntos contra el dólar; USDCHF y USDJPY, al revés.</li>
     </ul>
-    <p class="note">Los números (2 pérdidas, 2%) son reglas prácticas de esta página. Ajústalos a tu plan.</p>
+    <p class="note">Los números (2 pérdidas, 2%) son reglas prácticas de esta página. Ajústalos a tu plan. Si operas una cuenta de fondeo, mandan los límites de la firma: <a href="#teoria-fondeo" data-ir="fondeo">Cuentas de fondeo</a>.</p>
+  </article>
+
+  <article class="th" id="teoria-fondeo" data-short="Cuentas de fondeo" tabindex="-1">
+    <p class="kick">Paso 4 · Riesgo y tamaño</p>
+    <h2>Cuentas de fondeo: límites y tamaño</h2>
+    <p>Una firma de fondeo (prop firm) te presta una cuenta grande si pasas su evaluación, y te la quita si rompes sus límites de pérdida. El panel «Cuenta de fondeo» del paso 4 compara esos límites con el tamaño que elegiste. <b>Es una guía, no la regla de tu firma: manda tu contrato.</b></p>
+    <h3>Los dos límites</h3>
+    <ul>
+      <li><b>Pérdida máxima diaria.</b> Lo máximo que puede bajar tu cuenta en un día. En FTMO es 5% del saldo inicial en la modalidad de 2 pasos y 3% en la de 1 paso, y se recalcula cada día a las 00:00 de Centroeuropa (CE(S)T).</li>
+      <li><b>Pérdida máxima total.</b> Lo máximo que puede bajar en total. En FTMO es 10% del saldo inicial. En la de 2 pasos es fijo; en la de 1 paso es móvil: sube cuando tu cuenta cierra el día en un máximo nuevo.</li>
+      <li><b>Qué cuenta.</b> La firma mira el <b>equity</b>: el saldo más lo que ganan o pierden las operaciones abiertas, con swaps y comisiones. Una operación que flota en pérdida ya cuenta, aunque no la hayas cerrado.</li>
+    </ul>
+    <p class="note">Cifras de ftmo.com consultadas el 21 nov 2026. Las firmas las cambian y cada una tiene las suyas: fijo o móvil, sobre el saldo o sobre el equity, límite de lotes, reglas de consistencia. Lee tu contrato.</p>
+    <h3>Cómo calcula el panel</h3>
+    <div class="tblwrap"><table class="tt">
+      <thead><tr><th>Dato</th><th>Cómo sale</th></tr></thead>
+      <tbody>
+        <tr><td>Límite diario y total</td><td>El porcentaje por el saldo inicial. Con 200 000 USD: 5% son 10 000 USD y 10% son 20 000 USD.</td></tr>
+        <tr><td>Piso de la cuenta</td><td>Fijo: el saldo inicial menos el límite total (180 000 USD). Móvil: tu máximo menos el límite total.</td></tr>
+        <tr><td>Te quedan hoy</td><td>El límite diario menos lo que ya perdiste hoy.</td></tr>
+        <tr><td>Te quedan hasta el piso</td><td>Tu capital, el de arriba, tomado como el equity de ahora, menos el piso.</td></tr>
+        <tr><td>Pérdidas seguidas que caben</td><td>Cuántas veces puede saltar tu stop, con el mismo tamaño, sin tocar el límite. Con 2 000 USD por operación: 4 hoy y 9 en total.</td></tr>
+        <tr><td>Riesgo prudente</td><td>El menor entre el límite diario ÷ 3 (aguantas tres pérdidas en un día) y el total ÷ 10 (diez seguidas). Es una convención de la Mesa, no una regla de la firma. Si quieres más margen, usa menos.</td></tr>
+        <tr><td>Tope propio de hoy</td><td>La mitad del límite diario: dejas de operar antes de que la firma lo haga por ti.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Ejemplo: cuenta de 200 000 USD</h3>
+    <ul>
+      <li><b>Con 1% de riesgo</b> son 2 000 USD. Con un stop de 18 pips, el tamaño es 2 000 ÷ (18 × 10) = 11.11 lotes, y si salta el stop pierdes 1 999.80 USD.</li>
+      <li><b>Con 50 lotes</b>, cada pip vale 500 USD. Con 18 pips de stop pierdes 9 000 USD, que es 4.5% de la cuenta: casi todo el límite diario de 5% en una sola operación, y dos pérdidas seguidas ya son 9% de la cuenta, casi todo el límite total de 10%. Para arriesgar 2 000 USD con 50 lotes, el stop tiene que ser de 4 pips o menos.</li>
+      <li><b>Para no perder más de 10% en total</b>, el tamaño sale del riesgo y del stop, nunca de «lotes a ojo». Usa de 0.5 a 1% por operación y ponte un tope propio de hoy. Con 1%, diez pérdidas seguidas te llevan al borde del piso (9.6% si recalculas el tamaño sobre lo que queda, 10% si arriesgas siempre lo mismo); con 0.5%, a casi la mitad (4.9%).</li>
+    </ul>
+    <h3>Lo que el panel no sabe</h3>
+    <ul>
+      <li><b>Tu equity real.</b> Tú pones el capital y lo perdido hoy. Si tienes operaciones abiertas en pérdida, súmalas.</li>
+      <li><b>Las reglas que no son de pérdida:</b> lotes máximos, consistencia, días mínimos de operación, horario de noticias. Están en tu contrato.</li>
+      <li><b>Los costos.</b> El spread, la comisión y el deslizamiento hacen la pérdida real algo mayor que la calculada. Deja un colchón.</li>
+    </ul>
+    <p class="note">Sirve para ordenar tu decisión; no es asesoría financiera. El tamaño, el riesgo y los lotes están en <a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a>; el tope de pérdida por día, en <a href="#teoria-limites" data-ir="limites">Límites del día</a>.</p>
   </article>
 
   <article class="th" id="teoria-plan" data-short="Plan y precios" tabindex="-1">
@@ -2110,6 +2316,54 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
     <p class="note">«Pasar a la Mesa» marca, en la Mesa, lo que el archivo, el calendario y el reloj dan por cumplido y tú no habías marcado. No toca el sesgo macro ni lo que ya marcaste. Palabras de esta tarjeta, en el <a href="#teoria-glosario" data-ir="glosario">Glosario</a>: circuito de decisión, compuerta lógica, contacto y bobina, sensor.</p>
   </article>
 
+  <article class="th" id="teoria-grafico" data-short="Gráfico y plan del día" tabindex="-1">
+    <p class="kick">Decidir</p>
+    <h2>Gráfico y plan del día: tus velas con el plan dibujado</h2>
+    <p>La pestaña <a href="#grafico" data-go="grafico">Gráfico</a> dibuja las velas de tu archivo de MT5 como las dibuja la plataforma y, sobre el día de hoy, pone un esquema: en <b>azul</b> lo que harías si compras y en <b>rojo</b> si vendes. <b>No agrega ninguna regla</b>: usa el piso y el techo de <a href="#teoria-niveles" data-ir="niveles">Niveles</a>, el stop y la R de <a href="#teoria-stopr" data-ir="stopr">Stop y objetivo</a>, la regla de tramos de <a href="#teoria-tramos" data-ir="tramos">Tramos y rebotes</a>, el calendario y el veredicto del circuito de <a href="#teoria-logica" data-ir="logica">Leer el circuito</a>. Se lee en tu dispositivo y no se envía a ningún lado.</p>
+    <h3>Qué ventana muestra</h3>
+    <ul>
+      <li><b>M1 a H4:</b> una semana (7 días de calendario, o sea 5 días de mercado) y nunca menos. Puedes ampliarla a 2 semanas o a un mes.</li>
+      <li><b>D1:</b> 8 semanas (también 5 o 13). <b>W1:</b> 8 semanas (también 5 o 26). Un archivo corto no alcanza: para D1 y semanal hacen falta al menos 2 meses de historia.</li>
+      <li>Como en MT5, las velas van una tras otra: el fin de semana y las noches sin datos no dejan huecos. La semana empieza el domingo, el día termina a la medianoche del servidor y el reloj del eje es el de MT5 (Nueva York más 7 horas). Las líneas punteadas verticales separan los días (en D1, las semanas; en W1, los meses).</li>
+      <li>A la derecha de la última vela queda el espacio de lo que falta del día: ahí vive el plan. Es el plan de <b>hoy</b> mientras falte la sesión líquida (hasta las 19:00 de MT5); después, o en fin de semana, es el del siguiente día de mercado.</li>
+    </ul>
+    <h3>Cómo leerlo</h3>
+    <ul>
+      <li><b>Velas.</b> En el esquema gris, vela hueca si cierra más arriba de donde abrió y rellena si cierra más abajo, como el «Negro sobre blanco» de MT5. Gris deja el azul y el rojo libres para el plan; también hay verde y rojo, y azul y rojo. <a href="#teoria-velas" data-ir="velas">Velas</a>.</li>
+      <li><b>Medias.</b> La EMA 20 (ámbar) y las medias de 50 (verde azulado) y de 200 velas (oscura): las de <a href="#teoria-ema" data-ir="ema">Media móvil</a> y de <a href="#teoria-tendencia" data-ir="tendencia">Tendencia</a>.</li>
+      <li><b>Niveles.</b> Las líneas grises: máximo y mínimo de ayer y de la semana pasada, máximos y mínimos de H4 y números redondos. Varios a menos de 5 pips son una sola zona.</li>
+      <li><b>Sesión.</b> La franja clara de 09:00 a 19:00 de MT5, o sea de 02:00 a 12:00 de Nueva York: <a href="#teoria-sesion" data-ir="sesion">Sesión líquida</a>.</li>
+      <li><b>Noticias.</b> Cada roja de USD o EUR del calendario es una línea ámbar con su banda de 30 minutos antes y después: <a href="#teoria-noticia" data-ir="noticia">Noticia roja</a>. El calendario llega en UTC y se pasa a la hora de MT5.</li>
+      <li><b>Ahora.</b> La línea negra vertical es la hora de MT5 de tu dispositivo. Si tu archivo está atrasado, entre la última vela y esa línea no hay datos.</li>
+    </ul>
+    <h3>Cómo se arma el plan</h3>
+    <div class="tblwrap"><table class="tt">
+      <thead><tr><th>Línea</th><th>De dónde sale</th></tr></thead>
+      <tbody>
+        <tr><td>Piso (azul) y techo (rojo)</td><td>El más cercano de «Buscar niveles», si está a menos de 1.2 ATR. Se dibuja como una banda en todo el ancho. Sin nivel a la vista, no hay plan de ese lado.</td></tr>
+        <tr><td>Entrada</td><td>Compra: orden límite en el borde de arriba del piso. Venta: en el borde de abajo del techo. Si ya estás dentro de la zona, el precio de ahora.</td></tr>
+        <tr><td>Stop (raya cortada)</td><td>Los pips de stop que elegiste en el paso 4, o 2 pips pasado el otro lado del nivel si eso queda más lejos: el stop va donde la idea deja de valer. <a href="#teoria-stopr" data-ir="stopr">Stop y objetivo</a>.</td></tr>
+        <tr><td>Objetivo (TP)</td><td>La entrada más (compra) o menos (venta) tu R por el riesgo. Con 2R solo hace falta acertar más de 33% de las veces para no perder, antes de costos. Los lotes salen de <a href="#teoria-riesgo" data-ir="riesgo">Riesgo y lotes</a>.</td></tr>
+        <tr><td>Primer techo o piso</td><td>El primer nivel del otro lado de la entrada, para ver cuánto recorrido queda hasta él, medido en R. Si queda menos de 1.5R el panel avisa: es un aviso del Gráfico, no una regla de la Mesa.</td></tr>
+        <tr><td>Retrocesos (punteadas finas)</td><td>38%, 50% y 62% del último tramo. El tramo se mide con la regla de la Mesa: termina cuando el precio vuelve un umbral (una fracción del ATR) desde su extremo. Tras una subida son azules (para comprar el retroceso); tras una bajada, rojos (para vender el rebote).</td></tr>
+        <tr><td>Cambio (raya larga)</td><td>El extremo del tramo menos (o más) el umbral: si el precio vuelve ahí, la Mesa da el tramo por terminado y el lado contrario empieza a tener sentido.</td></tr>
+        <tr><td>Camino (punteada con flecha)</td><td>Un ejemplo: en azul, el precio baja al piso en la primera ventana libre y sube al objetivo; en rojo, sube al techo y baja. Los tiempos son de ejemplo.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>El cruce con el calendario</h3>
+    <p>La sesión (09:00 a 19:00 de MT5) menos la media hora de antes y de después de cada roja da las <b>ventanas para entrar</b>, que el panel lista bajo el gráfico (la de ahora va marcada). Una orden límite puesta antes de una noticia puede llenarse con el salto y con deslizamiento: la Mesa dice retirarla o alejarla antes de la banda y, si ya estás dentro con menos de media hora, reducir o proteger.</p>
+    <h3>Lo que no es</h3>
+    <p><b>Es un esquema, no una predicción.</b> En tus datos los niveles no rebotan más que líneas puestas al azar (<a href="#teoria-nivelesdatos" data-ir="nivelesdatos">Niveles en tus datos</a>), ninguna hora del día tiene una dirección estable (<a href="#teoria-dirhora" data-ir="dirhora">Dirección por hora</a>) y ningún tamaño de rebote avisa antes de que el tramo termine (<a href="#teoria-tramos" data-ir="tramos">Tramos y rebotes</a>). Por eso el plan no dice hacia dónde irá el precio: ordena dónde pondrías la entrada, el stop y el objetivo si el circuito da luz verde, y qué ventanas deja libres el calendario. Los porcentajes de retroceso son una convención de los gráficos, no una ley: sirven para escalonar entradas, no para adivinar.</p>
+    <h3>Cómo usarlo</h3>
+    <ol>
+      <li>Carga tu archivo de MT5 (M1, M5, M15, M30, H1 o H4) y el calendario de la semana.</li>
+      <li>Escribe el precio de ahora. Si lo dejas vacío, el plan usa el último cierre del archivo y lo dice.</li>
+      <li>Mira el circuito (la etiqueta sobre el gráfico): el lado que coincide con su sesgo se dibuja más fuerte, y el contrario, apagado.</li>
+      <li>Revisa si hay un piso o un techo con recorrido hasta el primero del otro lado, y dónde caen las ventanas libres.</li>
+      <li>Alterna temporalidades: M15 para el gatillo, H1 o H4 para el tramo del día, D1 y W1 para la tendencia.</li>
+    </ol>
+  </article>
+
   <article class="th" id="teoria-alcance" data-short="Qué cubre" tabindex="-1">
     <p class="kick">Alcance</p>
     <h2>Qué cubre esta página y qué no</h2>
@@ -2134,6 +2388,7 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
     <ul>
       <li><b>Volumen real y flujo de órdenes.</b> El EURUSD al contado no tiene un volumen central. En tu archivo la columna VOL viene en 0 y solo hay TICKVOL, el número de cambios de precio.</li>
       <li><b>Pruebas en el pasado (backtesting)</b> de tus reglas, con costos. Las cifras de la página describen tus datos; no prueban que una regla gane.</li>
+      <li><b>Las reglas exactas de cada firma de fondeo.</b> Solo hay las cifras de FTMO del 21 nov 2026 y casillas para las tuyas: <a href="#teoria-fondeo" data-ir="fondeo">Cuentas de fondeo</a>.</li>
       <li><b>Calendario histórico de noticias.</b> Solo hay el de una semana, así que el Laboratorio no separa las franjas con noticia de las demás.</li>
       <li><b>Posicionamiento, opciones y correlaciones</b>, más allá del aviso de apuesta repetida.</li>
       <li><b>Psicología, diario de operaciones, impuestos y normativa local.</b></li>
@@ -2196,6 +2451,31 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
     <p class="note">El método se apoya en el proceso de gestión de cartera y en la estrategia de ejecución del CFA Institute, y en el Código Global de FX. Las fuentes están al pie de la página.</p>
   </article>
 
+  <article class="th" id="teoria-guardado" data-short="Guardado y copia" tabindex="-1">
+    <p class="kick">Base</p>
+    <h2>Dónde se guarda lo que escribes, y la copia de seguridad</h2>
+    <p>La página no tiene servidor: lo que escribes se guarda <b>en tu navegador y en ese dispositivo</b>. Sobrevive a cerrar la pestaña y a que se publique una versión nueva; no sobrevive a limpiar los datos del sitio, a una ventana privada, ni a abrir la página en otro navegador o en otro teléfono.</p>
+    <h3>Qué se guarda y dónde</h3>
+    <div class="tblwrap"><table class="tt">
+      <thead><tr><th>Qué</th><th>Dónde</th><th>Cuánto dura</th></tr></thead>
+      <tbody>
+        <tr><td>Casillas y botones de la Mesa, el Laboratorio, la Lógica y el Gráfico, y los límites de fondeo</td><td>localStorage: texto pequeño</td><td>Hasta que limpies los datos del sitio. Las marcas del día y el máximo y mínimo de hoy se borran a las 8 horas; los niveles, al cambiar el día o la semana.</td></tr>
+        <tr><td>Tu archivo de MT5, el último que cargaste</td><td>IndexedDB: la base de datos del navegador, que aguanta archivos grandes</td><td>Hasta que lo olvides o limpies los datos del sitio. Se carga con un toque, pero no se actualiza solo.</td></tr>
+        <tr><td>Tu copia de seguridad</td><td>Un archivo .forex.json que guardas tú, fuera del navegador</td><td>Lo que dure ese archivo.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Por qué dos sistemas</h3>
+    <p>Los ajustes son unos pocos kilobytes de texto: <b>localStorage</b> los guarda al instante y sin complicaciones. El archivo de MT5 pesa decenas de megabytes y localStorage no lo aguanta (suele limitarse a unos 5 MB): para eso se usa <b>IndexedDB</b>. Pasar los ajustes a IndexedDB no los haría más seguros: se pierden en los mismos casos.</p>
+    <h3>La copia de seguridad</h3>
+    <ol>
+      <li>Abre «Copia de seguridad», al final de la página, y toca «Guardar copia en un archivo». El nombre termina en <b>.forex.json</b>: es un archivo JSON normal, con una marca en el nombre para distinguirlo de otros. La plataforma donde vive esta página solo deja guardar ciertas extensiones y <b>.forex</b> no está entre ellas; por eso el .json queda al final.</li>
+      <li>Guárdalo fuera del navegador: en tu nube, o envíatelo a ti mismo.</li>
+      <li>Para volver, «Restaurar desde un archivo». La página cambia tus ajustes por los del archivo y se recarga.</li>
+      <li>Si tu navegador no deja guardar archivos desde la página, usa «Copiar copia como texto» y pégalo en una nota.</li>
+    </ol>
+    <p class="note">La copia lleva tus ajustes, no el archivo de MT5: ese lo vuelves a descargar de MT5. Nada sale de tu dispositivo: la página no envía datos a ningún sitio. Una copia vieja puede traer niveles y marcas ya vencidos, que la página descarta sola.</p>
+  </article>
+
   <article class="th" id="teoria-glosario" data-short="Glosario" tabindex="-1">
     <p class="kick">Base</p>
     <h2>Glosario</h2>
@@ -2213,6 +2493,7 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
       <dt>Confluencia</dt><dd>Que varias señales independientes apunten al mismo lado.</dd>
       <dt>Contacto y bobina</dt><dd>En un diagrama de escalera, el contacto deja pasar la corriente si su señal vale 1 (el de la raya inclinada, si vale 0) y la bobina se enciende cuando la corriente llega hasta ella. Contactos en serie son un «y»; en paralelo, un «o».</dd>
       <dt>Cuartil</dt><dd>Cada uno de los tres cortes que dividen las lecturas, ordenadas de menor a mayor, en cuatro partes iguales. Q1 deja debajo el 25%, Q2 (la mediana) el 50% y Q3 el 75%.</dd>
+      <dt>Cuenta de fondeo</dt><dd>Una cuenta con dinero de una firma (prop firm) que te dan si pasas su evaluación y te quitan si rompes sus límites de pérdida. El panel del paso 4 compara tu tamaño con esos límites. Cada firma tiene reglas propias: manda tu contrato.</dd>
       <dt>Deslizamiento</dt><dd>Diferencia entre el precio que pediste y el que te dieron.</dd>
       <dt>Divergencia</dt><dd>El precio hace un máximo más alto y el indicador uno más bajo, o al revés. Es un aviso de agotamiento, no una orden.</dd>
       <dt>EMA</dt><dd>Media móvil exponencial: pesa más los cierres recientes. Cada vez se acerca k = 2 ÷ (N + 1) de la distancia al cierre nuevo.</dd>
@@ -2235,13 +2516,17 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
       <dt>Nivel de margen</dt><dd>Equity ÷ margen usado × 100. Si baja mucho, el bróker avisa (margin call) y luego cierra posiciones (stop out).</dd>
       <dt>Orden pendiente</dt><dd>Orden que espera en el mercado hasta que el precio llegue: Límite, Stop o Stop Limit.</dd>
       <dt>Percentil</dt><dd>El valor bajo el cual queda cierto porcentaje de las lecturas. Con el P90, el 90% queda debajo y solo 1 de cada 10 lo supera.</dd>
+      <dt>Pérdida máxima diaria</dt><dd>El límite de cuánto puede bajar tu cuenta en un día, en porcentaje del saldo inicial. Cuenta el equity (el saldo más lo que flotan las operaciones abiertas), no solo lo cerrado. En FTMO, 5% en 2 pasos y 3% en 1 paso.</dd>
+      <dt>Pérdida máxima total</dt><dd>El límite de cuánto puede bajar tu cuenta en total, en porcentaje del saldo inicial. Si es fijo, el piso no se mueve; si es móvil, sube con tu máximo. En FTMO, 10%.</dd>
       <dt>Pip</dt><dd>0.0001 en el EURUSD, el cuarto decimal. En 1.17124 el pip es el 2.</dd>
       <dt>Piso y techo</dt><dd>El piso es el nivel más cercano debajo del precio y el techo, el más cercano encima. «Buscar niveles» mide en pips la distancia a cada uno; a 15 pips o menos estás «en» el nivel.</dd>
+      <dt>Plan del día</dt><dd>En la pestaña Gráfico, el esquema de compra (azul) y de venta (rojo) con entrada, stop y objetivo, armado con el piso, el techo y los pips de stop del paso 4. Es condicional: solo vale si el circuito da luz verde. No es una predicción.</dd>
       <dt>Punto</dt><dd>Una décima de pip (0.00001), el quinto decimal. 10 puntos = 1 pip.</dd>
       <dt>R</dt><dd>Lo que arriesgas en una operación: la distancia al stop. Un objetivo de 2R gana el doble de lo arriesgado.</dd>
       <dt>Rango intercuartílico</dt><dd>La distancia entre Q1 y Q3: el ancho de la mitad central de las lecturas. Cuanto mayor es, más varía el indicador a esa hora.</dd>
       <dt>Requote</dt><dd>Aviso de que el precio cambió: te ofrecen uno nuevo para aceptar o rechazar. Pasa con ejecución Instant.</dd>
       <dt>Resistencia</dt><dd>Nivel encima del precio donde antes frenó una subida.</dd>
+      <dt>Retroceso</dt><dd>Lo que el precio devuelve del camino que acaba de recorrer antes de seguir o de girar. En el Gráfico se mide como porcentaje del último tramo (38%, 50% y 62%). Es una referencia para escalonar entradas, no una promesa de que el precio se detenga ahí.</dd>
       <dt>RSI</dt><dd>Índice de fuerza relativa: de 0 a 100 según la velocidad de los cierres recientes. Los extremos clásicos son 70 y 30.</dd>
       <dt>Semana ISO</dt><dd>La numeración de semanas más usada: la semana empieza el lunes y la semana 1 es la que contiene el primer jueves del año. Un año tiene 52 o 53 semanas, y los primeros o los últimos días de enero y diciembre pueden caer en la semana del año vecino.</dd>
       <dt>Sensor</dt><dd>En la pestaña Lógica, una condición que se llena sola con tu archivo de MT5, el calendario o el reloj. Mide un hecho, no predice, y tu marca manda sobre él.</dd>
@@ -2601,6 +2886,104 @@ input.num.lg-n{width:3.4rem;flex:none;min-height:2.25rem;text-align:center;paddi
   <p class="note lg-leg" id="lg-leg"></p>
 </section>
 
+<section class="wrap lg ch" id="grafico" aria-labelledby="ch-h" data-teoria="grafico" hidden>
+  <header class="lg-head">
+    <p class="kick">Gráfico</p>
+    <h2 id="ch-h" tabindex="-1">Tus velas de MT5, con el plan del día dibujado</h2>
+    <p class="note">Carga tu archivo de MT5 y verás las velas como en la plataforma: una semana en los gráficos de minutos y horas, y de 5 a 8 semanas en los diarios y los semanales. Sobre el día de hoy se dibuja un esquema: en azul lo que pasaría si compras y en rojo si vendes, con el piso, el techo, el stop, el objetivo, los posibles retrocesos y las noticias rojas del calendario. Es un esquema para ordenar el plan, no una predicción.</p>
+  </header>
+
+  <div class="lg-panel">
+    <div class="lg-in">
+      <div class="field lg-px"><div class="fl"><label for="ch-p">Precio ahora</label><button type="button" class="help tooltip" aria-label="Ayuda: precio ahora">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio actual del EURUSD. Con él se eligen el piso y el techo más cercanos y se arma el plan del día.</span><span class="p"><b>Si lo dejas vacío.</b> El plan se arma con el último cierre de tu archivo y lo dice. Para afinarlo escribe el precio de venta (SELL) de MT5 con punto decimal, por ejemplo 1.09700.</span><span class="p">Es el mismo de «Buscar niveles» y de Lógica: si lo cambias aquí cambia allá.</span></span></button></div><input class="num" id="ch-p" type="text" inputmode="decimal" autocomplete="off" placeholder="1.09700"></div>
+      <div class="lg-files">
+        <div class="calrow"><label class="filebtn" for="ch-file">Cargar mi archivo de MT5</label><button type="button" class="help tooltip" aria-label="Ayuda: archivo de MT5">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo de velas de MT5 y dibuja el gráfico en tu dispositivo. No se envía a ningún lado. Es el mismo archivo de «Buscar niveles» y de Lógica: si ya lo cargaste allá, aquí ya está.</span><span class="p"><b>Cuánta historia.</b> Con velas de M1 salen todas las temporalidades; con M15, de M15 hacia arriba. Para ver 5 a 8 semanas en D1 y en el semanal hace falta un archivo de al menos 2 meses; para una semana de M1, siete días.</span></span></button><input class="vh" type="file" id="ch-file" accept=".csv,.txt,text/csv,text/plain"></div>
+        <div class="calrow"><label class="filebtn" for="ch-cal">Cargar el calendario</label><button type="button" class="help tooltip" aria-label="Ayuda: calendario">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Carga el ff_calendar_thisweek.csv de Forex Factory, el mismo de la Mesa. Las noticias rojas de USD y EUR se dibujan como bandas ámbar de 30 minutos antes a 30 minutos después, y el plan dice qué ventanas quedan libres para entrar.</span><span class="p">Las horas del calendario llegan en UTC y aquí se pasan a la hora de MT5 (Nueva York + 7 horas), la misma de las velas.</span></span></button><input class="vh" type="file" id="ch-cal" accept=".csv,.txt,text/csv,text/plain"></div>
+      </div>
+    </div>
+    <p class="note" id="ch-st" role="status"></p>
+    <p class="lb-warn" id="ch-warn" hidden></p>
+
+    <div class="lg-ctl">
+      <div class="lg-grp"><span class="lg-gl">Velas de</span><div class="lg-seg" id="ch-tfs" role="group" aria-label="Temporalidad del gráfico">
+        <button type="button" data-chs="tf:60">M1</button><button type="button" data-chs="tf:300">M5</button><button type="button" data-chs="tf:900">M15</button><button type="button" data-chs="tf:1800">M30</button><button type="button" data-chs="tf:3600">H1</button><button type="button" data-chs="tf:14400">H4</button><button type="button" data-chs="tf:86400">D1</button><button type="button" data-chs="tf:604800">W1</button></div>
+        <button type="button" class="help tooltip" aria-label="Ayuda: temporalidad">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Lo que dura cada vela: M1 un minuto, M15 quince, H1 una hora, H4 cuatro, D1 un día y W1 una semana. En MT5 el día termina a la medianoche del servidor y la semana empieza el domingo.</span><span class="p"><b>Cuáles hay.</b> Solo las que salen de tu archivo: una vela grande se arma con las pequeñas. Las que no salen se ven apagadas.</span><span class="p"><b>Para qué.</b> Las pequeñas (M5, M15) muestran el gatillo; H1 y H4 el tramo del día; D1 y W1 la tendencia.</span></span></button></div>
+      <div class="lg-grp"><span class="lg-gl">Ventana</span><div class="lg-seg" id="ch-span" role="group" aria-label="Cuánto tiempo mostrar">
+        <button type="button" data-chs="span:0"></button><button type="button" data-chs="span:1"></button><button type="button" data-chs="span:2"></button></div>
+        <button type="button" class="help tooltip" aria-label="Ayuda: ventana">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Cuánto pasado se ve al abrir. En velas de minutos y horas: 5 días, 1 semana (la de siempre) o 2 semanas; nunca menos de una semana. En D1 y W1: 5, 8 o 13 semanas.</span><span class="p"><b>Y si quiero más o menos.</b> Acerca y aleja con los botones + y −, con Ctrl y la rueda del ratón, o con dos dedos. «Ajustar» vuelve a esta ventana.</span></span></button></div>
+      <div class="lg-grp"><span class="lg-gl">Plan</span><div class="lg-seg" role="group" aria-label="Qué lado del plan dibujar">
+        <button type="button" data-chs="side:all">Todo</button><button type="button" data-chs="side:buy">Solo compra</button><button type="button" data-chs="side:sell">Solo venta</button></div>
+        <button type="button" class="help tooltip" aria-label="Ayuda: plan">?<span class="tooltiptext"><span class="p"><b>Todo.</b> Los dos esquemas a la vez: azul si compras, rojo si vendes. Mientras la Mesa no tenga sesgo son dos planes condicionales: solo se usa el que el circuito encienda.</span><span class="p"><b>Solo compra / Solo venta.</b> Deja un solo lado para verlo con calma. Si el circuito ya tiene sesgo, el lado que coincide se dibuja más fuerte.</span></span></button></div>
+      <div class="lg-grp"><span class="lg-gl">Capas</span><div class="ch-chips" id="ch-layers" role="group" aria-label="Qué dibujar sobre las velas">
+        <button type="button" data-chl="lev" aria-pressed="true">Niveles</button><button type="button" data-chl="plan" aria-pressed="true">Plan</button><button type="button" data-chl="path" aria-pressed="true">Camino</button><button type="button" data-chl="news" aria-pressed="true">Noticias</button><button type="button" data-chl="ses" aria-pressed="true">Sesión</button><button type="button" data-chl="ma" aria-pressed="true">Medias</button><button type="button" data-chl="zz" aria-pressed="false">Tramos</button></div>
+        <button type="button" class="help tooltip" aria-label="Ayuda: capas">?<span class="tooltiptext"><span class="p"><b>Niveles.</b> Máximo y mínimo de ayer y de la semana pasada, máximos y mínimos de H4 y números redondos: los de «Buscar niveles», como líneas grises.</span><span class="p"><b>Plan.</b> Entrada, stop y objetivo de cada lado, el piso y el techo, y los retrocesos del último tramo.</span><span class="p"><b>Camino.</b> Una línea punteada de ejemplo: en azul baja hasta el piso y sube al objetivo; en rojo sube al techo y baja. Los tiempos son de ejemplo, no una predicción.</span><span class="p"><b>Noticias.</b> Las rojas de USD y EUR del calendario, con su banda de 30 minutos antes y después.</span><span class="p"><b>Sesión.</b> De 09:00 a 19:00 hora de MT5 (02:00 a 12:00 de Nueva York): la ventana líquida de la Mesa.</span><span class="p"><b>Medias.</b> EMA 20 y las medias de 50 y de 200 velas: las que usa la Mesa para la tendencia.</span><span class="p"><b>Tramos.</b> La línea quebrada de los tramos con el umbral de la Mesa (una fracción del ATR). De ahí sale el retroceso.</span></span></button></div>
+      <div class="lg-grp"><span class="lg-gl">Velas</span><select id="ch-prs" aria-label="Colores de las velas"><option value="gris">Gris, huecas al subir</option><option value="verde">Verde y rojo</option><option value="azul">Azul y rojo</option></select>
+        <button type="button" class="help tooltip" aria-label="Ayuda: colores de las velas">?<span class="tooltiptext"><span class="p"><b>Gris.</b> Vela hueca si cierra más arriba de donde abrió y rellena si cierra más abajo, como el esquema «Negro sobre blanco» de MT5. Deja el azul y el rojo libres para el plan.</span><span class="p"><b>Verde y rojo.</b> El esquema clásico de las plataformas. El rojo de las velas se parece al de venta del plan: guíate por la posición, a la derecha de la última vela.</span><span class="p"><b>Azul y rojo.</b> Los colores de la Mesa: azul si sube, rojo si baja.</span></span></button></div>
+    </div>
+  </div>
+
+  <div class="ch-card" id="ch-card">
+    <div class="ch-bar">
+      <b class="ch-bt" id="ch-title">EURUSD</b>
+      <span class="ch-vd" id="ch-vd" role="status"></span>
+      <span class="ch-tools">
+        <button type="button" class="act" data-chz="pan:-1" aria-label="Mover el gráfico hacia el pasado">‹</button>
+        <button type="button" class="act" data-chz="pan:1" aria-label="Mover el gráfico hacia el presente">›</button>
+        <button type="button" class="act" data-chz="zoom:-1" aria-label="Alejar">−</button>
+        <button type="button" class="act" data-chz="zoom:1" aria-label="Acercar">+</button>
+        <button type="button" class="act" data-chz="fit" aria-label="Volver a la ventana de arriba">Ajustar</button>
+        <button type="button" class="act" data-chz="end" aria-label="Ir a la última vela y al día de hoy">Hoy</button>
+        <button type="button" class="act" id="ch-full" aria-pressed="false">Ampliar</button>
+        <button type="button" class="help tooltip" aria-label="Ayuda: mover el gráfico">?<span class="tooltiptext"><span class="p"><b>Mover.</b> Arrastra el gráfico con el dedo o con el ratón. Con el gráfico seleccionado: las flechas ← → mueven, + y − acercan y alejan, Inicio salta al principio y Fin al día de hoy.</span><span class="p"><b>Acercar.</b> Con los botones + y −, con Ctrl y la rueda del ratón, o separando dos dedos.</span><span class="p"><b>Cruz.</b> Toca una vela, o pasa el ratón, para ver su hora y sus precios arriba, y el precio y la hora en los ejes.</span><span class="p"><b>Hoy.</b> Salta al último dato y al espacio de la derecha, donde está el plan.</span><span class="p"><b>Ampliar.</b> Pone el gráfico a pantalla completa (Esc para cerrar).</span></span></button>
+      </span>
+    </div>
+    <p class="ch-ohlc" id="ch-ohlc"></p>
+    <div class="ch-stage" id="ch-stage" tabindex="0" role="group" aria-roledescription="gráfico de velas" aria-label="Gráfico de velas de tu archivo de MT5" aria-describedby="ch-sum">
+      <canvas id="ch-cv"></canvas>
+      <div class="ch-empty" id="ch-empty">Carga tu archivo de MT5 para ver el gráfico.</div>
+    </div>
+    <p class="vh" id="ch-sum"></p>
+    <div class="ch-leg" id="ch-leg" role="group" aria-label="Leyenda">
+      <span><i class="s ema"></i>EMA 20</span><span><i class="s m50"></i>Media 50</span><span><i class="s m200"></i>Media 200</span>
+      <span><i class="s buy"></i>Compra</span><span><i class="s sell"></i>Venta</span><span><i class="s news"></i>Noticia roja ±30 min</span><span><i class="s ses"></i>09:00–19:00 MT5</span><span><i class="s now"></i>Ahora</span>
+      <button type="button" class="help tooltip" aria-label="Ayuda: leyenda">?<span class="tooltiptext"><span class="p"><b>Azul y rojo.</b> Azul es compra, rojo es venta, igual que en el resto de la Mesa. Las líneas llenas son precios (entrada, stop, objetivo); las punteadas finas son retrocesos; la punteada gruesa es el camino de ejemplo.</span><span class="p"><b>Ámbar.</b> Una noticia roja: la línea marca la hora y la banda los 30 minutos de antes y de después, en los que la Mesa dice no entrar.</span><span class="p"><b>Gris claro.</b> La sesión de 09:00 a 19:00 de MT5. <b>Línea «Ahora».</b> La hora de MT5 en tu dispositivo.</span><span class="p"><b>A la derecha de la última vela.</b> Lo que falta del día: ahí se dibuja el plan. El eje de abajo está en hora de MT5, no en la tuya.</span></span></button>
+    </div>
+  </div>
+
+  <div class="ch-plan" id="ch-plan" aria-live="polite"></div>
+</section>
+
+<section class="wrap bk" id="copia" aria-label="Copia de seguridad y archivo de MT5 guardado">
+  <details class="lv" id="bk" data-teoria="guardado">
+    <summary><span class="lv-t">Copia de seguridad</span><small id="bk-sum">tus ajustes y tu archivo de MT5, en este navegador</small></summary>
+    <div class="lv-body">
+      <p class="note">Lo que escribes se guarda solo en este navegador y en este dispositivo. Si borras los datos del sitio, o abres la página en otro navegador o en otro teléfono, no estará. Una copia en un archivo tuyo lo resuelve.</p>
+
+      <div class="bk-sec">
+        <p class="lbl"><button type="button" class="lblbtn tooltip">Tus ajustes<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué son.</b> Todo lo que has escrito o marcado en la Mesa, el Laboratorio, la Lógica y el Gráfico: capital, riesgo, stop, límites de fondeo, niveles, marcas del día.</span><span class="p"><b>Qué no incluye.</b> El archivo de MT5, que pesa mucho y se guarda aparte, más abajo.</span><span class="p"><b>Dónde queda.</b> En el archivo que tú guardes: nada sale de tu dispositivo.</span></span></button></p>
+        <div class="calrow" id="bk-save-row" hidden><button type="button" class="filebtn" id="bk-save">Guardar copia en un archivo</button><button type="button" class="help tooltip" aria-label="Ayuda: guardar copia en un archivo">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Crea un archivo con tus ajustes y te pide confirmar la descarga. El nombre termina en <b>.forex.json</b> (por ejemplo Mesa-EURUSD_2026-11-21.forex.json) para que lo distingas de otros .json.</span><span class="p"><b>Cuándo.</b> Después de cambiar algo importante, o una vez por semana. Guárdalo fuera del navegador: en tu nube o enviado a ti mismo.</span><span class="p"><b>Ojo.</b> Tu navegador puede dejar el archivo en Descargas con otro nombre si ya existe uno igual.</span></span></button></div>
+        <div class="calrow"><button type="button" class="filebtn" id="bk-copy">Copiar copia como texto</button><button type="button" class="help tooltip" aria-label="Ayuda: copiar copia como texto">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Copia tus ajustes como texto, por si tu navegador no deja guardar archivos desde aquí. Pégalo en una nota o en un mensaje a ti mismo.</span><span class="p"><b>Para volver a usarlo.</b> Abre «Pegar o ver el texto», pega y toca «Restaurar desde el texto».</span></span></button></div>
+        <div class="calrow"><label class="filebtn" for="bk-file">Restaurar desde un archivo</label><button type="button" class="help tooltip" aria-label="Ayuda: restaurar desde un archivo">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo .forex.json hecho por esta página y cambia los ajustes de este navegador por los del archivo. Después la página se recarga sola.</span><span class="p"><b>Ojo.</b> Lo que tengas ahora se reemplaza. Si dudas, guarda una copia antes.</span></span></button>
+          <input class="vh" type="file" id="bk-file" accept=".json,.forex,application/json,text/plain"></div>
+        <details class="lg-hand" id="bk-txt">
+          <summary>Pegar o ver el texto <small>para copiar y pegar a mano</small></summary>
+          <div class="lv-body">
+            <textarea class="bk-ta" id="bk-ta" spellcheck="false" autocomplete="off" aria-label="Texto de la copia de seguridad" placeholder="Aquí aparece la copia cuando tocas «Copiar copia como texto». Para restaurar, pega aquí una copia."></textarea>
+            <div class="bk-row"><button type="button" class="act" id="bk-paste">Restaurar desde el texto</button></div>
+          </div>
+        </details>
+        <p class="note" id="bk-st" role="status"></p>
+      </div>
+
+      <div class="bk-sec">
+        <p class="lbl"><button type="button" class="lblbtn tooltip">Tu archivo de MT5<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> Una copia del último archivo de velas que cargaste, guardada en la base de datos del navegador (IndexedDB), que aguanta archivos grandes.</span><span class="p"><b>Para qué.</b> Abrir la página y cargarlo con un toque, sin buscarlo entre tus archivos.</span><span class="p"><b>Ojo.</b> Vale solo en este navegador y dispositivo, y se borra si limpias los datos del sitio. Cargarlo no lo actualiza: para tener los datos de hoy, descarga un archivo nuevo de MT5.</span></span></button></p>
+        <p class="note" id="bk-mt5" role="status"></p>
+        <div class="bk-row"><button type="button" class="act" id="bk-load" hidden>Cargar el archivo guardado</button><button type="button" class="act" id="bk-forget" hidden>Olvidar el archivo</button></div>
+      </div>
+    </div>
+  </details>
+</section>
+
 <footer class="wrap foot">
   <p><strong>Sirve para ordenar tu propia decisión; no es asesoría financiera.</strong> El veredicto solo refleja los botones que tú marcas. Reguladores europeos (ESMA, 2018) hallaron que entre 74% y 89% de las cuentas minoristas de CFD pierden dinero.</p>
   <p>Método: <a href="https://www.cfainstitute.org/membership/professional-development/refresher-readings/2018/the-portfolio-management-process-and-the-investment-policy-statement">proceso de gestión de cartera</a>, <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/trade-strategy-execution">estrategia y ejecución</a> y <a href="https://www.cfainstitute.org/insights/professional-learning/refresher-readings/2026/measuring-managing-market-risk">límites de riesgo</a> (CFA Institute); <a href="https://www.bis.org/publications/fx-execution-algorithms-and-market-functioning">algoritmos de ejecución en FX</a> (BIS); <a href="https://globalfxc.org/docs/fx_global.pdf">Código Global de FX</a>; <a href="https://www.ecb.europa.eu/press/key/date/2017/html/ecb.sp171103.en.html">tipos de interés y EURUSD</a> (BCE); <a href="https://www.esma.europa.eu/sites/default/files/library/esma35-43-1135_notice_of_pi_decisions_on_cfds_and_binary_options.pdf">aviso de ESMA</a>; ayuda de MetaTrader 5: <a href="https://www.metatrader5.com/en/terminal/help/trading/general_concept">tipos de orden</a>, <a href="https://www.metatrader5.com/en/mobile-trading/android/help/trade/general_concept/order_types">órdenes en el móvil</a> y <a href="https://www.metatrader5.com/en/mobile-trading/android/help/trade/pending_place">órdenes pendientes</a>.</p>
@@ -2627,7 +3010,7 @@ const D = {
   hi: [0.2,3.4,1.9,4.7,3.8,1.3,1.5,0.6,3.4,4.9,5.5,5.9,3.6,2.5,3.8,11.7,7.0,10.8,6.8,4.7,4.5,3.6,2.3,1.5],
   lo: [2.1,3.4,2.1,2.1,2.3,2.3,1.1,1.7,1.7,3.0,7.6,4.9,2.1,4.5,5.9,10.8,9.3,7.9,5.1,5.5,4.5,3.4,2.8,3.8]
 };
-const DEF = { capital: '1000', atr: '73', stop: '18', entry: '1.17124', l0: '1.17625', l1: '1.17119', lp: '1.17124', dh: '', dl: '' };
+const DEF = { capital: '1000', atr: '73', stop: '18', entry: '1.17124', lots: '', l0: '1.17625', l1: '1.17119', lp: '1.17124', dh: '', dl: '' };
 const PIP = 0.0001, LS = 'mesa-eurusd-v1', TTL = 8 * 3600e3;
 
 /*PURE*/
@@ -2673,9 +3056,10 @@ function plan(n, pick) {
   const cap = f(n.capital), atr = f(n.atr), stop = f(n.stop), entry = f(n.entry), riskPct = f(pick.risk), rr = f(pick.rr);
   const ok = cap > 0 && stop > 0 && entry > 0 && riskPct > 0 && rr > 0;
   const riskUsd = cap * riskPct / 100;
-  const lots = Math.floor(riskUsd / (stop * 10) * 100 + 1e-9) / 100;
+  const typed = String(n.lots == null ? '' : n.lots).trim().replace(',', '.'), fixed = /^(\d+\.?\d*|\.\d+)$/.test(typed) ? parseFloat(typed) : NaN, manual = fixed >= 0.01;
+  const lots = manual ? Math.round(fixed * 100) / 100 : Math.floor(riskUsd / (stop * 10) * 100 + 1e-9) / 100;   /* lots typed by the user win over the size the risk gives */
   const real = lots * stop * 10;
-  return { ok, cap, atr, stop, entry, riskPct, rr, riskUsd, lots, real, gain: real * rr, be: 1 / (1 + rr), minLotRisk: 0.01 * stop * 10,
+  return { ok, cap, atr, stop, entry, riskPct, rr, riskUsd, lots, real, manual, gain: real * rr, be: 1 / (1 + rr), minLotRisk: 0.01 * stop * 10,
     buy: { sl: entry - stop * PIP, tp: entry + rr * stop * PIP }, sell: { sl: entry + stop * PIP, tp: entry - rr * stop * PIP } };
 }
 /* Leg tracker. Fitted on the file: a leg ends when price comes back T = scale x ATR from its extreme;
@@ -2694,17 +3078,19 @@ function track(n, pick) {
 /*END PURE*/
 
 /* ---- state ---- */
-const S = { dir: {}, gate: {}, exit: {}, pick: { risk: '0.5', rr: '2', order: 'limite', stopf: '0.25', leg: 'down', scale: '0.4', tset: 'all' }, num: { ...DEF }, tags: {}, table: false, ts: 0 };
+const S = { dir: {}, gate: {}, exit: {}, pick: { risk: '0.5', rr: '2', order: 'limite', stopf: '0.25', leg: 'down', scale: '0.4', tset: 'all' }, num: { ...DEF }, pf: { on: '', ini: '', d: '', t: '', mode: 'static', today: '', peak: '', ts: 0 }, tags: {}, table: false, ts: 0 };
 try {
   const r = JSON.parse(localStorage.getItem(LS) || 'null');
   if (r) {
-    Object.assign(S.pick, r.pick || {}); Object.assign(S.num, r.num || {});
+    Object.assign(S.pick, r.pick || {}); Object.assign(S.num, r.num || {}); Object.assign(S.pf, r.pf || {});
+    if (Date.now() - (S.pf.ts || 0) > TTL) S.pf.today = '';
     S.tags = r.tags || {}; S.table = !!r.table;
     if (Date.now() - (r.ts || 0) < TTL) { S.dir = r.dir || {}; S.gate = r.gate || {}; S.exit = r.exit || {}; S.ts = r.ts; }
     if (Date.now() - (r.dts || 0) > TTL) S.num.dh = S.num.dl = ''; else S.dts = r.dts;
   }
 } catch (e) { /* storage unavailable: the page works without it */ }
-const save = () => { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} };
+let bkHold = false;   /* true while a backup is being restored: the page must not write its own state over it */
+const save = () => { if (bkHold) return; try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} };
 
 /* ---- time: the profile is by New York clock; show it in the viewer's clock ---- */
 function offsetMin(tz, d) {
@@ -2907,7 +3293,7 @@ function tick() {
 const money = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const px = x => { const s = x.toFixed(5); return '<span class="px">' + s.slice(0, -3) + '<b>' + s.slice(-3, -1) + '</b><sup>' + s.slice(-1) + '</sup></span>'; };
 const ORDER = { limite: 'LÍMITE', stop: 'STOP', mercado: 'A MERCADO' };
-const numEls = { capital: $('#f-capital'), atr: $('#f-atr'), stop: $('#f-stop'), entry: $('#f-entry'), l0: $('#f-l0'), l1: $('#f-l1'), lp: $('#f-lp'), dh: $('#f-dh'), dl: $('#f-dl') };
+const numEls = { capital: $('#f-capital'), atr: $('#f-atr'), stop: $('#f-stop'), entry: $('#f-entry'), l0: $('#f-l0'), l1: $('#f-l1'), lp: $('#f-lp'), dh: $('#f-dh'), dl: $('#f-dl'), lots: $('#f-lots') };
 const nv = v => parseFloat(String(v).replace(',', '.'));
 const pp = v => (v < 10 ? v.toFixed(1) : String(Math.round(v))) + ' pips';
 
@@ -2920,7 +3306,9 @@ function render() {
     if (t.dir) on = (S.dir[t.dir] | 0) === +t.v;
     else if (t.gate) on = !!S.gate[t.gate];
     else if (t.exit) on = !!S.exit[t.exit];
-    else if (t.pick) on = S.pick[t.pick] === t.v;
+    else if (t.pick) { const a = nv(S.pick[t.pick]), b = nv(t.v); on = a === a && b === b ? a === b : S.pick[t.pick] === t.v; }   /* 0.50 and 0.5 are the same key */
+    else if (t.pf) on = (S.pf.on || 'off') === t.pf;
+    else if (t.pfm) on = S.pf.mode === t.pfm;
     else if (t.tag) on = !!S.tags[t.tag];
     else if (t.view) on = S.table;
     k.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -2946,9 +3334,9 @@ function render() {
   });
   const tiny = P.ok && P.lots < 0.01;
   $('#o-lots').textContent = !P.ok ? '—' : tiny ? '< 0.01' : P.lots.toFixed(2);
-  $('#o-lots-s').textContent = P.ok && !tiny ? 'lotes (' + Math.round(P.lots * 100000).toLocaleString('en-US') + ' €)' : 'lotes';
+  $('#o-lots-s').textContent = P.ok && !tiny ? (P.manual ? 'lotes tuyos (' : 'lotes (') + Math.round(P.lots * 100000).toLocaleString('en-US') + ' €)' : 'lotes';
   $('#o-risk').textContent = P.ok && !tiny ? money(P.real) : '—';
-  $('#o-risk-s').textContent = P.ok && !tiny ? 'riesgo: ' + (P.real / P.cap * 100).toFixed(2) + '% de la cuenta' : 'riesgo si salta el stop';
+  $('#o-risk-s').textContent = P.ok && !tiny ? 'riesgo: ' + (P.real / P.cap * 100).toFixed(2) + '% de la cuenta' + (P.manual && P.real > P.riskUsd + 0.005 ? ' · pasa tu límite de ' + P.riskPct + '%' : '') : 'riesgo si salta el stop';
   $('#o-gain').textContent = P.ok && !tiny ? money(P.gain) : '—';
   $('#o-be').textContent = P.ok ? Math.round(P.be * 100) + '%' : '—';
   const tgt = P.stop * P.rr;
@@ -2956,6 +3344,7 @@ function render() {
     'Objetivo a ' + Math.round(tgt) + ' pips' + (P.atr > 0 ? ': ' + Math.round(tgt / P.atr * 100) + '% de un día típico' + (tgt > P.atr ? '. Es una operación de más de un día.' : '.') : '.');
   const w = $('#o-warn'); w.hidden = !tiny;
   if (tiny) w.textContent = 'El lote mínimo (0.01) arriesgaría ' + money(P.minLotRisk) + ' y tu límite es ' + money(P.riskUsd) + '. Acorta el stop, o esta operación no cabe en tu cuenta.';
+  pfRender(P);
   let slip = '';
   if (act && P.ok && !tiny) {
     const sd = J.dir > 0 ? 'buy' : 'sell';
@@ -3017,6 +3406,9 @@ function press(k) {
   else if (t.pick) S.pick[t.pick] = t.v;
   else if (t.tag) S.tags[t.tag] = !S.tags[t.tag];
   else if (t.view) S.table = !S.table;
+  else if (t.pf) pfPick(t.pf);
+  else if (t.pfm) pfMode(t.pfm);
+  if (t.pick && RKB[t.pick]) RKB[t.pick].bad = false;
   save(); render();
 }
 Object.entries(numEls).forEach(([id, el]) => {
@@ -3112,7 +3504,7 @@ document.addEventListener('click', e => {
     e.preventDefault();
     const from = inTip(e.target) ? tipEl : (ir || nav);
     hide();
-    go(ir ? 'teoria-' + ir.dataset.ir : /^(mesa|lab(-[a-z]+)?|logica(-[a-z]+)?)$/.test(nav.dataset.go) ? nav.dataset.go : 'teoria', from);
+    go(ir ? 'teoria-' + ir.dataset.ir : /^(mesa|grafico|lab(-[a-z]+)?|logica(-[a-z]+)?)$/.test(nav.dataset.go) ? nav.dataset.go : 'teoria', from);
     return;
   }
   if (e.target.closest('#tip')) { hide(); return; }
@@ -3555,7 +3947,76 @@ function labEngine() {
     return out;
   }
 
-  return { TFS, KNOTS, METRICS, P, tfName, parseMT5, resample, indicators, compute, quant, dfc, cfd, isoWeek, levels, zones, around, rounds, pts, WK, scan };
+  /* ---- 6. the chart (Gráfico): the last bars of each size, with the averages the board uses (EMA 20, and the means of 50 and 200 closes) ----
+     Sizes: M1 M5 M15 M30 H1 H4 D1 W1. A W1 bar is built from the D1 bars the way MT5 does it: the week starts on Sunday, the bar is stamped at that Sunday 00:00.
+     Only the tail of each series is kept (a few weeks to a few years, by size), copied so that it can travel from the worker without dragging the whole file along. */
+  const CH_TFS = [60, 300, 900, 1800, 3600, 14400, 86400, 604800];
+  const CH_DAYS = { 60: 14, 300: 35, 900: 62, 1800: 90, 3600: 130, 14400: 200, 86400: 600, 604800: 1500 };
+  function weekly(D) {
+    const n = D.n, T = new Float64Array(n), O = new Float64Array(n), H = new Float64Array(n), L = new Float64Array(n), C = new Float64Array(n);
+    let m = 0, cur = NaN;
+    for (let i = 0; i < n; i++) {
+      const k = Math.floor((Math.floor(D.t[i] / 86400) + 4) / 7);
+      if (k !== cur) { cur = k; T[m] = (k * 7 - 4) * 86400; O[m] = D.o[i]; H[m] = D.h[i]; L[m] = D.l[i]; C[m] = D.c[i]; m++; }
+      else { if (D.h[i] > H[m - 1]) H[m - 1] = D.h[i]; if (D.l[i] < L[m - 1]) L[m - 1] = D.l[i]; C[m - 1] = D.c[i]; }
+    }
+    return { n: m, t: T.subarray(0, m), o: O.subarray(0, m), h: H.subarray(0, m), l: L.subarray(0, m), c: C.subarray(0, m) };
+  }
+  /* the averages for bars from..n-1, warmed up on the 200 bars before them. NaN where the file does not have enough bars behind. */
+  function chartMA(c, from) {
+    const n = c.length, m = n - from, e = new Float64Array(m).fill(NaN), a = new Float64Array(m).fill(NaN), b = new Float64Array(m).fill(NaN);
+    const w0 = Math.max(0, from - 200), cs = new Float64Array(n - w0 + 1), k1 = 2 / 21;
+    let ema = c[w0];
+    for (let i = w0; i < n; i++) {
+      cs[i - w0 + 1] = cs[i - w0] + c[i];
+      if (i > w0) ema = k1 * c[i] + (1 - k1) * ema;
+      if (i >= from) {
+        const j = i - from;
+        if (i >= 19) e[j] = ema;
+        if (i >= 49) a[j] = (cs[i - w0 + 1] - cs[i - w0 - 49]) / 50;
+        if (i >= 199) b[j] = (cs[i - w0 + 1] - cs[i - w0 - 199]) / 200;
+      }
+    }
+    return { e, a, b };
+  }
+  function chart(B, now) {
+    if (now == null || now !== now) now = B.t[B.n - 1] + B.base;
+    const out = []; let D = null;
+    for (const tf of CH_TFS) {
+      let S;
+      if (tf === 604800) { if (B.base > 86400 || 86400 % B.base !== 0) continue; D = D || resample(B, 86400); S = weekly(D); }
+      else { if (tf < B.base || tf % B.base !== 0) continue; S = tf === 86400 ? (D = D || resample(B, 86400)) : resample(B, tf); }
+      const n = S.n; if (n < 2) continue;
+      const from = lower(S.t, S.t[n - 1] - CH_DAYS[tf] * 86400), ma = chartMA(S.c, from);
+      out.push({ tf, n: n - from, tot: n, open: S.t[n - 1] + tf > now, t: S.t.slice(from), o: S.o.slice(from), h: S.h.slice(from), l: S.l.slice(from), c: S.c.slice(from), e20: ma.e, s50: ma.a, s200: ma.b });
+    }
+    return out;
+  }
+
+  /* ---- 7. legs, the Mesa's own rule: a leg ends when price comes back T from its extreme. Pivots come out as [{ i, p, k }] with k = 1 for a high and -1 for a low;
+     the last pivot (open: true) is the extreme the leg in progress has reached so far. h and l are the highs and lows of the bars, T is in price units. ---- */
+  function zigzag(h, l, T) {
+    const n = h.length, piv = [];
+    if (n < 2 || !(T > 0)) return piv;
+    let dir = 0, hp = h[0], hi = 0, lp = l[0], li = 0;
+    for (let i = 1; i < n; i++) {
+      if (dir === 0) {
+        if (h[i] > hp) { hp = h[i]; hi = i; }
+        if (l[i] < lp) { lp = l[i]; li = i; }
+        if (hp - lp >= T && hi !== li) { if (hi > li) { piv.push({ i: li, p: lp, k: -1 }); dir = 1; } else { piv.push({ i: hi, p: hp, k: 1 }); dir = -1; } }
+      } else if (dir === 1) {
+        if (h[i] > hp) { hp = h[i]; hi = i; }
+        if (hp - l[i] >= T) { piv.push({ i: hi, p: hp, k: 1 }); dir = -1; lp = l[i]; li = i; }
+      } else {
+        if (l[i] < lp) { lp = l[i]; li = i; }
+        if (h[i] - lp >= T) { piv.push({ i: li, p: lp, k: -1 }); dir = 1; hp = h[i]; hi = i; }
+      }
+    }
+    if (dir === 1) piv.push({ i: hi, p: hp, k: 1, open: true }); else if (dir === -1) piv.push({ i: li, p: lp, k: -1, open: true });
+    return piv;
+  }
+
+  return { TFS, KNOTS, METRICS, P, tfName, parseMT5, resample, indicators, compute, quant, dfc, cfd, isoWeek, levels, zones, around, rounds, pts, WK, scan, chart, zigzag };
 }
 /*END LABENGINE*/
 
@@ -4433,6 +4894,7 @@ const LVSRC = [
   '    const B = E.parseMT5(text, null, 20); text = null;',
   '    const R = E.levels(B, B.ny === false ? undefined : ev.data.now);',
   '    R.scan = E.scan(B, B.ny === false ? undefined : ev.data.now);',
+  '    R.chart = E.chart(B, B.ny === false ? undefined : ev.data.now);',
   '    R.bars = B.n; R.ny = B.ny; R.t0 = B.t[0];',
   '    self.postMessage({ t: "d", r: R });',
   '  } catch (err) { self.postMessage({ t: "e", m: String((err && err.message) || err) }); }',
@@ -4448,6 +4910,7 @@ function lvCompute(f, now) {
         await new Promise(r => setTimeout(r, 30));
         const B = LE.parseMT5(text, null, 20), R = LE.levels(B, B.ny === false ? undefined : now);
         R.scan = LE.scan(B, B.ny === false ? undefined : now);
+        R.chart = LE.chart(B, B.ny === false ? undefined : now);
         R.bars = B.n; R.ny = B.ny; R.t0 = B.t[0]; ok(R);
       } catch (e) { no(e); }
     };
@@ -4468,7 +4931,7 @@ function lvLate(R, now) {
   if (wd >= 5) return dn - Math.floor(R.last.t / 86400) <= 2 ? 0 : R.stale;
   return R.stale;
 }
-async function lvLoad(f) {
+async function lvLoad(f, fromStore) {
   if (lvBusy || !f) return;
   const st = $('#lv-st'), warn = $('#lv-warn');
   warn.hidden = true;
@@ -4477,6 +4940,7 @@ async function lvLoad(f) {
   try {
     const now = lvNow(), R = await lvCompute(f, now), clock = R.ny !== false && now != null, fx = x => x.toFixed(5), w = [];
     LVfile = { name: f.name, R };
+    if (!fromStore) bkRemember(f);   /* keep the file in IndexedDB so the next visit loads it with one tap */
     const okAy = !!R.ayer && R.ayer.full && (!clock || R.ayer.day === R.nat), okSe = !!R.sem && R.sem.full;
     if (okAy) { lvI.ayh.value = fx(R.ayer.h); lvI.ayl.value = fx(R.ayer.l); }
     if (okSe) { lvI.seh.value = fx(R.sem.h); lvI.sel.value = fx(R.sem.l); }
@@ -4497,7 +4961,7 @@ async function lvLoad(f) {
     warn.hidden = !w.length; warn.textContent = w.join(' ');
     $('#lv').open = true; lvRun();
   } catch (e) { st.textContent = String((e && e.message) || e) + ' Sigo con lo que había.'; }
-  lvBusy = false; lgHook();
+  lvBusy = false; lgHook(); bkRefresh();
 }
 $('#lv-st').addEventListener('click', e => { if (e.target.id === 'lv-usepx' && LVfile) { lvI.p.value = LVfile.R.last.c.toFixed(5); lvRun(); } });
 $('#lv-file').addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (f) lvLoad(f); });
@@ -5253,6 +5717,7 @@ function lgUpdate() {
   if (LG.view === 'ladder') lgPaintLadder(lgLad, v, how); else lgPaintGates(lgGates, v);
 }
 function lgHook() {
+  chHook();
   if (!lgReady) return;
   lgDirty = true;
   if (document.body.dataset.view !== 'logica' || lgRaf) return;
@@ -5343,6 +5808,969 @@ lgX.view.addEventListener('pointermove', e => { if (lgDrag) { lgX.view.scrollLef
 setInterval(lgHook, 20000);
 lgReady = true;
 
+/* ---- Gráfico (version 13): the candles of your MT5 file, as MT5 draws them, with the plan of the day drawn on top ----
+   The bars come from the same file as «Buscar niveles» and Lógica (the worker hands back the last weeks of every size, see chart() in the engine). The plan is a sketch built only
+   from pieces the board already has: the nearest floor and ceiling (Buscar niveles), the stop and the R picked in step 4, the leg rule (a leg ends when price comes back a fraction
+   of the ATR from its extreme), the red folder of the calendar and the verdict of the circuit. Nothing here is sent anywhere and nothing is a forecast. */
+var chReady = false;
+const CHS = LS + '-grafico', CHE = $('#grafico');
+const CHTFS = [60, 300, 900, 1800, 3600, 14400, 86400, 604800], CHTN = { 60: 'M1', 300: 'M5', 900: 'M15', 1800: 'M30', 3600: 'H1', 14400: 'H4', 86400: 'D1', 604800: 'W1' };
+const CHLAY = ['lev', 'plan', 'path', 'news', 'ses', 'ma', 'zz'];
+const CH = { tf: 900, span: null, side: 'all', prs: 'gris', L: { lev: true, plan: true, path: true, news: true, ses: true, ma: true, zz: false } };
+try {
+  const r = JSON.parse(localStorage.getItem(CHS) || 'null') || {};
+  if (CHTFS.includes(r.tf)) CH.tf = r.tf;
+  if ([0, 1, 2].includes(r.span)) CH.span = r.span;
+  if (['all', 'buy', 'sell'].includes(r.side)) CH.side = r.side;
+  if (['gris', 'verde', 'azul'].includes(r.prs)) CH.prs = r.prs;
+  if (r.L) CHLAY.forEach(k => { if (typeof r.L[k] === 'boolean') CH.L[k] = r.L[k]; });
+} catch (e) { /* nothing saved */ }
+const chSave = () => { try { localStorage.setItem(CHS, JSON.stringify(CH)); } catch (e) { /* storage unavailable */ } };
+const chX = { p: $('#ch-p'), st: $('#ch-st'), warn: $('#ch-warn'), cv: $('#ch-cv'), stage: $('#ch-stage'), empty: $('#ch-empty'), ohlc: $('#ch-ohlc'), title: $('#ch-title'), vd: $('#ch-vd'),
+  plan: $('#ch-plan'), sum: $('#ch-sum'), card: $('#ch-card'), full: $('#ch-full'), tfs: $('#ch-tfs'), span: $('#ch-span'), prs: $('#ch-prs') };
+const chCtx = chX.cv.getContext('2d');
+/* the view: bw pixels per bar, r the index of the bar slot at the right edge (bar i fills the slot from i to i+1) */
+const CHV = { bw: 6, r: 0, k1: '', wb: 0, fit: true, cur: null, drag: null, ptrs: new Map(), pinch: null, w: 0, h: 0, dpr: 1, ro: '' };
+let chRaf = 0, chRaf2 = 0, CHM = null, chEvC = { sig: '', list: [] }, chZZC = { key: '', list: [] };
+
+/* ---------- small helpers ---------- */
+const chWd = d => ((d + 3) % 7 + 7) % 7; /* 0 Monday .. 6 Sunday */
+const chNextDay = d => { let n = d + 1; while (chWd(n) >= 5) n++; return n; };
+const chDM = t => { const c = LE.cfd(Math.floor(t / 86400)); return c[2] + ' ' + LVMON[c[1] - 1]; };
+const chTS = t => { const c = LE.cfd(Math.floor(t / 86400)); return c[0] + '.' + p2(c[1]) + '.' + p2(c[2]) + ' ' + lvHM(t); };
+const chPx = p => p.toFixed(5);
+const chPips = x => String(Math.round(x * 10) / 10);
+const chClamp = (x, a, b) => Math.min(b, Math.max(a, x));
+let chUid = 0;
+const chHelp = (label, body) => { const id = 'cht' + (++chUid); return '<button type="button" class="help tooltip" aria-label="Ayuda: ' + label + '" aria-describedby="' + id + '">?<span class="tooltiptext" id="' + id + '">' + body + '</span></button>'; };
+const chP = (b, t) => '<span class="p"><b>' + b + '</b> ' + t + '</span>';
+function chA(c, a) {
+  let m = /^#([0-9a-f]{6})$/i.exec(c);
+  if (m) { const v = parseInt(m[1], 16); return 'rgba(' + (v >> 16) + ',' + ((v >> 8) & 255) + ',' + (v & 255) + ',' + a + ')'; }
+  m = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(c);
+  if (m) return 'rgba(' + parseInt(m[1] + m[1], 16) + ',' + parseInt(m[2] + m[2], 16) + ',' + parseInt(m[3] + m[3], 16) + ',' + a + ')';
+  m = c.match(/[\d.]+/g);
+  return m && m.length >= 3 ? 'rgba(' + m[0] + ',' + m[1] + ',' + m[2] + ',' + a + ')' : c;
+}
+function chColors() {
+  const cs = getComputedStyle(CHE), g = k => cs.getPropertyValue(k).trim();
+  return { bg: g('--key') || '#fff', panel: g('--panel'), ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), line: g('--line'), edge: g('--edge'), buy: g('--buy'), sell: g('--sell'), hold: g('--hold'), ok: g('--ok'),
+    mono: g('--f-mono') || 'monospace', cond: g('--f-cond') || 'sans-serif' };
+}
+
+/* ---------- the data and the frame: which day the plan is for, and where time goes on the right of the last bar ---------- */
+const chSeries = (R, tf) => (R && R.chart && R.chart.find(s => s.tf === tf)) || null;
+function chPickTf(R) {
+  const list = R && R.chart ? R.chart.map(s => s.tf) : [];
+  if (!list.length || list.includes(CH.tf)) return CH.tf;
+  return list.find(t => t >= 900) || list[list.length - 1];
+}
+/* The window the person did not choose: a week for the hours (the same week back that the person asked for), eight weeks for the days and the weeks. */
+function chSp(tf) { return CH.span == null ? (tf < 86400 ? 0 : 1) : CH.span; }
+function chSpans(tf) {
+  return tf < 86400 ? [{ l: '1 semana', days: 8 }, { l: '2 semanas', days: 15 }, { l: '1 mes', days: 31 }]
+    : tf === 86400 ? [{ l: '5 sem', days: 35 }, { l: '8 sem', days: 56 }, { l: '13 sem', days: 91 }] : [{ l: '5 sem', days: 35 }, { l: '8 sem', days: 56 }, { l: '26 sem', days: 182 }];
+}
+/* The plan is for today while the liquid session (until 19:00 MT5) is still ahead; after that, or on a weekend, for the next day of the market.
+   The time that is not drawn (a weekend, a night) is folded out, as MT5 does: the slots go one after the other. */
+function chFrame(S, now) {
+  const tf = S.tf, n = S.n, lastT = S.t[n - 1];
+  let day;
+  if (now != null) { const d = Math.floor(now / 86400), sec = now - d * 86400; day = chWd(d) >= 5 || sec >= 19 * 3600 ? chNextDay(d) : d; } else day = Math.floor(lastT / 86400);
+  const dayStart = day * 86400;
+  let anchor, fut0;
+  if (tf >= 86400) {
+    anchor = lastT + tf;
+    if (tf === 86400) while (chWd(Math.floor(anchor / 86400)) >= 5) anchor += 86400;
+    fut0 = tf === 86400 ? 3 : 2;
+  } else {
+    anchor = Math.max(lastT + tf, dayStart);
+    fut0 = anchor >= dayStart + 86400 ? 4 : Math.max(4, Math.ceil((dayStart + 86400 - anchor) / tf));
+  }
+  const fr = { tf, n, lastT, now, day, dayStart, dayEnd: dayStart + 86400, anchor, fut0, today: now != null && Math.floor(now / 86400) === day };
+  fr.iDay = tf === 86400 ? (Math.floor(lastT / 86400) === day ? n - 1 : n) : tf > 86400 ? (dayStart >= lastT && dayStart < lastT + tf ? n - 1 : n) : chIdx(S, fr, dayStart);
+  fr.i0 = tf >= 86400 ? n - 0.5 : (now != null && now >= anchor ? chIdx(S, fr, now) : n);
+  return fr;
+}
+/* a time to a (fractional) bar index; times after the last bar land on the slots to its right */
+function chIdx(S, fr, tau) {
+  const t = S.t, n = fr.n;
+  if (tau >= fr.anchor) return n + (tau - fr.anchor) / fr.tf;
+  if (tau >= t[n - 1]) return Math.min(n, n - 1 + (tau - t[n - 1]) / fr.tf);
+  let lo = 0, hi = n;
+  while (lo < hi) { const m = (lo + hi) >> 1; if (t[m] < tau) lo = m + 1; else hi = m; }
+  if (lo === 0) return 0;
+  const prev = t[lo - 1];
+  return tau - prev < fr.tf ? lo - 1 + (tau - prev) / fr.tf : lo;
+}
+const chTimeAt = (S, fr, i) => (i < 0 ? S.t[0] + Math.floor(i) * fr.tf : i < fr.n ? S.t[Math.floor(i)] : fr.anchor + Math.floor(i - fr.n) * fr.tf);
+/* the red folder of the calendar, in the clock of the candles (MT5 = New York + 7 h) */
+function chEvents() {
+  if (nyOff == null || !CAL.length) return [];
+  const sig = CAL.length + '|' + CAL[0].ts + '|' + CAL[CAL.length - 1].ts;
+  if (chEvC.sig === sig) return chEvC.list;
+  const list = [];
+  CAL.forEach(e => { const off = offsetMin('America/New_York', new Date(e.ts)); if (off != null) list.push({ t: Math.floor(e.ts / 1000) + off * 60 + 25200, ts: e.ts, cur: e.cur, title: e.title, f: e.f, p: e.p }); });
+  chEvC = { sig, list };
+  return list;
+}
+/* the permit windows of the day: the liquid session minus the half hour before and after each red folder */
+function chWindows(fr, ev) {
+  let segs = [[fr.dayStart + 9 * 3600, fr.dayStart + 19 * 3600]];
+  ev.forEach(e => {
+    const x0 = e.t - 1800, x1 = e.t + 1800, nx = [];
+    segs.forEach(([s, t]) => { if (x1 <= s || x0 >= t) nx.push([s, t]); else { if (x0 > s) nx.push([s, x0]); if (x1 < t) nx.push([x1, t]); } });
+    segs = nx;
+  });
+  return segs.filter(([s, t]) => t - s >= 600);
+}
+const chFut = (bw, fr) => Math.max(fr.fut0, Math.ceil(84 / bw));
+
+/* ---------- the model: what is drawn, computed from the file, the boxes of the board, the calendar and the clock ---------- */
+function chMoney(E, risk) {
+  try { const p = plan({ ...S.num, stop: risk.toFixed(1), entry: E.toFixed(5) }, S.pick); return p.ok && p.lots > 0 ? p : null; } catch (e) { return null; }
+}
+function chPlan(M) {
+  const { P, lev, fr } = M, Z = lev.Z, A = lev.A, pz = v => v * 1e-5;
+  const atr = nv(S.num.atr) > 0 ? nv(S.num.atr) : M.scanAtr > 0 ? Math.round(M.scanAtr) : null;
+  const rr = nv(S.pick.rr) > 0 ? nv(S.pick.rr) : 2;
+  let stop = nv(S.num.stop);
+  if (!(stop > 0)) stop = atr ? Math.max(5, Math.round(atr * (nv(S.pick.stopf) || 0.25))) : 15;
+  const scale = nv(S.pick.scale) > 0 ? nv(S.pick.scale) : 0.4, T = atr ? atr * scale : null, maxD = atr ? atr * 1.2 : 90;
+  const out = { P, atr, atrSrc: nv(S.num.atr) > 0 ? 'Mesa' : 'archivo', rr, stop, T, maxD, buy: null, sell: null, leg: null };
+  const fz = A.inside ? A.inside.z : A.below ? A.below.z : null, fd = A.inside ? 0 : A.below ? A.below.d : null;
+  if (fz && fd <= maxD) {
+    const zl = pz(fz.lo), zh = pz(fz.hi), E = A.inside ? P : zh, SL = Math.min(E - stop * PIP, zl - 2 * PIP), risk = (E - SL) / PIP, TP = E + rr * (E - SL);
+    const cz = Z.find(z => pz(z.lo) > E + 5 * PIP) || null, dc = cz ? (pz(cz.lo) - E) / PIP : null;
+    out.buy = { z: fz, zl, zh, d: fd, inside: !!A.inside, E, SL, TP, risk, cz, dc, rc: dc != null ? dc / risk : null, money: chMoney(E, risk) };
+  }
+  const cz2 = A.inside ? A.inside.z : A.above ? A.above.z : null, cd = A.inside ? 0 : A.above ? A.above.d : null;
+  if (cz2 && cd <= maxD) {
+    const zl = pz(cz2.lo), zh = pz(cz2.hi), E = A.inside ? P : zl, SL = Math.max(E + stop * PIP, zh + 2 * PIP), risk = (SL - E) / PIP, TP = E - rr * (SL - E);
+    const fz2 = Z.slice().reverse().find(z => pz(z.hi) < E - 5 * PIP) || null, dc = fz2 ? (E - pz(fz2.hi)) / PIP : null;
+    out.sell = { z: cz2, zl, zh, d: cd, inside: !!A.inside, E, SL, TP, risk, cz: fz2, dc, rc: dc != null ? dc / risk : null, money: chMoney(E, risk) };
+  }
+  /* the last leg, with the Mesa's rule: it ends when price comes back T from its extreme */
+  const pv = M.zz;
+  if (T && pv.length >= 2) {
+    const k = pv.length, last = pv[k - 1], prev = pv[k - 2];
+    let a = prev, b = last;
+    if (Math.abs(last.p - prev.p) < T * PIP && k >= 3) { a = pv[k - 3]; b = prev; }
+    const size = Math.abs(b.p - a.p), up = b.p > a.p;
+    if (size >= T * PIP) {
+      out.leg = { up, a: a.p, b: b.p, ia: a.i, ib: b.i, size: size / PIP, inProgress: b === last, retr: Math.max(0, up ? (b.p - P) / size : (P - b.p) / size),
+        fibs: [0.382, 0.5, 0.618].map(f => ({ f, p: up ? b.p - f * size : b.p + f * size })), change: up ? b.p - T * PIP : b.p + T * PIP };
+    }
+  }
+  return out;
+}
+/* the example path: the price goes to the entry in the first free window, then to the target. The times are an example, not a forecast. */
+function chPath(M, o, dir) {
+  const { S: SR, fr } = M, PL = M.plan; let a, b, c;
+  if (fr.tf >= 86400) { a = fr.i0; b = fr.n + 0.5; c = fr.n + 1.5; }
+  else {
+    const from = Math.max(fr.now != null && fr.now >= fr.anchor ? fr.now : fr.anchor, fr.dayStart + 9 * 3600), seg = M.win.find(w => w[1] > from + 1800);
+    if (!seg) return null;
+    const t1 = Math.max(seg[0], from) + 600, t2 = Math.min(t1 + 9000, fr.dayEnd - 1800);
+    a = fr.i0; b = chIdx(SR, fr, t1); c = chIdx(SR, fr, t2);
+  }
+  if (!(b > a) || !(c > b)) return null;
+  return [{ i: a, p: PL.P }, { i: b, p: o.E }, { i: c, p: o.TP }];
+}
+function chModel() {
+  const R = LVfile && LVfile.R;
+  if (!R || !R.chart || !R.chart.length) { CHM = null; return; }
+  const tf = chPickTf(R), SR = chSeries(R, tf), now = lvNow(), fr = chFrame(SR, now), Pt = lgPrice(), P = Pt != null ? Pt : R.last.c;
+  const se = lgSense(), ef = lgEffective(se), J = judge(ef.S2), lev = lgLevelOf(P), ev = chEvents();
+  const d1 = R.scan && R.scan.find(e => e.tf === 86400), scanAtr = d1 && d1.atr > 0 ? d1.atr : null;
+  const M = { R, S: SR, fr, tf, now, P, Pt, se, ef, J, lev, ev, scanAtr, win: chWindows(fr, ev), zz: [] };
+  const atr = nv(S.num.atr) > 0 ? nv(S.num.atr) : scanAtr, scale = nv(S.pick.scale) > 0 ? nv(S.pick.scale) : 0.4;
+  if (atr > 0) {
+    const key = LVfile.name + '|' + tf + '|' + SR.n + '|' + SR.t[SR.n - 1] + '|' + atr * scale;
+    if (chZZC.key !== key) chZZC = { key, list: LE.zigzag(SR.h, SR.l, atr * scale * PIP) };
+    M.zz = chZZC.list;
+  }
+  M.plan = chPlan(M);
+  const live = J.v === 'go' || J.v === 'seek', em = s => (live ? (J.dir === s ? 1 : 0.42) : 0.85);
+  M.emph = { buy: em(1), sell: em(-1) };
+  const sp = chSpans(tf)[chSp(tf)], lb = (() => { const from = fr.dayStart - (sp.days - 1) * 86400; let lo = 0, hi = SR.n; while (lo < hi) { const m = (lo + hi) >> 1; if (SR.t[m] < from) lo = m + 1; else hi = m; } return lo; })();
+  M.K = Math.max(Math.min(SR.n, 12), SR.n - lb);
+  M.cover = (SR.t[SR.n - 1] - SR.t[0]) / 86400;
+  CHM = M;
+}
+
+/* ---------- the geometry and the fit ---------- */
+function chResize() {
+  if (CHE.hidden) return false;
+  const r = chX.stage.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if (!(r.width > 0 && r.height > 0)) return false;
+  if (Math.abs(r.width - CHV.w) > 0.5 || Math.abs(r.height - CHV.h) > 0.5 || dpr !== CHV.dpr) {
+    CHV.w = r.width; CHV.h = r.height; CHV.dpr = dpr;
+    chX.cv.width = Math.round(r.width * dpr); chX.cv.height = Math.round(r.height * dpr);
+  }
+  return true;
+}
+function chGeom() {
+  const W = CHV.w, H = CHV.h; if (!(W > 120 && H > 120)) return null;
+  chCtx.font = '500 11px ' + chColors().mono;
+  const aw = Math.ceil(chCtx.measureText('0.00000').width + 12);
+  return { W, H, xl: 4, xr: W - aw, yt: 8, yb: H - 22, aw };
+}
+function chRefit(force) {
+  const M = CHM, g = chGeom(); if (!M || !g) return;
+  const k1 = [LVfile.name, M.R.bars, M.tf, chSp(M.tf), M.fr.day].join('|'), wb = Math.round(CHV.w / 40);
+  if (!force && CHV.k1 === k1 && !(CHV.fit && CHV.wb !== wb)) { CHV.wb = wb; return; }
+  const pw = g.xr - g.xl, K = M.K, fut0 = M.fr.fut0;
+  let bw = pw / (K + fut0), fut = fut0;
+  if (fut0 * bw < 84) { bw = (pw - 84) / K; fut = 84 / bw; }
+  CHV.bw = chClamp(bw, 0.03, 60); CHV.r = M.S.n + chFut(CHV.bw, M.fr); CHV.k1 = k1; CHV.wb = wb; CHV.fit = true; CHV.cur = null;
+}
+function chClampR() {
+  const M = CHM; if (!M) return;
+  CHV.r = chClamp(CHV.r, Math.min(M.S.n, 8), M.S.n + chFut(CHV.bw, M.fr));
+}
+function chZoom(f, ax) {
+  const g = chGeom(); if (!g || !CHM) return;
+  const bw0 = CHV.bw, bw = chClamp(bw0 * f, 0.03, 60), xa = ax == null ? (g.xl + g.xr) / 2 : ax, ia = CHV.r - (g.xr - xa) / bw0;
+  CHV.bw = bw; CHV.r = ia + (g.xr - xa) / bw; CHV.fit = false; chClampR(); chDrawSoon();
+}
+function chPan(bars) { CHV.r += bars; CHV.fit = false; chClampR(); chDrawSoon(); }
+
+/* ---------- drawing ---------- */
+function chTicks(S, fr, i0, upto, bw) {
+  const tf = S.tf, STEPS = [60, 300, 900, 1800, 3600, 7200, 14400, 21600, 43200, 86400, 172800, 604800, 2592000], out = [];
+  const step = STEPS.find(s => s >= tf && (s / tf) * bw >= 78) || 2592000;
+  let prevM = (() => { const c = LE.cfd(Math.floor(chTimeAt(S, fr, i0 - 1) / 86400)); return c[0] * 12 + c[1]; })();
+  for (let i = i0; i <= upto; i++) {
+    const t = chTimeAt(S, fr, i), d = Math.floor(t / 86400); let ok = false, lab = '';
+    if (step < 86400) { ok = t % step === 0; if (ok) lab = t % 86400 === 0 ? chDM(t) : lvHM(t); }
+    else if (step < 604800) { ok = t % 86400 === 0 && d % (step / 86400) === 0; lab = chDM(t); }
+    else if (step === 604800) { ok = tf >= 604800 || (chWd(d) === 0 && t % 86400 === 0); lab = chDM(t); }
+    else { const c = LE.cfd(d), mk = c[0] * 12 + c[1]; if (mk !== prevM) { ok = true; lab = LVMON[c[1] - 1] + ' ' + String(c[0]).slice(2); prevM = mk; } }
+    if (ok) out.push({ i, lab, day: t % 86400 === 0 });
+  }
+  return out;
+}
+function chCandles(D) {
+  const { ctx, C, g, X, Y, S, bw, i0, i1 } = D, prs = CH.prs;
+  const bull = prs === 'verde' ? '#1f9d6b' : prs === 'azul' ? C.buy : C.ink3, bear = prs === 'verde' ? '#d6453d' : prs === 'azul' ? C.sell : C.ink, hollow = prs === 'gris';
+  if (bw < 2.4) { /* dense: one column of pixels sums up the bars that fall in it */
+    let cx = NaN, cl = 0, ch = 0, co = 0, cc = 0;
+    const flush = () => { if (cx !== cx) return; ctx.fillStyle = cc >= co ? bull : bear; const y1 = Y(ch), y2 = Y(cl); ctx.fillRect(cx, y1, 1, Math.max(1, y2 - y1)); };
+    for (let i = i0; i <= i1; i++) {
+      const x = Math.floor(X(i + 0.5));
+      if (x !== cx) { flush(); cx = x; cl = S.l[i]; ch = S.h[i]; co = S.o[i]; cc = S.c[i]; }
+      else { if (S.l[i] < cl) cl = S.l[i]; if (S.h[i] > ch) ch = S.h[i]; cc = S.c[i]; }
+    }
+    flush();
+    return;
+  }
+  let bwb = Math.max(1, Math.round(bw * 0.7)); if (bwb > 2 && bwb % 2 === 0) bwb++;
+  ctx.lineWidth = 1;
+  for (let i = i0; i <= i1; i++) {
+    const xc = X(i + 0.5), up = S.c[i] >= S.o[i], col = up ? bull : bear, xw = Math.floor(xc) + 0.5;
+    ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(xw, Math.round(Y(S.h[i]))); ctx.lineTo(xw, Math.round(Y(S.l[i]))); ctx.stroke();
+    const yo = Y(S.o[i]), yc = Y(S.c[i]), yt = Math.round(Math.min(yo, yc)), hh = Math.max(1, Math.round(Math.abs(yo - yc))), xl = Math.floor(xc - bwb / 2);
+    if (bwb <= 2) { ctx.fillStyle = col; ctx.fillRect(xl, yt, bwb, hh); }
+    else if (up && hollow) { ctx.fillStyle = C.bg; ctx.fillRect(xl, yt, bwb, hh); ctx.strokeRect(xl + 0.5, yt + 0.5, bwb - 1, Math.max(0, hh - 1)); }
+    else { ctx.fillStyle = col; ctx.fillRect(xl, yt, bwb, hh); }
+  }
+}
+/* labels on the right of the plan lines, pushed apart so that two prices close to each other can both be read */
+function chLabels(ctx, C, items, x, yt, yb) {
+  items.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < items.length; i++) if (items[i].y - items[i - 1].y < 13) items[i].y = items[i - 1].y + 13;
+  for (let i = items.length - 2; i >= 0; i--) if (items[i + 1].y > yb - 3) { items[i + 1].y = yb - 3; if (items[i + 1].y - items[i].y < 13) items[i].y = items[i + 1].y - 13; }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic'; ctx.font = '600 10.5px ' + C.mono;
+  items.forEach(it => {
+    const w = ctx.measureText(it.text).width + 6, y = Math.max(yt + 11, it.y);
+    ctx.fillStyle = chA(C.bg, 0.88); ctx.fillRect(x - w, y - 10, w, 13);
+    ctx.fillStyle = it.col; ctx.fillText(it.text, x - 3, y);
+  });
+}
+function chDrawPlan(D) {
+  const { ctx, C, g, X, Y, M, lo, hi, S, fr } = D, P = M.plan, x0 = Math.max(g.xl, X(fr.i0)), x1 = g.xr, labs = [], narrow = g.xr - g.xl < 480;
+  const sides = [];
+  if (P.buy && CH.side !== 'sell') sides.push({ k: 'buy', col: C.buy, o: P.buy, w: 'C' });
+  if (P.sell && CH.side !== 'buy') sides.push({ k: 'sell', col: C.sell, o: P.sell, w: 'V' });
+  const vis = p => p > lo && p < hi;
+  sides.forEach(sd => {
+    const a = M.emph[sd.k], o = sd.o, col = sd.col, yE = Y(o.E), yS = Y(o.SL), yT = Y(o.TP);
+    /* the floor (blue) or the ceiling (red) the entry stands on, across the whole chart */
+    const ya = Y(o.zh), yb = Y(o.zl);
+    ctx.fillStyle = chA(col, 0.075 * a); ctx.fillRect(g.xl, Math.min(ya, yb), g.xr - g.xl, Math.max(2, Math.abs(yb - ya)));
+    ctx.strokeStyle = chA(col, 0.35 * a); ctx.lineWidth = 1; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(g.xl, Math.round(ya) + 0.5); ctx.lineTo(g.xr, Math.round(ya) + 0.5); ctx.moveTo(g.xl, Math.round(yb) + 0.5); ctx.lineTo(g.xr, Math.round(yb) + 0.5); ctx.stroke();
+    if (x1 - x0 > 2) {
+      ctx.fillStyle = chA(col, 0.11 * a); ctx.fillRect(x0, Math.min(yE, yT), x1 - x0, Math.abs(yT - yE));
+      ctx.fillStyle = chA(col, 0.05 * a); ctx.fillRect(x0, Math.min(yE, yS), x1 - x0, Math.abs(yS - yE));
+    }
+    const line = (y, w, dash) => { ctx.strokeStyle = chA(col, a); ctx.lineWidth = w; ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x0, Math.round(y) + 0.5); ctx.lineTo(x1, Math.round(y) + 0.5); ctx.stroke(); ctx.setLineDash([]); };
+    if (vis(o.E)) { line(yE, 2, []); labs.push({ y: yE - 3, text: sd.w + ' ' + chPx(o.E), col: chA(col, Math.max(a, 0.7)) }); }
+    if (vis(o.TP)) { line(yT, 1.5, []); labs.push({ y: yT - 3, text: 'TP ' + chPx(o.TP), col: chA(col, Math.max(a, 0.7)) }); }
+    if (vis(o.SL)) { line(yS, 1.5, [6, 3]); labs.push({ y: yS - 3, text: 'SL ' + chPx(o.SL), col: chA(col, Math.max(a, 0.7)) }); }
+    const pp = o.cz ? (sd.k === 'buy' ? o.cz.lo * 1e-5 : o.cz.hi * 1e-5) : null;
+    if (pp != null && vis(pp)) {
+      const yy = Y(pp);
+      ctx.strokeStyle = chA(C.ink2, 0.7); ctx.lineWidth = 1; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(Math.max(x0, x1 - 46), Math.round(yy) + 0.5); ctx.lineTo(x1, Math.round(yy) + 0.5); ctx.stroke(); ctx.setLineDash([]);
+      if (!narrow) labs.push({ y: yy - 3, text: (sd.k === 'buy' ? 'techo ' : 'piso ') + chPx(pp), col: C.ink2 });
+    }
+  });
+  /* the retracements of the last leg: where the Mesa would expect a pullback, and the level that ends the leg */
+  const L = P.leg;
+  if (L && sides.length) {
+    const fcol = L.up ? C.buy : C.sell, ocol = L.up ? C.sell : C.buy, showF = CH.side === 'all' || (L.up ? CH.side === 'buy' : CH.side === 'sell'), showC = CH.side === 'all' || (L.up ? CH.side === 'sell' : CH.side === 'buy');
+    if (showF) L.fibs.forEach(f => {
+      if (!vis(f.p)) return;
+      const y = Y(f.p); ctx.strokeStyle = chA(fcol, 0.75); ctx.lineWidth = 1; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(x0, Math.round(y) + 0.5); ctx.lineTo(x1, Math.round(y) + 0.5); ctx.stroke(); ctx.setLineDash([]);
+      labs.push({ y: y - 3, text: Math.round(f.f * 100) + '% ' + chPx(f.p), col: chA(fcol, 0.9) });
+    });
+    if (showC && vis(L.change)) {
+      const y = Y(L.change); ctx.strokeStyle = chA(ocol, 0.75); ctx.lineWidth = 1; ctx.setLineDash([8, 4]); ctx.beginPath(); ctx.moveTo(x0, Math.round(y) + 0.5); ctx.lineTo(x1, Math.round(y) + 0.5); ctx.stroke(); ctx.setLineDash([]);
+      if (!narrow) labs.push({ y: y - 3, text: 'cambio ' + chPx(L.change), col: chA(ocol, 0.9) });
+    }
+  }
+  /* the example path */
+  if (CH.L.path) {
+    sides.forEach(sd => {
+      const pts = chPath(M, sd.o, sd.k === 'buy' ? 1 : -1); if (!pts) return;
+      const a = M.emph[sd.k];
+      ctx.strokeStyle = chA(sd.col, 0.9 * a); ctx.lineWidth = 2.2; ctx.setLineDash([7, 5]); ctx.lineJoin = 'round'; ctx.beginPath();
+      pts.forEach((q, j) => { const x = X(q.i), y = Y(q.p); if (j) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]);
+      const q = pts[2], q0 = pts[1], x = X(q.i), y = Y(q.p), ang = Math.atan2(y - Y(q0.p), x - X(q0.i));
+      ctx.fillStyle = chA(sd.col, 0.95 * a); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 9 * Math.cos(ang - 0.45), y - 9 * Math.sin(ang - 0.45)); ctx.lineTo(x - 9 * Math.cos(ang + 0.45), y - 9 * Math.sin(ang + 0.45)); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(X(pts[1].i), Y(pts[1].p), 3.2, 0, 6.2832); ctx.fill();
+    });
+    if (sides.length) { ctx.font = 'italic 500 10px ' + C.cond; ctx.textAlign = 'right'; ctx.fillStyle = chA(C.ink2, 0.9); ctx.fillText('esquema, no predicción', x1 - 4, g.yb - 5); }
+  }
+  chLabels(ctx, C, labs, x1, g.yt, g.yb);
+}
+function chDraw() {
+  const ctx = chCtx, W = CHV.w, H = CHV.h; if (!(W > 120 && H > 120)) return;
+  const C = chColors(), M = CHM;
+  ctx.setTransform(CHV.dpr, 0, 0, CHV.dpr, 0, 0); ctx.clearRect(0, 0, W, H); ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+  chX.empty.hidden = !!M; if (!M) return;
+  const g = chGeom(), S = M.S, fr = M.fr, n = S.n, pw = g.xr - g.xl, ph = g.yb - g.yt, bw = CHV.bw;
+  chClampR();
+  const X = i => g.xr - (CHV.r - i) * bw, left = CHV.r - pw / bw, i0 = Math.max(0, Math.floor(left)), i1 = Math.min(n - 1, Math.ceil(CHV.r)), upto = Math.ceil(CHV.r);
+  /* the price scale fits the bars in view (and the plan, when it is near) */
+  let lo = Infinity, hi = -Infinity;
+  for (let i = i0; i <= i1; i++) { if (S.l[i] < lo) lo = S.l[i]; if (S.h[i] > hi) hi = S.h[i]; }
+  if (!(hi > lo)) { const c = S.c[n - 1]; lo = c - 5 * PIP; hi = c + 5 * PIP; }
+  const rg = hi - lo, P = M.plan;
+  if (CH.L.plan && P) {
+    const sd = [];
+    if (P.buy && CH.side !== 'sell') sd.push(P.buy); if (P.sell && CH.side !== 'buy') sd.push(P.sell);
+    sd.forEach(o => [o.E, o.SL, o.TP].forEach(p => { if (p > lo - 0.6 * rg && p < hi + 0.6 * rg) { lo = Math.min(lo, p); hi = Math.max(hi, p); } }));
+  }
+  const pad = (hi - lo) * 0.07; lo -= pad; hi += pad;
+  const Y = p => g.yt + (hi - p) / (hi - lo) * ph, yP = y => hi - (y - g.yt) / ph * (hi - lo);
+  const D = { ctx, C, g, X, Y, M, S, fr, bw, i0, i1, lo, hi };
+  /* the day of the plan, and the session */
+  const xd = Math.max(g.xl, X(fr.iDay));
+  if (xd < g.xr) { ctx.fillStyle = chA(C.ink, 0.05); ctx.fillRect(xd, g.yt, g.xr - xd, ph); }
+  if (CH.L.ses && S.tf <= 14400) {
+    ctx.fillStyle = chA(C.ink, 0.06);
+    const dA = Math.floor(chTimeAt(S, fr, Math.floor(left)) / 86400), dB = fr.day;
+    for (let d = dA; d <= dB; d++) {
+      if (chWd(d) >= 5) continue;
+      const a = X(chIdx(S, fr, d * 86400 + 9 * 3600)), b = X(chIdx(S, fr, d * 86400 + 19 * 3600));
+      if (b > g.xl && a < g.xr && b - a >= 1) ctx.fillRect(Math.max(g.xl, a), g.yt, Math.min(g.xr, b) - Math.max(g.xl, a), ph);
+    }
+  }
+  if (CH.L.news) M.ev.forEach(e => {
+    const a = X(chIdx(S, fr, e.t - 1800)), b = X(chIdx(S, fr, e.t + 1800)), w = Math.max(2, b - a);
+    if (a + w < g.xl || a > g.xr) return;
+    ctx.fillStyle = chA(C.hold, 0.2); ctx.fillRect(Math.max(g.xl, a), g.yt, Math.min(g.xr, a + w) - Math.max(g.xl, a), ph);
+  });
+  /* grid, scale */
+  ctx.lineWidth = 1; ctx.font = '500 11px ' + C.mono; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  const steps = [0.5, 1, 2, 5, 10, 20, 25, 50, 100, 200, 500, 1000], pipsPx = (hi - lo) / PIP / ph, st = (steps.find(s => s / pipsPx >= 38) || 1000) * PIP;
+  for (let p = Math.ceil(lo / st) * st; p < hi; p += st) {
+    const y = Math.round(Y(p)) + 0.5; ctx.strokeStyle = chA(C.line, 0.7); ctx.beginPath(); ctx.moveTo(g.xl, y); ctx.lineTo(g.xr, y); ctx.stroke();
+    ctx.fillStyle = C.ink2; ctx.fillText(chPx(p), g.xr + 6, y);
+  }
+  /* separators of day (week, month) and the time scale */
+  const kind = S.tf < 86400 ? 0 : S.tf === 86400 ? 1 : 2, wk = d => Math.floor((d + 4) / 7);
+  for (let i = Math.max(1, i0); i <= Math.min(n - 1, upto); i++) {
+    const a = Math.floor(S.t[i - 1] / 86400), b = Math.floor(S.t[i] / 86400);
+    let sep = a !== b;
+    if (kind === 1) sep = wk(a) !== wk(b); else if (kind === 2) { const ca = LE.cfd(a), cb = LE.cfd(b); sep = ca[1] !== cb[1]; }
+    if (sep) { const x = Math.round(X(i)) + 0.5; ctx.strokeStyle = chA(C.edge, 0.55); ctx.setLineDash([1, 3]); ctx.beginPath(); ctx.moveTo(x, g.yt); ctx.lineTo(x, g.yb); ctx.stroke(); ctx.setLineDash([]); }
+  }
+  if (xd > g.xl && xd < g.xr) { ctx.strokeStyle = chA(C.ink2, 0.8); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(Math.round(xd) + 0.5, g.yt); ctx.lineTo(Math.round(xd) + 0.5, g.yb); ctx.stroke(); }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = C.ink2;
+  let lastX = -1e9;
+  chTicks(S, fr, i0, upto, bw).forEach(tk => {
+    const x = X(tk.i + 0.5); if (x < g.xl + 14 || x > g.xr - 14 || x - lastX < 54) return; lastX = x;
+    ctx.strokeStyle = chA(C.edge, 0.9); ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, g.yb); ctx.lineTo(Math.round(x) + 0.5, g.yb + 4); ctx.stroke();
+    ctx.font = (tk.day ? '600 ' : '500 ') + '11px ' + C.mono; ctx.fillStyle = tk.day ? C.ink : C.ink2; ctx.fillText(tk.lab, x, g.yb + 16);
+  });
+  if (xd > g.xl + 6 && xd < g.xr - 40) { ctx.font = '600 10px ' + C.cond; ctx.textAlign = 'left'; ctx.fillStyle = C.ink2; ctx.fillText((fr.today ? 'HOY ' : 'PLAN ') + chDM(fr.dayStart), xd + 4, g.yt + 11); }
+  /* levels */
+  ctx.save(); ctx.beginPath(); ctx.rect(g.xl, g.yt, pw, ph); ctx.clip();
+  if (CH.L.lev && M.lev) {
+    const yl = [];
+    M.lev.Z.forEach(z => {
+      const a = z.lo * 1e-5, b = z.hi * 1e-5; if (b < lo || a > hi) return;
+      const rd = lvOnlyRound(z), ya = Y(a), yb = Y(b);
+      if (b - a >= 2 * PIP) { ctx.fillStyle = chA(C.ink3, 0.09); ctx.fillRect(g.xl, yb, pw, Math.max(1, ya - yb)); }
+      ctx.strokeStyle = chA(C.ink3, rd ? 0.4 : 0.8); ctx.lineWidth = 1; ctx.setLineDash(rd ? [1, 4] : [5, 4]);
+      const ym = Math.round((ya + yb) / 2) + 0.5; ctx.beginPath(); ctx.moveTo(g.xl, ym); ctx.lineTo(g.xr, ym); ctx.stroke(); ctx.setLineDash([]);
+      if (!rd || Math.abs((a + b) / 2 - M.P) <= 60 * PIP) {
+        const mm = z.m.slice().sort((p, q) => LVORD[p.s] - LVORD[q.s]);
+        let txt = mm[0].w.replace(/\s*\(.*?\)\s*$/, '') + (z.m.length > 1 ? ' +' + (z.m.length - 1) : ''); if (txt.length > 30) txt = txt.slice(0, 29) + '…';
+        if (!yl.some(v => Math.abs(v - ym) < 12)) { yl.push(ym); ctx.font = '500 10px ' + C.cond; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = chA(C.ink2, 0.95); ctx.fillText(txt, g.xl + 4, ym - 3); }
+      }
+    });
+  }
+  /* candles, averages, legs */
+  chCandles(D);
+  if (CH.L.ma) {
+    [['e20', C.hold, 1.4], ['s50', C.ok, 1.4], ['s200', C.ink, 1.6]].forEach(([k, col, w]) => {
+      ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); let on = false;
+      for (let i = i0; i <= i1; i++) { const v = S[k][i]; if (v !== v) { on = false; continue; } const x = X(i + 0.5), y = Y(v); if (on) ctx.lineTo(x, y); else { ctx.moveTo(x, y); on = true; } }
+      ctx.stroke();
+    });
+  }
+  if (CH.L.zz && M.zz.length > 1) {
+    ctx.strokeStyle = chA(C.ink, 0.7); ctx.lineWidth = 1.4; ctx.beginPath();
+    M.zz.forEach((q, j) => { const x = X(q.i + 0.5), y = Y(q.p); if (j) ctx.lineTo(x, y); else ctx.moveTo(x, y); }); ctx.stroke();
+    ctx.fillStyle = C.ink; M.zz.forEach(q => { const x = X(q.i + 0.5); if (x > g.xl && x < g.xr) { ctx.beginPath(); ctx.arc(x, Y(q.p), 2.2, 0, 6.2832); ctx.fill(); } });
+  }
+  /* the last price, and the price you typed if it is not the same */
+  const lc = S.c[n - 1], yl = Y(lc);
+  ctx.strokeStyle = chA(C.ink2, 0.8); ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(Math.max(g.xl, X(n - 0.5)), Math.round(yl) + 0.5); ctx.lineTo(g.xr, Math.round(yl) + 0.5); ctx.stroke(); ctx.setLineDash([]);
+  if (M.Pt != null && Math.abs(M.Pt - lc) > 0.3 * PIP) {
+    const y = Y(M.Pt); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.2; ctx.setLineDash([1, 3]); ctx.beginPath(); ctx.moveTo(Math.max(g.xl, X(n - 0.5)), Math.round(y) + 0.5); ctx.lineTo(g.xr, Math.round(y) + 0.5); ctx.stroke(); ctx.setLineDash([]);
+  }
+  /* the plan */
+  if (CH.L.plan && P) chDrawPlan(D);
+  /* the red folder: a line at the hour and a flag on top */
+  if (CH.L.news) {
+    const rows = [], flags = [];
+    M.ev.forEach(e => {
+      const x = X(chIdx(S, fr, e.t)); if (x < g.xl || x > g.xr) return;
+      ctx.strokeStyle = chA(C.hold, 0.95); ctx.lineWidth = 1.2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, g.yt); ctx.lineTo(Math.round(x) + 0.5, g.yb); ctx.stroke(); ctx.setLineDash([]);
+      const txt = lvHM(e.t) + ' ' + e.cur; ctx.font = '600 10px ' + C.mono; const w = ctx.measureText(txt).width + 8;
+      let row = 0; while (rows[row] != null && x - rows[row] < w + 4) row++; rows[row] = x + w;
+      flags.push({ x, w, row, txt });
+    });
+    ctx.font = '600 10px ' + C.mono; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    flags.forEach(f => { const fx = Math.round(f.x + f.w > g.xr ? f.x - f.w : f.x); ctx.fillStyle = C.hold; ctx.fillRect(fx, g.yt + 16 + f.row * 15, f.w, 13); ctx.fillStyle = '#16120a'; ctx.fillText(f.txt, fx + 4, g.yt + 26 + f.row * 15); });
+  }
+  /* now */
+  if (fr.now != null && fr.now >= fr.anchor && fr.tf < 86400) {
+    const x = X(chIdx(S, fr, fr.now));
+    if (x > g.xl && x < g.xr) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(Math.round(x) + 0.5, g.yt); ctx.lineTo(Math.round(x) + 0.5, g.yb); ctx.stroke(); ctx.font = '600 10px ' + C.mono; ctx.textAlign = 'left'; ctx.fillStyle = C.ink; ctx.fillText('ahora ' + lvHM(fr.now), Math.min(x + 4, g.xr - 62), g.yb - 5); }
+  }
+  ctx.restore();
+  /* the axes: frame, price tags, cross */
+  ctx.strokeStyle = C.edge; ctx.lineWidth = 1; ctx.strokeRect(g.xl + 0.5, g.yt + 0.5, pw - 1, ph - 1); ctx.beginPath(); ctx.moveTo(g.xr + 0.5, 0); ctx.lineTo(g.xr + 0.5, g.yb); ctx.stroke();
+  const tag = (y, txt, bg, fg) => { y = chClamp(y, g.yt + 8, g.yb - 8); ctx.font = '600 11px ' + C.mono; ctx.fillStyle = bg; ctx.fillRect(g.xr + 1, y - 9, g.aw - 1, 18); ctx.fillStyle = fg; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(txt, g.xr + 6, y); };
+  tag(yl, chPx(lc), C.ink, C.bg);
+  if (M.Pt != null && Math.abs(M.Pt - lc) > 0.3 * PIP) {
+    tag(Y(M.Pt), chPx(M.Pt), C.bg, C.ink);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1; ctx.strokeRect(g.xr + 1.5, chClamp(Y(M.Pt), g.yt + 8, g.yb - 8) - 8.5, g.aw - 2, 17);
+  }
+  let slot = n - 1;
+  if (CHV.cur) {
+    const q = CHV.cur, x = chClamp(q.x, g.xl, g.xr), y = chClamp(q.y, g.yt, g.yb); slot = Math.floor(CHV.r - (g.xr - x) / bw);
+    if (slot < 0) slot = 0;
+    const xs = Math.round(X(slot + 0.5)) + 0.5;
+    ctx.strokeStyle = chA(C.ink2, 0.9); ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(xs, g.yt); ctx.lineTo(xs, g.yb); ctx.moveTo(g.xl, Math.round(y) + 0.5); ctx.lineTo(g.xr, Math.round(y) + 0.5); ctx.stroke(); ctx.setLineDash([]);
+    tag(y, chPx(yP(y)), C.ink2, C.bg);
+    const tt = chTS(chTimeAt(S, fr, slot)); ctx.font = '600 11px ' + C.mono; const tw = ctx.measureText(tt).width + 12, tx = chClamp(xs - tw / 2, g.xl, g.xr - tw);
+    ctx.fillStyle = C.ink2; ctx.fillRect(tx, g.yb + 2, tw, 17); ctx.fillStyle = C.bg; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(tt, tx + 6, g.yb + 11);
+  }
+  chReadout(slot, CHV.cur ? yP(chClamp(CHV.cur.y, g.yt, g.yb)) : null);
+}
+function chReadout(slot, price) {
+  const M = CHM; if (!M) return;
+  const S = M.S, fr = M.fr, n = S.n; let h;
+  if (slot >= n) {
+    h = '<b>EURUSD, ' + CHTN[S.tf] + '</b> ' + chTS(chTimeAt(S, fr, slot)) + ' · todavía no hay velas: es el espacio del plan' + (price != null ? ' · precio de la cruz <b>' + chPx(price) + '</b> (' + (price >= S.c[n - 1] ? '+' : '') + chPips((price - S.c[n - 1]) / PIP) + ' pips del último cierre)' : '');
+  } else {
+    const o = S.o[slot], hh = S.h[slot], l = S.l[slot], c = S.c[slot], dd = (c - o) / PIP, f = k => (S[k][slot] === S[k][slot] ? chPx(S[k][slot]) : '—');
+    h = '<b>EURUSD, ' + CHTN[S.tf] + '</b> ' + chTS(S.t[slot]) + (slot === n - 1 && S.open ? ' (en formación)' : '') + ' · Ap <b>' + chPx(o) + '</b> Máx <b>' + chPx(hh) + '</b> Mín <b>' + chPx(l) + '</b> Cie <b>' + chPx(c) + '</b> · ' + (dd >= 0 ? '+' : '') + chPips(dd) + ' pips · rango ' + chPips((hh - l) / PIP);
+    if (CH.L.ma) h += '<br><span class="m" style="background:var(--hold)"></span>EMA 20 ' + f('e20') + '<span class="m" style="background:var(--ok)"></span>Media 50 ' + f('s50') + '<span class="m" style="background:var(--ink)"></span>Media 200 ' + f('s200');
+  }
+  if (CHV.cur) {
+    const tc = chTimeAt(S, fr, slot), e = M.ev.filter(x => Math.abs(x.t - tc) <= 1800 + (S.tf >= 86400 ? S.tf / 2 : 0)).sort((a, b) => Math.abs(a.t - tc) - Math.abs(b.t - tc))[0];
+    if (e) h += '<br>▸ Noticia roja <b>' + lvHM(e.t) + ' ' + e.cur + '</b> ' + lvEsc(e.title) + (e.f ? ' · previsión ' + lvEsc(e.f) : '') + (e.p ? ' · anterior ' + lvEsc(e.p) : '') + '. No entres desde 30 minutos antes hasta 30 minutos después.';
+  }
+  if (h !== CHV.ro) { CHV.ro = h; chX.ohlc.innerHTML = h; }
+}
+function chDrawSoon() { if (chRaf2) return; chRaf2 = requestAnimationFrame(() => { chRaf2 = 0; try { chDraw(); } catch (e) { console.error('[Gráfico]', e); } }); }
+
+/* ---------- the words: status, verdict and the plan in text ---------- */
+function chSideHTML(k, M) {
+  const P = M.plan, o = P[k], buy = k === 'buy', J = M.J, nm = buy ? 'Compra' : 'Venta', a = M.emph[k], live = J.v === 'go' || J.v === 'seek';
+  const mine = live && J.dir === (buy ? 1 : -1);
+  let h = '<article class="ch-side ' + k + (a < 0.6 ? ' dim' : '') + '"><h3><b>' + nm + '</b><span class="tag' + (mine ? ' on' : '') + '">circuito: ' + lvEsc(J.word) + '</span>' +
+    chHelp(nm.toLowerCase() + ' del plan', chP('Qué es.', 'El esquema de ' + (buy ? 'compra: espera el precio en el piso y entra ahí' : 'venta: espera el precio en el techo y entra ahí') + '. Es condicional: solo vale si el circuito de la Mesa pone ' + (buy ? 'COMPRAR' : 'VENDER') + ' cuando el precio llegue.') +
+      chP('Cómo se arma.', 'La entrada es el borde ' + (buy ? 'de arriba del piso más cercano' : 'de abajo del techo más cercano') + '; el stop, los pips que elegiste en el paso 4, o hasta 2 pips del otro lado del nivel si es más; el objetivo, tus R. Lo mismo que «Plan y precios».')) + '</h3>';
+  if (!o) {
+    const d = buy ? (M.lev.A.below ? M.lev.A.below.d : null) : (M.lev.A.above ? M.lev.A.above.d : null);
+    h += '<p>No hay ' + (buy ? 'un piso' : 'un techo') + ' a la vista a menos de <b>' + chPips(P.maxD) + ' pips</b>' + (d != null ? ' (el más cercano está a ' + lvPp(d) + ')' : '') + ': hoy no hay un plan de ' + nm.toLowerCase() + ' en un nivel. Sin nivel, la Mesa no da la condición «' + (buy ? 'En soporte' : 'En resistencia') + '».</p></article>';
+    return h;
+  }
+  const mo = o.money, z = o.z, nvl = z.m.length;
+  h += '<dl class="ch-dl">' +
+    '<dt>' + (buy ? 'Piso' : 'Techo') + '</dt><dd>' + lvRange(z) + '<small>' + lvEsc(lvName(z)) + (o.inside ? ' · estás dentro' : ' · a ' + lvPp(o.d)) + '</small></dd>' +
+    '<dt>Entrada' + chHelp('entrada', chP('Qué es.', 'Una orden límite ' + (buy ? 'de compra en el borde de arriba del piso' : 'de venta en el borde de abajo del techo') + (o.inside ? '. Como ya estás dentro de la zona, la entrada es el precio de ahora' : '') + '. El precio tiene que llegar ahí; si no llega, no hay operación.') + chP('Ojo.', 'Una orden pendiente puede llenarse con el salto de una noticia roja: mira las ventanas de abajo.')) + '</dt><dd>' + chPx(o.E) + '<small>' + (o.inside ? 'precio de ahora' : 'orden límite') + '</small></dd>' +
+    '<dt>Stop' + chHelp('stop', chP('Qué es.', 'Donde el plan se equivoca. Va ' + (buy ? 'debajo' : 'encima') + ' de la entrada a los pips que elegiste en el paso 4 (' + chPips(P.stop) + '), o 2 pips pasado el otro lado del nivel si eso queda más lejos.') + chP('Por qué.', 'Si el precio cruza el nivel completo, el nivel ya no sostiene: la idea del plan terminó.')) + '</dt><dd>' + chPx(o.SL) + '<small>' + chPips(o.risk) + ' pips = 1R</small></dd>' +
+    '<dt>Objetivo' + chHelp('objetivo', chP('Qué es.', 'La entrada ' + (buy ? 'más' : 'menos') + ' ' + P.rr + ' veces el riesgo (tu R del paso 4). Con ' + P.rr + 'R solo necesitas acertar más de ' + Math.round(100 / (1 + P.rr)) + '% de las veces para no perder, antes de costos.')) + '</dt><dd>' + chPx(o.TP) + '<small>' + P.rr + 'R = ' + chPips(P.rr * o.risk) + ' pips</small></dd>';
+  if (o.cz) h += '<dt>' + (buy ? 'Primer techo' : 'Primer piso') + '</dt><dd>' + lvRange(o.cz) + '<small>a ' + chPips(o.dc) + ' pips de la entrada = ' + chPips(o.rc) + 'R</small></dd>';
+  if (mo) h += '<dt>Lotes' + chHelp('lotes', chP('Qué es.', (mo.manual ? 'Los lotes que fijaste en el paso 4. Con este stop arriesgan ' + chPips(mo.real) + ' USD, un ' + chPips(mo.real / mo.cap * 100) + '% de tu capital; tu límite era ' + mo.riskPct + '%. Si cambias el stop, cambia el riesgo.' : 'Los lotes que dejan el riesgo en ' + mo.riskPct + '% de tu capital (' + chPips(mo.riskUsd) + ' USD) con este stop: los mismos de «Riesgo y lotes». Si cambias el stop, cambian.'))) + '</dt><dd>' + mo.lots.toFixed(2) + '<small>riesgo ' + chPips(mo.real) + ' USD · ganancia ' + chPips(mo.gain) + ' USD</small></dd>';
+  h += '</dl>';
+  const L = P.leg, fib = L && (buy ? L.up : !L.up);
+  if (fib) h += '<p><b>Retrocesos del último tramo</b> (' + (L.up ? 'subida' : 'bajada') + ' de ' + chPx(L.a) + ' a ' + chPx(L.b) + ', ' + chPips(L.size) + ' pips): ' + L.fibs.map(f => Math.round(f.f * 100) + '% en <b>' + chPx(f.p) + '</b>').join(' · ') + '. El retroceso de ahora va en ' + Math.round(L.retr * 100) + '%.</p>';
+  else if (L) h += '<p>El último tramo fue ' + (L.up ? 'de subida' : 'de bajada') + ', así que sus retrocesos (hacia ' + (L.up ? 'abajo' : 'arriba') + ') van en el plan de ' + (L.up ? 'compra' : 'venta') + '. Si el precio vuelve a <b>' + chPx(L.change) + '</b>, el tramo termina (regla de la Mesa).</p>';
+  if (o.rc != null && o.rc < 1.5) h += '<p><b>Ojo:</b> el ' + (buy ? 'primer techo' : 'primer piso') + ' queda a solo ' + chPips(o.rc) + 'R de la entrada: hay poco recorrido hasta él.</p>';
+  h += '<p>' + (mine ? 'El circuito ya busca ' + (buy ? 'compra' : 'venta') + ': ' + (J.why ? lvEsc(J.why) : 'todas las condiciones están en verde.') : J.dir === (buy ? -1 : 1) && live ? 'El circuito busca ' + (buy ? 'venta' : 'compra') + ': este lado va contra el sesgo y hoy no se usaría.' : 'El circuito dice <b>' + lvEsc(J.word) + '</b>' + (J.why ? ': ' + lvEsc(String(J.why).replace(/[.\s]+$/, '')) : '') + '. Este plan solo se usa si pasa a ' + (buy ? 'COMPRAR' : 'VENDER') + '.') + '</p></article>';
+  return h;
+}
+function chNewsHTML(M) {
+  const { fr, ev } = M, now = fr.now, day = ev.filter(e => Math.floor(e.t / 86400) === fr.day), win = M.win;
+  let h = '<section class="ch-news"><h3>Noticias y plan del día' + chHelp('noticias y plan', chP('Qué es.', 'Las noticias rojas de USD y EUR del calendario que cargaste, en hora de MT5, con la media hora de antes y de después en la que la Mesa dice no entrar.') +
+    chP('Ventanas.', 'La sesión líquida (09:00 a 19:00 de MT5) menos esas bandas. Son los momentos en los que el plan puede abrir una operación. El que está marcado es el de ahora.') +
+    chP('Cruce con el plan.', 'Una orden límite colocada antes de una noticia puede llenarse con el salto, con deslizamiento. Por eso hay que retirarla o alejarla antes de la banda.')) + '</h3>';
+  if (!CAL.length) h += '<p class="note">No hay calendario cargado: no puedo marcar las noticias. Carga el de la semana arriba («Cargar el calendario»). Mientras tanto la ventana es la sesión completa, de 09:00 a 19:00 de MT5.</p>';
+  else if (nyOff == null) h += '<p class="note">No sé la zona horaria de tu dispositivo: no puedo pasar las horas del calendario a la hora de MT5.</p>';
+  else if (!day.length) h += '<p class="note">No hay noticias rojas de USD ni de EUR el <b>' + lvDay(fr.day) + '</b> en el calendario cargado' + (CAL[CAL.length - 1].ts < Date.now() - 12 * 3600e3 ? ' (el calendario está vencido: carga el de esta semana)' : '') + '.</p>';
+  else {
+    h += '<ul class="ch-ev">' + day.map(e => {
+      const past = now != null && e.t + 1800 < now, from = lvHM(e.t - 1800), to = lvHM(e.t + 1800);
+      const when = now == null ? '' : past ? ' · ya pasó' : now >= e.t - 1800 ? ' · <b>ahora estás dentro de la banda</b>' : ' · falta ' + span2txt((e.t - 1800 - now) * 1000) + ' para la banda';
+      return '<li class="' + (past ? 'past' : '') + '"><span class="h">' + lvHM(e.t) + '</span><span class="c">' + e.cur + '</span><span class="t">' + lvEsc(e.title) + '</span><span class="w">No entres de ' + from + ' a ' + to + ' (hora de MT5)' + when + (e.f ? ' · previsión ' + lvEsc(e.f) : '') + (e.p ? ' · anterior ' + lvEsc(e.p) : '') + '.</span></li>';
+    }).join('') + '</ul>';
+  }
+  h += '<p class="note" style="margin:0">Ventanas para entrar el ' + lvDay(fr.day) + ' (sesión de 09:00 a 19:00 sin noticia roja):</p>';
+  h += win.length ? '<div class="ch-win">' + win.map(([s, t]) => '<span' + (now != null && now >= s && now < t ? ' class="now"' : '') + '>' + lvHM(s) + '–' + lvHM(t) + '</span>').join('') + '</div>' : '<p class="note" style="margin:0">No queda ninguna ventana libre ese día.</p>';
+  const nxt = day.filter(e => now == null || e.t - 1800 > now).sort((a, b) => a.t - b.t)[0];
+  if (nxt) h += '<p class="ch-hon"><b>Cruce con el plan.</b> Si dejas una orden límite puesta, la noticia de las <b>' + lvHM(nxt.t) + '</b> (' + nxt.cur + ') puede llenarla con un salto. Retírala o alejala antes de las <b>' + lvHM(nxt.t - 1800) + '</b> y vuelve a ponerla después de las ' + lvHM(nxt.t + 1800) + ', si el plan sigue en pie.</p>';
+  return h + '</section>';
+}
+function chPlanHTML(M) {
+  const P = M.plan, fr = M.fr, J = M.J;
+  const stale = M.se.late != null && M.se.late > 14400;
+  let h = '<p class="note">Plan para <b>' + lvDay(fr.day) + '</b>' + (fr.today ? ' (hoy)' : ' (el próximo día de mercado: ya cerró la sesión o es fin de semana)') + '. Precio: <b>' + chPx(M.P) + '</b> ' +
+    (M.Pt != null ? '(el que escribiste)' : '(el último cierre del archivo, del ' + lvDay(Math.floor(M.R.last.t / 86400)) + ' ' + lvHM(M.R.last.t) + (stale ? ', atrasado' : '') + '; escribe el tuyo arriba para afinarlo)') +
+    '. ' + (P.atr ? 'ATR <b>' + chPips(P.atr) + ' pips</b> (' + (P.atrSrc === 'Mesa' ? 'el de tu Mesa' : 'el D1 del archivo') + ') · stop de ' + chPips(P.stop) + ' pips · objetivo ' + P.rr + 'R, los del paso 4.' : 'Sin ATR: escríbelo en la Mesa (paso 4) para dimensionar el stop y el tramo.') + '</p>';
+  h += '<div class="ch-cols">' + (CH.side !== 'sell' ? chSideHTML('buy', M) : '') + (CH.side !== 'buy' ? chSideHTML('sell', M) : '') + '</div>';
+  h += chNewsHTML(M);
+  h += '<p class="ch-hon"><b>Esto es un esquema, no una predicción.</b> En tus datos los niveles no rebotan más que líneas puestas al azar y ninguna hora del día tiene una dirección estable (mira «Niveles en tus datos» y «Dirección por hora»). El plan no dice hacia dónde irá el precio: solo ordena dónde pondrías la entrada, el stop y el objetivo si el circuito da luz verde, y qué ventanas deja libres el calendario. El camino punteado usa tiempos de ejemplo.</p>';
+  return h;
+}
+function chPaintText() {
+  const M = CHM, st = chX.st, warn = chX.warn, w = [];
+  if (lvBusy) { st.textContent = 'Leyendo el archivo… (puede tardar unos segundos)'; }
+  else if (!M) { st.textContent = 'Sin archivo de MT5: carga uno para ver las velas. Es el mismo de «Buscar niveles» y de Lógica.'; }
+  else {
+    const R = M.R, S = M.S, sp = chSpans(M.tf)[chSp(M.tf)], ns = newsState(Date.now());
+    st.innerHTML = '<b>' + lvEsc(LVfile.name) + '</b>: velas de ' + lvTf(R.base) + ' (' + fInt(R.bars) + '), último dato ' + lvDay(Math.floor(R.last.t / 86400)) + ' ' + lvHM(R.last.t) + ' (hora de MT5)' + (M.now != null ? '; ahora son las ' + lvHM(M.now) : '') +
+      '. Gráfico de ' + CHTN[M.tf] + ': ' + fInt(S.n) + ' velas guardadas, ventana de ' + sp.l + ' (' + fInt(M.K) + ' velas). Calendario: ' + lvEsc(ns.hint || '—') + '.';
+    if (M.tf !== CH.tf) w.push('Tu archivo no trae ' + CHTN[CH.tf] + ' (con velas de ' + lvTf(R.base) + ' solo salen las de ese tamaño o más grandes): muestro ' + CHTN[M.tf] + '.');
+    if (M.se.late != null && M.se.late > 14400) w.push('Tu archivo está atrasado: el último dato es del ' + lvDay(Math.floor(R.last.t / 86400)) + ' ' + lvHM(R.last.t) + (M.now != null ? ' y ahora son las ' + lvHM(M.now) + ' en MT5' : '') + '. Falta lo último del día, y no se dibuja. Descárgalo de nuevo desde MT5.');
+    else if (M.se.late == null && R.ny !== false && M.now == null) w.push('No pude leer la hora de tu dispositivo: no sé cuál es el día de hoy ni dónde poner las noticias.');
+    const need = sp.days * 0.7;
+    if (M.cover < need) w.push('Tu archivo solo cubre ' + Math.round(M.cover) + ' días de ' + CHTN[M.tf] + ': para ver ' + sp.l + (M.tf >= 86400 ? ' hace falta un archivo más largo' : ' exporta más historia') + '. Dibujo lo que hay.');
+    if (CH.L.ma && S.s200[S.n - 1] !== S.s200[S.n - 1]) w.push('Faltan velas para la media de 200 en ' + CHTN[M.tf] + ': el archivo es corto para esta temporalidad.');
+    if (M.Pt == null) w.push('Escribe el precio de ahora para afinar el plan: ahora uso el último cierre del archivo.');
+  }
+  warn.hidden = !w.length; warn.textContent = w.join(' ');
+  if (!M) { chX.plan.innerHTML = ''; chX.vd.textContent = ''; chX.vd.removeAttribute('data-k'); chX.title.textContent = 'EURUSD'; chX.sum.textContent = 'Sin archivo cargado.'; return; }
+  const J = M.J, live = J.v === 'go' || J.v === 'seek';
+  chX.vd.textContent = 'Circuito: ' + J.word; chX.vd.dataset.k = live ? (J.dir > 0 ? 'buy' : 'sell') : 'hold'; chX.vd.title = J.why || '';
+  chX.title.textContent = 'EURUSD · ' + CHTN[M.tf];
+  chX.plan.innerHTML = chPlanHTML(M);
+  const pl = M.plan;
+  chX.sum.textContent = 'Gráfico de velas de ' + CHTN[M.tf] + ' del ' + chDM(M.S.t[Math.max(0, M.S.n - M.K)]) + ' al ' + chDM(M.S.t[M.S.n - 1]) + '. Último cierre ' + chPx(M.S.c[M.S.n - 1]) + '. Circuito: ' + J.word + '. ' +
+    (pl.buy ? 'Plan de compra: entrada ' + chPx(pl.buy.E) + ', stop ' + chPx(pl.buy.SL) + ', objetivo ' + chPx(pl.buy.TP) + '. ' : 'Sin plan de compra en un piso. ') + (pl.sell ? 'Plan de venta: entrada ' + chPx(pl.sell.E) + ', stop ' + chPx(pl.sell.SL) + ', objetivo ' + chPx(pl.sell.TP) + '. ' : 'Sin plan de venta en un techo. ') + 'El detalle está debajo del gráfico.';
+}
+function chPaintCtl() {
+  const R = LVfile && LVfile.R, have = R && R.chart ? new Set(R.chart.map(s => s.tf)) : null, tf = CHM ? CHM.tf : CH.tf;
+  $$('button', chX.tfs).forEach(b => { const v = +b.dataset.chs.split(':')[1]; b.setAttribute('aria-pressed', v === tf ? 'true' : 'false'); b.disabled = !!have && !have.has(v); });
+  const sps = chSpans(tf);
+  $$('button', chX.span).forEach((b, i) => { b.textContent = sps[i].l; b.setAttribute('aria-pressed', i === chSp(CH.tf) ? 'true' : 'false'); });
+  $$('[data-chs^="side:"]', CHE).forEach(b => b.setAttribute('aria-pressed', b.dataset.chs.split(':')[1] === CH.side ? 'true' : 'false'));
+  $$('[data-chl]', CHE).forEach(b => b.setAttribute('aria-pressed', CH.L[b.dataset.chl] ? 'true' : 'false'));
+  if (chX.prs.value !== CH.prs) chX.prs.value = CH.prs;
+  if (document.activeElement !== chX.p && chX.p.value !== lvI.p.value) chX.p.value = lvI.p.value;
+}
+
+/* ---------- update, hook, events ---------- */
+function chUpdate() {
+  if (!chResize()) return;
+  chModel(); chPaintCtl(); chPaintText(); chRefit(false); chDraw();
+}
+function chHook() {
+  if (!chReady) return;
+  if (document.body.dataset.view !== 'grafico' || chRaf) return;
+  chRaf = requestAnimationFrame(() => { chRaf = 0; try { chUpdate(); } catch (e) { console.error('[Gráfico]', e); } });
+}
+function chOpen() { try { chUpdate(); } catch (e) { console.error('[Gráfico]', e); } }
+function chFull(on) {
+  chX.card.classList.toggle('full', on); document.body.classList.toggle('ch-open', on);
+  chX.full.setAttribute('aria-pressed', on ? 'true' : 'false'); chX.full.textContent = on ? 'Cerrar' : 'Ampliar';
+  chHook();
+}
+CHE.addEventListener('click', e => {
+  const s = e.target.closest('[data-chs]');
+  if (s) {
+    const [k, v] = s.dataset.chs.split(':');
+    if (k === 'tf') { CH.tf = +v; CHV.k1 = ''; } else if (k === 'span') { CH.span = +v; CHV.k1 = ''; } else if (k === 'side') CH.side = v;
+    chSave(); chUpdate(); return;
+  }
+  const l = e.target.closest('[data-chl]');
+  if (l) { CH.L[l.dataset.chl] = !CH.L[l.dataset.chl]; chSave(); chUpdate(); return; }
+  const z = e.target.closest('[data-chz]');
+  if (z && CHM) {
+    const [k, v] = z.dataset.chz.split(':'), g = chGeom(); if (!g) return;
+    if (k === 'pan') chPan(+v * Math.max(5, (g.xr - g.xl) / CHV.bw * 0.4));
+    else if (k === 'zoom') chZoom(+v > 0 ? 1.5 : 1 / 1.5);
+    else if (k === 'fit') { chRefit(true); chDrawSoon(); }
+    else if (k === 'end') { CHV.r = CHM.S.n + chFut(CHV.bw, CHM.fr); CHV.fit = false; chClampR(); chDrawSoon(); }
+  }
+});
+chX.prs.addEventListener('change', () => { CH.prs = chX.prs.value; chSave(); chDrawSoon(); });
+chX.p.addEventListener('input', () => { lvI.p.value = chX.p.value; lvRun(); lgHook(); });
+lvI.p.addEventListener('input', chHook);
+$('#ch-file').addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (f) lvLoad(f); });
+$('#ch-cal').addEventListener('change', ev => {
+  const f = ev.target.files && ev.target.files[0]; ev.target.value = ''; if (!f) return;
+  try { const dt = new DataTransfer(); dt.items.add(f); const t = $('#f-cal'); t.files = dt.files; t.dispatchEvent(new Event('change', { bubbles: true })); }
+  catch (err) { chX.st.textContent = 'No pude pasar el calendario desde aquí. Cárgalo en la Mesa, en el calendario del Paso 3.'; }
+});
+chX.full.addEventListener('click', () => chFull(!chX.card.classList.contains('full')));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && chX.card.classList.contains('full')) { chFull(false); chX.full.focus(); } });
+/* the cross follows the mouse; a finger drags the chart (one) or zooms it (two) and a tap puts the cross on a bar */
+const chLoc = e => { const r = chX.stage.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+chX.stage.addEventListener('pointerdown', e => {
+  if (!CHM || (e.pointerType === 'mouse' && e.button)) return;
+  CHV.ptrs.set(e.pointerId, chLoc(e));
+  try { chX.stage.setPointerCapture(e.pointerId); } catch (x) { /* it cannot be captured */ }
+  if (CHV.ptrs.size === 1) CHV.drag = { x: e.clientX, r: CHV.r, moved: false, id: e.pointerId, type: e.pointerType };
+  else if (CHV.ptrs.size === 2) { const [a, b] = [...CHV.ptrs.values()]; CHV.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, bw: CHV.bw }; CHV.drag = null; }
+});
+chX.stage.addEventListener('pointermove', e => {
+  if (!CHM) return;
+  const p = chLoc(e);
+  if (CHV.ptrs.has(e.pointerId)) CHV.ptrs.set(e.pointerId, p);
+  if (CHV.pinch && CHV.ptrs.size >= 2) {
+    const [a, b] = [...CHV.ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y) || 1, g = chGeom();
+    if (g) { const f = (CHV.pinch.bw * d / CHV.pinch.d) / CHV.bw; if (Math.abs(f - 1) > 0.002) chZoom(f, (a.x + b.x) / 2); }
+    return;
+  }
+  if (CHV.drag && CHV.drag.id === e.pointerId) {
+    const dx = e.clientX - CHV.drag.x;
+    if (CHV.drag.moved || Math.abs(dx) > 4) { CHV.drag.moved = true; CHV.cur = null; CHV.r = CHV.drag.r - dx / CHV.bw; CHV.fit = false; chClampR(); chDrawSoon(); }
+    return;
+  }
+  if (e.pointerType === 'mouse') { CHV.cur = p; chDrawSoon(); }
+});
+const chUp = e => {
+  const had = CHV.ptrs.delete(e.pointerId);
+  if (CHV.ptrs.size < 2) CHV.pinch = null;
+  if (CHV.drag && CHV.drag.id === e.pointerId) {
+    const d = CHV.drag; CHV.drag = null;
+    if (!d.moved && e.type === 'pointerup' && had) { const p = chLoc(e); CHV.cur = CHV.cur && Math.abs(CHV.cur.x - p.x) < 6 && d.type !== 'mouse' ? null : p; chDrawSoon(); }
+  }
+};
+chX.stage.addEventListener('pointerup', chUp); chX.stage.addEventListener('pointercancel', chUp);
+chX.stage.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && CHV.cur) { CHV.cur = null; chDrawSoon(); } });
+chX.stage.addEventListener('wheel', e => {
+  if (!CHM) return;
+  if (e.ctrlKey || e.metaKey) { e.preventDefault(); chZoom(Math.exp(-e.deltaY * 0.0025), chLoc(e).x); }
+  else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) { e.preventDefault(); chPan((e.deltaX || e.deltaY) / CHV.bw * 0.6); }
+}, { passive: false });
+chX.stage.addEventListener('keydown', e => {
+  if (!CHM) return;
+  const k = e.key, g = chGeom(); if (!g) return;
+  if (k === 'ArrowLeft') chPan(e.shiftKey ? -10 : -1);
+  else if (k === 'ArrowRight') chPan(e.shiftKey ? 10 : 1);
+  else if (k === '+' || k === '=' || k === 'ArrowUp') chZoom(1.25);
+  else if (k === '-' || k === '_' || k === 'ArrowDown') chZoom(0.8);
+  else if (k === 'Home') { CHV.r = Math.min(CHM.S.n, (g.xr - g.xl) / CHV.bw); CHV.fit = false; chClampR(); chDrawSoon(); }
+  else if (k === 'End') { CHV.r = CHM.S.n + chFut(CHV.bw, CHM.fr); CHV.fit = false; chClampR(); chDrawSoon(); }
+  else return;
+  e.preventDefault();
+});
+if (window.ResizeObserver) new ResizeObserver(() => chHook()).observe(chX.stage);
+/* the colours follow the theme: the toggle of the page and the setting of the system */
+try { new MutationObserver(() => chDrawSoon()).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); } catch (e) { /* no observer */ }
+try { const mq = window.matchMedia('(prefers-color-scheme: dark)'); (mq.addEventListener ? mq.addEventListener('change', chDrawSoon) : mq.addListener(chDrawSoon)); } catch (e) { /* no media query */ }
+chReady = true;
+
+/* ---- version 14: typed boxes beside the preset keys, fixed lots, the funding-account panel, the backup file and the MT5 file kept in IndexedDB ---- */
+var bkReady = false;   /* var on purpose: render() may ask before this block has run */
+
+/* -- 1. The risk, the objective and the leg threshold: the box is the truth, the keys only fill it -- */
+const RKB = {
+  risk: { el: $('#f-risk'), msg: $('#rk-risk-m'), lo: 0.01, hi: 10, bad: false },
+  rr: { el: $('#f-rr'), msg: $('#rk-rr-m'), lo: 0.2, hi: 20, bad: false },
+  scale: { el: $('#f-scale'), msg: $('#rk-scale-m'), lo: 0.1, hi: 2, bad: false }
+};
+Object.entries(RKB).forEach(([k, r]) => {
+  r.el.value = S.pick[k];
+  r.el.addEventListener('input', () => {
+    const t = r.el.value.trim().replace(',', '.'), v = /^(\d+\.?\d*|\.\d+)$/.test(t) ? parseFloat(t) : NaN;
+    if (v >= r.lo && v <= r.hi) { S.pick[k] = t; r.bad = false; save(); }
+    else r.bad = t !== '' && !/^0*\.?0*$/.test(t);      /* "0" and "0." are a number on its way: no complaint yet */
+    render();
+  });
+  r.el.addEventListener('blur', () => { r.bad = false; r.el.value = S.pick[k]; render(); });
+});
+function rkSync() {
+  Object.entries(RKB).forEach(([k, r]) => {
+    if (document.activeElement !== r.el) r.el.value = S.pick[k];
+    r.el.setAttribute('aria-invalid', r.bad ? 'true' : 'false');
+    r.msg.hidden = !r.bad;
+  });
+}
+
+/* -- 2. Fixed lots: what they risk at this stop, and the stop that fits -- */
+const bkPct = v => String(Math.round(v * 100) / 100);
+$('#lots-auto').addEventListener('click', () => { S.num.lots = ''; numEls.lots.value = ''; save(); render(); });
+function lotsNote(P) {
+  const el = $('#o-lotsnote'), raw = String(S.num.lots == null ? '' : S.num.lots).trim();
+  let k = 'note', t = '';
+  if (raw && !P.manual) { k = 'own-m'; t = 'Escribe 0.01 o más (por ejemplo 0.5 o 50), o deja la casilla vacía para que los lotes se calculen solos.'; }
+  else if (P.ok) {
+    const autoL = Math.floor(P.riskUsd / (P.stop * 10) * 100 + 1e-9) / 100, pct = P.real / P.cap * 100;
+    if (!P.manual) t = 'Automático: ' + (autoL >= 0.01 ? autoL.toFixed(2) + ' lotes' : 'menos de 0.01 lotes') + ' para arriesgar ' + money(P.riskUsd) + ' con un stop de ' + pp(P.stop) + '. Si ya sabes cuántos lotes vas a operar (por ejemplo 50), escríbelos arriba: te digo cuánto arriesgas y qué stop cabe.';
+    else {
+      const ms = P.riskUsd / (P.lots * 10), L = P.lots.toLocaleString('en-US');
+      if (P.real > P.riskUsd + 0.005) {
+        k = 'warn';
+        t = 'Con ' + L + ' lotes y un stop de ' + pp(P.stop) + ' arriesgas ' + money(P.real) + ' (' + bkPct(pct) + '% de la cuenta), más que tu límite de ' + bkPct(P.riskPct) + '% (' + money(P.riskUsd) + '). Para ' + L + ' lotes el stop tendría que ser de ' + pp(ms) + ' o menos' + (autoL >= 0.01 ? '; con este stop caben ' + autoL.toFixed(2) + ' lotes.' : '.');
+      } else t = 'Tus ' + L + ' lotes con un stop de ' + pp(P.stop) + ' arriesgan ' + money(P.real) + ' (' + bkPct(pct) + '% de la cuenta), dentro de tu límite de ' + bkPct(P.riskPct) + '% (' + money(P.riskUsd) + '). El stop más largo que cabe con ' + L + ' lotes es de ' + pp(ms) + '.';
+    }
+  }
+  el.className = k; el.textContent = t; el.hidden = !t;
+}
+
+/* -- 3. Funding account (prop firm): daily and total loss limits against the size of the trade -- */
+const PFR = { ftmo2: { d: '5', t: '10', mode: 'static', name: 'FTMO 2 pasos' }, ftmo1: { d: '3', t: '10', mode: 'trail', name: 'FTMO 1 paso' } };
+const pfEls = { ini: $('#f-pfi'), today: $('#f-pfx'), d: $('#f-pfd'), t: $('#f-pft'), peak: $('#f-pfk') };
+function pfMatch() {
+  for (const id in PFR) if (nv(S.pf.d) === nv(PFR[id].d) && nv(S.pf.t) === nv(PFR[id].t) && S.pf.mode === PFR[id].mode) return id;
+  return 'otra';
+}
+Object.entries(pfEls).forEach(([k, el]) => {
+  el.value = S.pf[k] || '';
+  el.addEventListener('input', () => {
+    S.pf[k] = el.value.trim();
+    if (k === 'today') S.pf.ts = Date.now();
+    if (k === 'd' || k === 't') S.pf.on = pfMatch();
+    save(); render();
+  });
+});
+function pfPick(id) {
+  if (id === 'off') { S.pf.on = ''; return; }
+  const r = PFR[id];
+  if (r) { S.pf.d = r.d; S.pf.t = r.t; S.pf.mode = r.mode; }
+  else { if (!(nv(S.pf.d) > 0)) S.pf.d = '5'; if (!(nv(S.pf.t) > 0)) S.pf.t = '10'; }
+  S.pf.on = id; pfEls.d.value = S.pf.d; pfEls.t.value = S.pf.t;
+}
+function pfMode(m) { S.pf.mode = m; if (S.pf.on) S.pf.on = pfMatch(); }
+function pfCalc(P, pf) {
+  const ini = nv(pf.ini) > 0 ? nv(pf.ini) : P.cap, d = nv(pf.d), t = nv(pf.t);
+  if (!(ini > 0) || !(d > 0) || !(t > 0)) return { ok: false };
+  const trail = pf.mode === 'trail', dayUsd = ini * d / 100, totUsd = ini * t / 100;
+  const peak = trail ? Math.max(ini, nv(pf.peak) > 0 ? nv(pf.peak) : ini) : ini, floor = peak - totUsd;
+  const eq = P.cap, lost = Math.max(0, nv(pf.today) || 0), roomDay = dayUsd - lost, roomTot = eq - floor, risk = P.ok ? P.real : NaN;
+  const fit = r => (risk > 0 ? Math.max(0, Math.ceil(r / risk - 1e-9) - 1) : 0);   /* losses in a row that leave the equity above the line */
+  const sugUsd = ini * Math.min(d / 3, t / 10) / 100;
+  return { ok: true, ini, d, t, trail, dayUsd, totUsd, peak, floor, eq, lost, roomDay, roomTot, risk, nDay: fit(roomDay), nTot: fit(roomTot),
+    sugUsd, sugPct: eq > 0 ? sugUsd / eq * 100 : NaN, own: dayUsd / 2 };
+}
+const bkM = v => (v < 0 ? '−$' : '$') + Math.abs(Math.round(v)).toLocaleString('en-US');
+const pfRow = (a, small, b) => '<tr><td>' + a + (small ? '<small>' + small + '</small>' : '') + '</td><td>' + b + '</td></tr>';
+function pfRender(P) {
+  if (!bkReady) return;
+  rkSync(); lotsNote(P);
+  const on = !!S.pf.on, trail = S.pf.mode === 'trail';
+  $('#pf-peakf').hidden = !trail; $('#pf-out').hidden = !on;
+  $('#pf-sum').textContent = on ? (PFR[S.pf.on] ? PFR[S.pf.on].name : 'Otra firma') + ' · ' + (nv(S.pf.d) > 0 ? bkPct(nv(S.pf.d)) + '% diario' : '—') + ' · ' + (nv(S.pf.t) > 0 ? bkPct(nv(S.pf.t)) + '% total ' + (trail ? 'móvil' : 'fijo') : '—') : 'opcional: los límites de tu firma';
+  if (!on) return;
+  const C = pfCalc(P, S.pf), v = $('#pf-v'), tb = $('#pf-t'), use = $('#pf-use');
+  if (!C.ok) { v.dataset.k = 'warn'; v.textContent = 'Escribe el límite diario y el total, en porcentaje del saldo inicial, y tu capital arriba.'; tb.innerHTML = ''; use.hidden = true; return; }
+  const risk = C.risk, rp = risk > 0 ? risk / P.cap * 100 : 0, room = Math.min(C.roomDay, C.roomTot);
+  const rows = [
+    pfRow('Límite diario', bkPct(C.d) + '% de ' + bkM(C.ini), bkM(C.dayUsd)),
+    pfRow('Límite total', bkPct(C.t) + '%, ' + (C.trail ? 'móvil' : 'fijo'), bkM(C.totUsd)),
+    pfRow('Piso de la cuenta', C.trail ? 'tu máximo menos el límite total' : 'saldo inicial menos el límite total', bkM(C.floor)),
+    pfRow('Te quedan hoy', C.lost > 0 ? 'ya perdiste ' + bkM(C.lost) : 'sin pérdidas hoy', bkM(C.roomDay)),
+    pfRow('Te quedan hasta el piso', 'tu capital menos el piso', bkM(C.roomTot))
+  ];
+  if (risk > 0) {
+    rows.push(pfRow('Si salta tu stop', bkPct(rp) + '% de tu capital', '−' + bkM(risk)));
+    rows.push(pfRow('Pérdidas seguidas que caben', 'con ese mismo tamaño', 'hoy ' + C.nDay + ' · total ' + C.nTot));
+  }
+  rows.push(pfRow('Riesgo prudente', 'el menor entre el límite diario ÷ 3 y el total ÷ 10', bkPct(C.sugPct) + '% = ' + bkM(C.sugUsd)));
+  rows.push(pfRow('Tope propio de hoy', 'la mitad del límite diario', bkM(C.own)));
+  tb.innerHTML = '<tbody>' + rows.join('') + '</tbody>';
+  let k = 'ok', t = '';
+  if (!(risk > 0)) { k = 'warn'; t = 'Completa capital, stop y entrada para comparar tu operación con los límites.'; }
+  else if (room <= 0) { k = 'bad'; t = '<b>' + (C.roomDay <= 0 ? 'Ya llegaste al límite diario.' : 'Ya estás en el piso de la cuenta.') + '</b> No abras operaciones.'; }
+  else if (risk >= room - 1e-9) {
+    const ml = Math.floor((room - 0.005) / (P.stop * 10) * 100) / 100;
+    k = 'bad';
+    t = '<b>Esta operación rompería un límite.</b> Si salta el stop pierdes ' + bkM(risk) + ' y te quedan ' + bkM(room) + (C.roomDay <= C.roomTot ? ' hoy' : ' hasta el piso') + '. ' + (ml >= 0.01 ? 'Con este stop, el máximo es ' + ml.toFixed(2) + ' lotes.' : 'Con este stop no cabe ni 0.01 lotes: acórtalo o no operes hoy.');
+  } else {
+    const w = [];
+    if (C.nDay < 2) w.push('Hoy cabe una sola pérdida.');
+    if (rp > C.sugPct + 0.005) w.push('Tu riesgo (' + bkPct(rp) + '%) es mayor que el prudente (' + bkPct(C.sugPct) + '%).');
+    if (C.nTot < 5) w.push('En total solo caben ' + C.nTot + ' pérdidas seguidas.');
+    if (w.length) { k = 'warn'; t = '<b>Con cuidado.</b> ' + w.join(' '); } else t = '<b>Dentro de los límites.</b> Caben ' + C.nDay + ' pérdidas hoy y ' + C.nTot + ' en total con este tamaño.';
+  }
+  v.dataset.k = k; v.innerHTML = t;
+  const sg = Math.floor(C.sugPct * 100 + 1e-9) / 100;
+  use.hidden = !(sg >= RKB.risk.lo && sg <= RKB.risk.hi) || Math.abs(nv(S.pick.risk) - sg) < 0.005;
+  use.textContent = 'Usar ' + bkPct(sg) + '% de riesgo'; use.dataset.v = String(sg);
+}
+$('#pf-use').addEventListener('click', e => { S.pick.risk = e.currentTarget.dataset.v; RKB.risk.bad = false; save(); render(); });
+
+/* -- 4. Backup: one file with every setting (the name ends in .forex.json), or the same as text -- */
+const BKKEYS = [[LS, 'mesa'], [LSV, 'niveles'], [LSC, 'calendario'], [LLS, 'lab'], [LGS, 'logica'], [CHS, 'grafico']];
+const bkSt = $('#bk-st'), bkTa = $('#bk-ta');
+const bkSay = t => { bkSt.textContent = t; };
+let bkDl = null;
+function bkPack() {
+  save();
+  const o = { app: 'mesa-eurusd', format: 1, saved: new Date().toISOString(), data: {} };
+  BKKEYS.forEach(([key, name]) => { try { const v = localStorage.getItem(key); if (v != null) o.data[name] = JSON.parse(v); } catch (e) { /* storage unavailable */ } });
+  o.data.mesa = JSON.parse(JSON.stringify(S));
+  return o;
+}
+function bkName() { const d = new Date(); return 'Mesa-EURUSD_' + d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + '.forex.json'; }
+async function bkSaveFile() {
+  if (!bkDl) { bkSay('Este navegador no deja guardar archivos desde aquí. Usa «Copiar copia como texto».'); return; }
+  const name = bkName();
+  bkSay('Esperando tu confirmación para guardar ' + name + '…');
+  try {
+    const r = await bkDl.save({ filename: name, data: JSON.stringify(bkPack(), null, 1) });
+    bkSay(r && r.status === 'delivered' ? 'Copia entregada.' : 'Guardé la copia ' + name + '. Guárdala también fuera del navegador: en tu nube o enviada a ti mismo.');
+  } catch (e) {
+    const c = e && e.code;
+    bkSay(c === 'declined' ? 'No guardé nada: cancelaste.' : c === 'rate_limited' ? 'Ya hay una confirmación abierta o fueron muchas seguidas. Espera un momento.' : 'No pude guardar el archivo (' + (c || 'error') + '). Usa «Copiar copia como texto».');
+  }
+}
+async function bkCopy() {
+  const text = JSON.stringify(bkPack());
+  bkTa.value = text; $('#bk-txt').open = true;
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch (e) { /* older app views refuse it */ }
+  if (!ok) { try { bkTa.focus(); bkTa.select(); ok = !!(document.execCommand && document.execCommand('copy')); } catch (e) { /* no luck */ } }
+  bkSay(ok ? 'Copié tus ajustes como texto (' + fInt(text.length) + ' caracteres). Pégalos en una nota o en un mensaje a ti mismo.' : 'No pude copiar solo: el texto quedó en el cuadro de abajo. Selecciónalo todo y cópialo a mano.');
+}
+function bkRestore(text) {
+  if (!text || text.length > 5e6) { bkSay(text ? 'Ese texto es demasiado grande para ser una copia de esta página.' : 'No hay nada que restaurar: pega la copia en el cuadro.'); return; }
+  let o;
+  try { o = JSON.parse(text, (k, v) => (k === '__proto__' ? undefined : v)); } catch (e) { bkSay('Eso no es una copia válida: no pude leerlo.'); return; }
+  if (!o || o.app !== 'mesa-eurusd' || !o.data || typeof o.data !== 'object' || Array.isArray(o.data)) { bkSay('Eso no parece una copia de esta página.'); return; }
+  if (o.format !== 1) { bkSay('Esa copia es de una versión que esta página no conoce.'); return; }
+  const put = [];
+  BKKEYS.forEach(([key, name]) => { const v = o.data[name]; if (v && typeof v === 'object') put.push([key, v]); });
+  const mesa = o.data.mesa;
+  if (mesa && typeof mesa === 'object' && mesa.pick && typeof mesa.pick === 'object') {
+    Object.entries(RKB).forEach(([k, r]) => { const t = String(mesa.pick[k]).replace(',', '.'); if (!(/^(\d+\.?\d*|\.\d+)$/.test(t) && parseFloat(t) >= r.lo && parseFloat(t) <= r.hi)) delete mesa.pick[k]; });
+  }
+  if (!put.length) { bkSay('La copia no trae ajustes.'); return; }
+  try { put.forEach(([key, v]) => localStorage.setItem(key, JSON.stringify(v))); } catch (e) { bkSay('Este navegador no me deja escribir los ajustes (¿ventana privada?).'); return; }
+  bkHold = true;   /* from here the page must not write its own state over the restored one */
+  bkSay('Restauré ' + put.length + ' bloques de ajustes. Recargando la página…');
+  setTimeout(() => { try { location.reload(); } catch (e) { /* the message below covers it */ } }, 400);
+  setTimeout(() => bkSay('Restauré ' + put.length + ' bloques de ajustes. Si la página no se recargó sola, ciérrala y ábrela de nuevo antes de escribir nada.'), 2500);
+}
+$('#bk-save').addEventListener('click', bkSaveFile);
+$('#bk-copy').addEventListener('click', bkCopy);
+$('#bk-paste').addEventListener('click', () => bkRestore(bkTa.value.trim()));
+$('#bk-file').addEventListener('change', ev => {
+  const f = ev.target.files && ev.target.files[0]; ev.target.value = '';
+  if (!f) return;
+  if (f.size > 5e6) { bkSay('Ese archivo es demasiado grande para ser una copia de esta página.'); return; }
+  f.text().then(bkRestore, () => bkSay('No pude leer ese archivo.'));
+});
+try { if (window.claude && typeof window.claude.use === 'function') window.claude.use('downloads').then(d => { bkDl = d || null; $('#bk-save-row').hidden = !bkDl; }, () => { bkDl = null; }); } catch (e) { /* no runtime here */ }
+
+/* -- 5. The MT5 file, kept in IndexedDB (it is too big for localStorage); only the last one -- */
+const BKDB = 'mesa-eurusd-archivo', BKST = 'mt5', BKID = 'ultimo', BKMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+let bkMeta = null, bkErr = '', bkDbOk = typeof indexedDB !== 'undefined' && !!indexedDB;
+function bkOpen() {
+  return new Promise((ok, no) => {
+    let q;
+    try { q = indexedDB.open(BKDB, 1); } catch (e) { no(e); return; }
+    q.onupgradeneeded = () => { q.result.createObjectStore(BKST); };
+    q.onsuccess = () => ok(q.result);
+    q.onerror = () => no(q.error || new Error('indexeddb'));
+    q.onblocked = () => no(new Error('blocked'));
+  });
+}
+function bkTx(mode, make) {
+  return bkOpen().then(db => new Promise((ok, no) => {
+    let out;
+    try {
+      const tx = db.transaction(BKST, mode), rq = make(tx.objectStore(BKST));
+      if (rq) rq.onsuccess = () => { out = rq.result; };
+      tx.oncomplete = () => { db.close(); ok(out); };
+      tx.onerror = tx.onabort = () => { db.close(); no(tx.error || new Error('indexeddb')); };
+    } catch (e) { db.close(); no(e); }
+  }));
+}
+const bkSize = n => (n >= 1e6 ? (n / 1e6).toFixed(n < 1e7 ? 1 : 0) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' KB');
+const bkWhen = t => { const d = new Date(t); return d.getDate() + ' ' + BKMES[d.getMonth()] + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()); };
+const bkRows = ['lv-file', 'lg-file', 'ch-file'].map(id => {
+  const host = $('#' + id).closest('.calrow'), anchor = host.parentElement.classList.contains('lg-files') ? host.parentElement : host, row = document.createElement('div');
+  row.className = 'bk-saved'; row.hidden = true;
+  row.innerHTML = '<span class="bk-t"></span><button type="button" class="act" data-bk="load">Cargar</button><button type="button" class="act" data-bk="forget">Olvidar</button>';
+  anchor.insertAdjacentElement('afterend', row);
+  return row;
+});
+function bkRefresh() {
+  const mt = $('#bk-mt5'), info = bkMeta ? '<b>' + lvEsc(bkMeta.name) + '</b> (' + bkSize(bkMeta.size) + ', guardado el ' + bkWhen(bkMeta.saved) + ')' : '';
+  mt.innerHTML = !bkDbOk ? 'Este navegador no deja guardar archivos aquí (¿ventana privada?): tendrás que cargar tu archivo de MT5 cada vez.'
+    : bkMeta ? 'Guardado en este navegador: ' + info + '. No va dentro de la copia de arriba, que solo lleva tus ajustes.' + (bkErr ? ' ' + lvEsc(bkErr) : '')
+    : bkErr ? lvEsc(bkErr) : 'Cuando cargues un archivo de MT5 en cualquier pestaña, lo guardo aquí, en este navegador, para que la próxima vez lo cargues con un toque. No sale de tu dispositivo.';
+  $('#bk-load').hidden = !bkMeta || lvBusy; $('#bk-forget').hidden = !bkMeta;
+  $('#bk-sum').textContent = bkMeta ? 'tus ajustes, y tu archivo de MT5 guardado' : 'tus ajustes y tu archivo de MT5, en este navegador';
+  const show = !!bkMeta && !LVfile && !lvBusy;
+  bkRows.forEach(r => { r.hidden = !show; if (show) $('.bk-t', r).innerHTML = 'Guardado en este navegador: ' + info; });
+}
+async function bkRemember(f) {
+  if (!bkDbOk || !f) return;
+  const rec = { name: f.name, size: f.size, saved: Date.now(), blob: f };
+  try { await bkTx('readwrite', st => st.put(rec, BKID)); bkMeta = { name: rec.name, size: rec.size, saved: rec.saved }; bkErr = ''; }
+  catch (e) { bkErr = 'No pude guardar este archivo en el navegador (' + ((e && e.name) || 'error') + '): ¿poco espacio o ventana privada? Tendrás que cargarlo cada vez.'; }
+  bkRefresh();
+}
+async function bkLoadSaved() {
+  if (lvBusy) return;
+  let r = null;
+  try { r = await bkTx('readonly', st => st.get(BKID)); } catch (e) { /* handled below */ }
+  if (!r || !r.blob) { bkMeta = null; bkErr = 'No encontré el archivo guardado.'; bkRefresh(); return; }
+  let f;
+  try { f = new File([r.blob], r.name, { type: r.blob.type || 'text/csv' }); } catch (e) { f = r.blob; try { f.name = r.name; } catch (e2) { /* read-only */ } }
+  lvLoad(f, true);
+}
+async function bkForget() {
+  try { await bkTx('readwrite', st => st.delete(BKID)); bkMeta = null; bkErr = ''; } catch (e) { bkErr = 'No pude borrar el archivo guardado.'; }
+  bkRefresh();
+}
+$('#bk-load').addEventListener('click', bkLoadSaved);
+$('#bk-forget').addEventListener('click', bkForget);
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-bk]');
+  if (b) { if (b.dataset.bk === 'load') bkLoadSaved(); else if (b.dataset.bk === 'forget') bkForget(); }
+});
+(async () => {
+  if (bkDbOk) { try { const r = await bkTx('readonly', st => st.get(BKID)); if (r && r.blob) bkMeta = { name: r.name, size: r.size, saved: r.saved }; } catch (e) { bkDbOk = false; } }
+  bkRefresh();
+})();
+bkReady = true;
+
 /* ---- four views on one page: the board, the Teoría view, the Laboratorio and the Lógica view. The hash tells which: #mesa, #teoria, #teoria-ordenes, #lab, #lab-rsi, #logica ... ---- */
 const FOLD = [tape, $('.clockwrap'), $('.hint'), $('#board')];
 let view = '', backY = 0, backEl = null, flashT = 0;
@@ -5356,15 +6784,16 @@ function reveal(card) {
 function route(h) {
   if (/^(comment-|settings$|sidebar$|customize$|upgrade$|downloads$)/.test(h)) return; /* names claude.ai keeps for itself */
   hide();
-  const first = !view, isTh = h === 'teoria' || h.indexOf('teoria-') === 0, isLab = h === 'lab' || /^lab-[a-z]+$/.test(h), isLog = h === 'logica' || /^logica-[a-z]+$/.test(h);
-  const want = isTh ? 'teoria' : isLab ? 'lab' : isLog ? 'logica' : 'mesa', entered = want !== view;
+  const first = !view, isTh = h === 'teoria' || h.indexOf('teoria-') === 0, isLab = h === 'lab' || /^lab-[a-z]+$/.test(h), isLog = h === 'logica' || /^logica-[a-z]+$/.test(h), isChart = h === 'grafico';
+  const want = isTh ? 'teoria' : isLab ? 'lab' : isLog ? 'logica' : isChart ? 'grafico' : 'mesa', entered = want !== view;
   if (entered) {
     if (view === 'mesa') backY = window.scrollY;
     view = want;
     const m = want === 'mesa';
     FOLD.forEach(x => { x.hidden = !m; });
-    thbar.hidden = m; theory.hidden = want !== 'teoria'; labEl.hidden = want !== 'lab'; LGE.hidden = want !== 'logica';
+    thbar.hidden = m; theory.hidden = want !== 'teoria'; labEl.hidden = want !== 'lab'; LGE.hidden = want !== 'logica'; CHE.hidden = want !== 'grafico';
     if (want !== 'logica' && LGE.classList.contains('full')) lgFull(false);
+    if (want !== 'grafico' && chX.card.classList.contains('full')) chFull(false);
     $$('[data-only]', thbar).forEach(x => { x.hidden = x.dataset.only !== want; });
     document.body.dataset.view = want;
     if (m && !first) { window.scrollTo(0, backY); if (backEl && backEl.isConnected) { quiet = true; backEl.focus({ preventScroll: true }); quiet = false; } }
@@ -5379,6 +6808,9 @@ function route(h) {
   } else if (isLog) {
     lgOpen(h);
     if (entered) { window.scrollTo(0, 0); $('#lg-h').focus({ preventScroll: true }); }
+  } else if (isChart) {
+    chOpen();
+    if (entered) { window.scrollTo(0, 0); $('#ch-h').focus({ preventScroll: true }); }
   }
 }
 function go(h, from) {
