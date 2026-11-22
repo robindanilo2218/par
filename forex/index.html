@@ -1077,6 +1077,11 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
 .mx-sg .act.buy{color:var(--buy)}
 .mx-sg .act.sell{color:var(--sell)}
 .key.sug:not([aria-pressed="true"]){border-style:dashed;border-color:var(--hue)}
+/* version 20: the copy in your Claude account */
+#mir-bn{position:fixed;left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));bottom:max(8px,env(safe-area-inset-bottom,0px));z-index:60;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:14px/1.35 var(--f-text);box-shadow:0 4px 18px rgba(0,0,0,.25)}
+#mir-bn span{flex:1 1 220px;min-width:0}
+#mir-bn button{font:inherit;padding:6px 10px;border:1px solid var(--edge);border-radius:8px;background:var(--key);color:var(--ink);cursor:pointer}
+#mir-bn button.x{padding:2px 9px;font-size:18px;line-height:1;border-color:transparent;background:transparent;color:var(--ink-2)}
 
 /* ---------- version 7: box plots in the Cuartiles card (same fills as the Laboratorio's chart) ---------- */
 .dg-q90{fill:var(--line);stroke:var(--edge);stroke-width:1}
@@ -1260,7 +1265,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
             <div class="field"><div class="fl"><label for="lv-sel">Mín. semana pasada</label><button type="button" class="help tooltip" aria-label="Ayuda: mínimo de la semana pasada">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio más bajo de la semana pasada completa, de lunes a viernes.</span><span class="p"><b>Dónde verlo.</b> En MT5, gráfico W1: toca la vela anterior a la de esta semana y lee Low.</span></span></button></div><input class="num" id="lv-sel" type="text" inputmode="decimal" autocomplete="off" placeholder="opcional"></div>
             <div class="field wide"><div class="fl"><label for="lv-o">Otros niveles</label><button type="button" class="help tooltip" aria-label="Ayuda: otros niveles">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> Precios donde en tu gráfico se ve que el precio se frenó: la punta de una mecha larga o un máximo o mínimo reciente.</span><span class="p"><b>Cómo escribirlos.</b> Uno o varios, separados por un espacio, por ejemplo 1.0955 1.1005. Pon solo los que se ven claros.</span></span></button></div><input class="num" id="lv-o" type="text" inputmode="decimal" autocomplete="off" placeholder="opcional, por ejemplo 1.0955 1.1005"></div>
           </div>
-          <div class="calrow"><label class="filebtn" for="lv-file">Cargar mi archivo de MT5</label><button type="button" class="help tooltip" aria-label="Ayuda: cargar archivo de MT5">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo de velas de MT5, el mismo tipo que cargas en el Laboratorio. Calcula el máximo y el mínimo de ayer y de la semana pasada y los máximos y mínimos de H4 de las últimas dos semanas, y rellena las casillas. Puedes corregirlas.</span><span class="p"><b>Qué archivo.</b> Velas de M1, M5, M15, M30, H1, H2 o H4 que lleguen hasta hoy. Con H3, H6 o D1 no hay máximos y mínimos de H4.</span><span class="p"><b>Varios archivos.</b> Puedes elegir varios a la vez. Cada archivo que cargues se suma a los anteriores, en cualquier pestaña: las velas quedan ordenadas y sin repetir, y te aviso si falta un tramo o si un archivo es de otro tamaño de vela o de otro símbolo. Lo acumulado se guarda en este navegador (mira «Copia de seguridad»).</span><span class="p">El archivo se lee en tu dispositivo y no se envía a ningún lado.</span></span></button>
+          <div class="calrow"><label class="filebtn" for="lv-file">Cargar mi archivo de MT5</label><button type="button" class="help tooltip" aria-label="Ayuda: cargar archivo de MT5">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo de velas de MT5, el mismo tipo que cargas en el Laboratorio. Calcula el máximo y el mínimo de ayer y de la semana pasada y los máximos y mínimos de H4 de las últimas dos semanas, y rellena las casillas. Puedes corregirlas.</span><span class="p"><b>Qué archivo.</b> Velas de M1, M5, M15, M30, H1, H2 o H4 que lleguen hasta hoy. Con H3, H6 o D1 no hay máximos y mínimos de H4.</span><span class="p"><b>Varios archivos.</b> Puedes elegir varios a la vez. Cada archivo que cargues se suma a los anteriores, en cualquier pestaña: las velas quedan ordenadas y sin repetir, y te aviso si falta un tramo o si un archivo es de otro tamaño de vela o de otro símbolo. Lo acumulado se guarda en este navegador y, con la copia activada, también en tu cuenta de Claude, en un espacio privado (mira «Copia de seguridad»).</span><span class="p">El archivo se lee en tu dispositivo.</span></span></button>
             <input class="vh" type="file" id="lv-file" accept=".csv,.txt,text/csv,text/plain" multiple></div>
           <p class="note" id="lv-st" role="status"></p>
           <p class="lb-warn" id="lv-warn" hidden></p>
@@ -1846,7 +1851,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
     <p>En FRED, abre la serie y toca <b>Download</b> y luego <b>CSV</b>; también se baja directo con <b>https://fred.stlouisfed.org/graph/<wbr>fredgraph.csv?id=DGS2</b>, cambiando el código del final. En el Bundesbank, busca en esa página la serie de 2 años (la de código R02XX) y toca <b>CSV</b>. Es una curva que estima el Bundesbank, no el bono que muestra TradingView: las dos miden el mismo plazo pero pueden diferir unas centésimas, así que si el resultado queda justo en el umbral, no lo tomes como señal.</p>
     <p>La página lee CSV de FRED, del Bundesbank, de Yahoo Finanzas, de Investing, de TradingView y de MT5 (un cierre por día). Busca la columna de fecha y la del cierre («Close», «Price», «Último», «&lt;CLOSE&gt;») o, si el archivo trae una sola columna de números, esa. Entiende fechas como 2026-11-20, 20/11/2026 o Nov 20, 2026 y números como 3.62, 3,62 o 6,123.45, y salta los días sin dato (los festivos). Lo probé con archivos de ejemplo armados con la disposición habitual de cada sitio, no con descargas reales de todos ellos: si un archivo tuyo no se lee, la página dice por qué, y siempre puedes escribir los números.</p>
     <h3>Cómo se guardan y qué se rechaza</h3>
-    <p>Los archivos se <b>suman</b>: un día que ya estaba no se repite y, si el archivo nuevo trae otro valor para ese día, gana el nuevo. Se guardan hasta 1200 días por serie, solo en este navegador, y van en la copia de ajustes (<a href="#teoria-guardado" data-ir="guardado">Guardado y copia</a>). «Vaciar los datos» los borra con dos toques y no toca tus marcas.</p>
+    <p>Los archivos se <b>suman</b>: un día que ya estaba no se repite y, si el archivo nuevo trae otro valor para ese día, gana el nuevo. Se guardan hasta 1200 días por serie, en este navegador y, con la copia activada, en tu cuenta de Claude, y van en la copia de ajustes (<a href="#teoria-guardado" data-ir="guardado">Guardado y copia</a>). «Vaciar los datos» los borra con dos toques y no toca tus marcas.</p>
     <ul>
       <li>Un archivo que <b>termina hace más de 6 días</b> no se usa: los datos viejos no dicen nada de hoy.</li>
       <li>Si el archivo no llega hasta «hace un mes» (o «hace una semana»), la página dice desde cuándo empieza y no sugiere nada.</li>
@@ -2392,7 +2397,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       <li>Elige <b>EURUSD</b>, el tamaño <b>1 minuto</b> y las fechas (un año o más: así un solo día de la semana tiene unos 50 datos por franja) y pulsa <b>Solicitar</b>.</li>
       <li>Pulsa <b>Exportar barras</b>, guarda el archivo y, en el Laboratorio, <b>Cargar mi CSV de MT5</b>. Si MT5 solo te deja bajar un tramo a la vez, repite con otras fechas y carga los archivos juntos o uno tras otro: se suman, ordenados y sin velas repetidas (<a href="#teoria-guardado" data-ir="guardado">Guardado y copia</a>).</li>
     </ol>
-    <p class="note">El archivo se lee en tu dispositivo y no se envía a ningún lado. Acepta separador tabulador o punto y coma, y coma o punto decimal. Si tu bróker no usa la hora de Nueva York al cierre, el Laboratorio avisa: las horas saldrían corridas. Un archivo de velas M15 también sirve, pero ya no habrá M1, M5 ni spread por minuto. Qué es un cuartil: <a href="#teoria-cuartiles" data-ir="cuartiles">Cuartiles y percentiles</a>. ¿Hay horas para comprar y otras para vender? <a href="#teoria-dirhora" data-ir="dirhora">Dirección por hora</a>.</p>
+    <p class="note">El archivo se lee en tu dispositivo y las cuentas se hacen ahí, sin enviarlo a un sitio web. Si dejas activada la copia en tu cuenta de Claude, el acumulado que guardes se copia también ahí, en un espacio solo tuyo (<a href="#teoria-guardado" data-ir="guardado">Guardado y copia</a>). Acepta separador tabulador o punto y coma, y coma o punto decimal. Si tu bróker no usa la hora de Nueva York al cierre, el Laboratorio avisa: las horas saldrían corridas. Un archivo de velas M15 también sirve, pero ya no habrá M1, M5 ni spread por minuto. Qué es un cuartil: <a href="#teoria-cuartiles" data-ir="cuartiles">Cuartiles y percentiles</a>. ¿Hay horas para comprar y otras para vender? <a href="#teoria-dirhora" data-ir="dirhora">Dirección por hora</a>.</p>
   </article>
 
   <article class="th" id="teoria-calendario" data-short="Calendario" tabindex="-1">
@@ -2719,7 +2724,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
   <article class="th" id="teoria-grafico" data-short="Gráfico y plan del día" tabindex="-1">
     <p class="kick">Decidir</p>
     <h2>Gráfico y plan del día: tus velas con el plan dibujado</h2>
-    <p>La pestaña <a href="#grafico" data-go="grafico">Gráfico</a> dibuja las velas de tu archivo de MT5 como las dibuja la plataforma y, sobre el día de hoy, pone un esquema: en <b>azul</b> lo que harías si compras y en <b>rojo</b> si vendes. <b>No agrega ninguna regla</b>: usa el piso y el techo de <a href="#teoria-niveles" data-ir="niveles">Niveles</a>, el stop y la R de <a href="#teoria-stopr" data-ir="stopr">Stop y objetivo</a>, la regla de tramos de <a href="#teoria-tramos" data-ir="tramos">Tramos y rebotes</a>, el calendario y el veredicto del circuito de <a href="#teoria-logica" data-ir="logica">Leer el circuito</a>. Se lee en tu dispositivo y no se envía a ningún lado.</p>
+    <p>La pestaña <a href="#grafico" data-go="grafico">Gráfico</a> dibuja las velas de tu archivo de MT5 como las dibuja la plataforma y, sobre el día de hoy, pone un esquema: en <b>azul</b> lo que harías si compras y en <b>rojo</b> si vendes. <b>No agrega ninguna regla</b>: usa el piso y el techo de <a href="#teoria-niveles" data-ir="niveles">Niveles</a>, el stop y la R de <a href="#teoria-stopr" data-ir="stopr">Stop y objetivo</a>, la regla de tramos de <a href="#teoria-tramos" data-ir="tramos">Tramos y rebotes</a>, el calendario y el veredicto del circuito de <a href="#teoria-logica" data-ir="logica">Leer el circuito</a>. Se lee en tu dispositivo.</p>
     <h3>Qué ventana muestra</h3>
     <ul>
       <li><b>M1 a H4:</b> una semana (7 días de calendario, o sea 5 días de mercado) y nunca menos. Puedes ampliarla a 2 semanas o a un mes.</li>
@@ -2767,7 +2772,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
   <article class="th" id="teoria-bmc" data-short="Modelo de negocio (BMC)" tabindex="-1">
     <p class="kick">Decidir · Negocio</p>
     <h2>Modelo de negocio (BMC): operar cuentas de fondeo</h2>
-    <p>La pestaña <a href="#bmc" data-go="bmc">BMC</a> llena el lienzo de nueve bloques (Business Model Canvas, de Osterwalder) con el negocio de operar cuentas de fondeo como trader independiente, con FTMO como referencia. Lo particular de este negocio es que <b>la firma es a la vez tu proveedor y tu cliente</b>: te vende el desafío y, si lo pasas, te paga un reparto de las ganancias. Cada bloque trae un borrador y una caja «Lo tuyo» para tus propias cifras. <b>Es una hoja para pensar, no una promesa de ingresos ni asesoría financiera.</b> Se guarda en tu navegador, entra en la copia de seguridad y no se envía a ningún lado.</p>
+    <p>La pestaña <a href="#bmc" data-go="bmc">BMC</a> llena el lienzo de nueve bloques (Business Model Canvas, de Osterwalder) con el negocio de operar cuentas de fondeo como trader independiente, con FTMO como referencia. Lo particular de este negocio es que <b>la firma es a la vez tu proveedor y tu cliente</b>: te vende el desafío y, si lo pasas, te paga un reparto de las ganancias. Cada bloque trae un borrador y una caja «Lo tuyo» para tus propias cifras. <b>Es una hoja para pensar, no una promesa de ingresos ni asesoría financiera.</b> Se guarda en tu navegador, entra en la copia de seguridad (y en la copia en tu cuenta de Claude, si la dejas activada) y no se envía a nadie más.</p>
     <h3>Los nueve bloques, aquí</h3>
     <div class="tblwrap"><table class="tt">
       <thead><tr><th>Bloque</th><th>En este negocio</th></tr></thead>
@@ -2958,18 +2963,30 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
   <article class="th" id="teoria-guardado" data-short="Guardado y copia" tabindex="-1">
     <p class="kick">Base</p>
     <h2>Dónde se guarda lo que escribes, y la copia de seguridad</h2>
-    <p>La página no tiene servidor: lo que escribes se guarda <b>en tu navegador y en ese dispositivo</b>. Sobrevive a cerrar la pestaña y a que se publique una versión nueva; no sobrevive a limpiar los datos del sitio, a una ventana privada, ni a abrir la página en otro navegador o en otro teléfono.</p>
+    <p>La página no tiene servidor propio: lo que escribes se guarda <b>en tu navegador</b> y, con la copia activada, <b>también en tu cuenta de Claude</b>, en un espacio privado que solo tú ves. Lo del navegador sobrevive a cerrar la pestaña y a que se publique una versión nueva, pero no a limpiar los datos del sitio, a una ventana privada, ni a abrir la página en otro navegador o en otro teléfono; y hay navegadores y apps que lo borran por su cuenta. La copia en tu cuenta cubre esos casos: al abrir la página, si falta algo, lo trae de vuelta antes de que la página lo lea.</p>
     <h3>Qué se guarda y dónde</h3>
     <div class="tblwrap"><table class="tt">
       <thead><tr><th>Qué</th><th>Dónde</th><th>Cuánto dura</th></tr></thead>
       <tbody>
         <tr><td>Casillas y botones de la Mesa, el Laboratorio, la Lógica, el Gráfico y el BMC (con tus notas), los límites de fondeo, tu turno y tus horarios, el calendario de noticias que cargaste, los datos del Paso 1 (los diarios que cargaste y los números que escribiste) y tu Bitácora</td><td>localStorage: texto pequeño</td><td>Hasta que limpies los datos del sitio. Las marcas del día y el máximo y mínimo de hoy se borran a las 8 horas; los niveles, al cambiar el día o la semana; el turno que eliges, a las 20 horas. La Bitácora no se borra sola, y el calendario y los datos del Paso 1 duran hasta que los vacíes (los números que escribes en el Paso 1, 3 días como datos vigentes).</td></tr>
         <tr><td>Tu EURUSD acumulado: los archivos de MT5 que has cargado, juntos en uno</td><td>IndexedDB: la base de datos del navegador, que aguanta archivos grandes</td><td>Hasta que lo olvides (con dos toques) o limpies los datos del sitio. Se carga con un toque. Cada archivo que cargues se suma; no se actualiza solo.</td></tr>
+        <tr><td>Una copia de todo lo anterior, incluido tu EURUSD acumulado</td><td>Tu cuenta de Claude: un espacio privado que la plataforma da a esta página</td><td>Hasta que la borres tú («Borrar mi copia de la cuenta»). Se actualiza sola unos segundos después de cada cambio.</td></tr>
         <tr><td>Tus copias de seguridad</td><td>Tres archivos que guardas tú, fuera del navegador: un .forex.json con los ajustes, un .csv con el EURUSD y un .csv con el calendario</td><td>Lo que duren esos archivos.</td></tr>
       </tbody>
     </table></div>
+    <h3>La copia en tu cuenta</h3>
+    <p>Es el primer bloque de «Copia de seguridad». Está activada desde el principio, y puedes apagarla.</p>
+    <ul>
+      <li><b>Qué copia.</b> Los mismos ajustes que lleva el .forex.json (con el calendario, los datos del Paso 1 y la Bitácora) y tu EURUSD acumulado. Los ajustes pesan unos kilobytes. El archivo de MT5 se comprime antes de subirlo: 30 MB de velas de un minuto quedan en unos 6 MB. Si comprimido pasara de 60 MB, no lo sube y te lo dice.</li>
+      <li><b>Cuándo guarda.</b> Unos segundos después de cada cambio y al pasar la página a segundo plano. El archivo de MT5, 12 segundos después de la última carga, para no subir uno a medias cuando cargas varios seguidos. Solo sube lo que cambió.</li>
+      <li><b>Cuándo trae de vuelta.</b> Al abrir la página, antes de que lea nada: si a este navegador le falta algo que la cuenta tiene, lo restaura y te avisa. El archivo de MT5 lo baja después, con una barra de avance. Si la cuenta tiene un dato más nuevo de otro teléfono y aquí no lo cambiaste, lo toma.</li>
+      <li><b>Cuando no coinciden.</b> Si aquí hay datos distintos a los de la cuenta y nunca se habían sincronizado, gana la cuenta y lo de aquí queda guardado aparte. Si cada lado tiene un acumulado de MT5 distinto, la página te pregunta cuál quieres.</li>
+      <li><b>Lo que borras no vuelve.</b> Si vacías el calendario o olvidas el acumulado, la copia también lo borra; si no, el siguiente borrado del navegador lo resucitaría.</li>
+      <li><b>Privacidad.</b> Va a un espacio de tu cuenta que ningún otro visitante de la página puede leer, aunque compartas el enlace. No se envía a nadie más. Si borras la página, se borra con ella.</li>
+      <li><b>Si no puede.</b> Sin conexión, o en una vista donde la plataforma no da acceso a tu cuenta, la página funciona como antes y el bloque dice que lo guardado está solo en este navegador. Si el navegador ni siquiera deja guardar, la página lo mantiene en memoria mientras está abierta y la copia en tu cuenta lo recupera la próxima vez.</li>
+    </ul>
     <h3>Por qué dos sistemas</h3>
-    <p>Los ajustes son unos pocos kilobytes de texto: <b>localStorage</b> los guarda al instante y sin complicaciones. El archivo de MT5 pesa decenas de megabytes y localStorage no lo aguanta (suele limitarse a unos 5 MB): para eso se usa <b>IndexedDB</b>. Pasar los ajustes a IndexedDB no los haría más seguros: se pierden en los mismos casos.</p>
+    <p>En el navegador hay dos almacenes. Los ajustes son unos pocos kilobytes de texto: <b>localStorage</b> los guarda al instante y sin complicaciones. El archivo de MT5 pesa decenas de megabytes y localStorage no lo aguanta (suele limitarse a unos 5 MB): para eso se usa <b>IndexedDB</b>. Pasar los ajustes a IndexedDB no los haría más seguros: se pierden en los mismos casos. Por eso la copia en tu cuenta es un tercer sitio, fuera del navegador.</p>
     <h3>La copia de seguridad</h3>
     <ol>
       <li>Abre «Copia de seguridad», al final de la página, y toca «Guardar copia en un archivo». El nombre termina en <b>.forex.json</b>: es un archivo JSON normal, con una marca en el nombre para distinguirlo de otros. La plataforma donde vive esta página solo deja guardar ciertas extensiones y <b>.forex</b> no está entre ellas; por eso el .json queda al final.</li>
@@ -3003,7 +3020,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
       </tbody>
     </table></div>
     <p>El CSV del EURUSD tiene las mismas columnas que una exportación de MT5 y, al cargarlo otra vez, da exactamente las mismas velas. Si la plataforma no deja guardarlo de una vez por su tamaño, la página ofrece un botón por año; para restaurarlos, cárgalos todos juntos.</p>
-    <p class="note">El archivo .forex.json lleva tus ajustes, el calendario y tu Bitácora, no las velas de MT5: esas van en su propio .csv. Nada sale de tu dispositivo: la página no envía datos a ningún sitio. Una copia vieja puede traer niveles y marcas ya vencidos, que la página descarta sola.</p>
+    <p class="note">El archivo .forex.json lleva tus ajustes, el calendario y tu Bitácora, no las velas de MT5: esas van en su propio .csv. Los archivos de copia los guardas tú; lo único que la página sube por su cuenta es la copia en tu cuenta de Claude, y puedes apagarla. Una copia vieja puede traer niveles y marcas ya vencidos, que la página descarta sola.</p>
   </article>
 
   <article class="th" id="teoria-glosario" data-short="Glosario" tabindex="-1">
@@ -3345,7 +3362,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
     <div class="lg-in">
       <div class="field lg-px"><div class="fl"><label for="lg-p">Precio ahora</label><button type="button" class="help tooltip" aria-label="Ayuda: precio ahora">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio actual del EURUSD. Con él se miden las medias, la distancia al piso y al techo y el gatillo.</span><span class="p"><b>Dónde verlo.</b> En MT5, el precio de venta (SELL). Escríbelo con punto decimal, por ejemplo 1.09700. Es el mismo de «Buscar niveles»: si lo cambias aquí cambia allá.</span></span></button></div><input class="num" id="lg-p" type="text" inputmode="decimal" autocomplete="off" placeholder="1.09700"></div>
       <div class="lg-files">
-        <div class="calrow"><label class="filebtn" for="lg-file">Cargar mi archivo de MT5</label><button type="button" class="help tooltip" aria-label="Ayuda: archivo de MT5">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo de velas de MT5 (M1, M5, M15, M30, H1, H2 o H4 que lleguen hasta hoy) y de él saca los niveles, las medias de cada temporalidad, las velas del gatillo, el spread y el recorrido del día.</span><span class="p">Entre más fino el archivo, más temporalidades puedes ver: con M1 salen todas; con M15 desde M15 hacia arriba. Se lee en tu dispositivo y no se envía a ningún lado. Es el mismo archivo de «Buscar niveles».</span><span class="p"><b>Varios archivos.</b> Puedes elegir varios a la vez. Cada archivo que cargues se suma a los anteriores, en cualquier pestaña: las velas quedan ordenadas y sin repetir, y te aviso si falta un tramo o si un archivo es de otro tamaño de vela o de otro símbolo. Lo acumulado se guarda en este navegador (mira «Copia de seguridad»).</span></span></button><input class="vh" type="file" id="lg-file" accept=".csv,.txt,text/csv,text/plain" multiple></div>
+        <div class="calrow"><label class="filebtn" for="lg-file">Cargar mi archivo de MT5</label><button type="button" class="help tooltip" aria-label="Ayuda: archivo de MT5">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo de velas de MT5 (M1, M5, M15, M30, H1, H2 o H4 que lleguen hasta hoy) y de él saca los niveles, las medias de cada temporalidad, las velas del gatillo, el spread y el recorrido del día.</span><span class="p">Entre más fino el archivo, más temporalidades puedes ver: con M1 salen todas; con M15 desde M15 hacia arriba. Se lee en tu dispositivo. Es el mismo archivo de «Buscar niveles».</span><span class="p"><b>Varios archivos.</b> Puedes elegir varios a la vez. Cada archivo que cargues se suma a los anteriores, en cualquier pestaña: las velas quedan ordenadas y sin repetir, y te aviso si falta un tramo o si un archivo es de otro tamaño de vela o de otro símbolo. Lo acumulado se guarda en este navegador (mira «Copia de seguridad»).</span></span></button><input class="vh" type="file" id="lg-file" accept=".csv,.txt,text/csv,text/plain" multiple></div>
         <div class="calrow"><label class="filebtn" for="lg-cal">Cargar el calendario</label><button type="button" class="help tooltip" aria-label="Ayuda: calendario">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Carga el ff_calendar_thisweek.csv de Forex Factory, el mismo de la Mesa. Con él el permiso «Sin noticia roja» se enciende solo cuando no hay una roja de USD o EUR a menos de 30 minutos.</span><span class="p"><b>Varias semanas.</b> Puedes elegir varios archivos a la vez: se acumulan, y una noticia que ya estaba no se repite.</span></span></button><input class="vh" type="file" id="lg-cal" accept=".csv,.txt,text/csv,text/plain" multiple></div>
       </div>
     </div>
@@ -3437,7 +3454,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
     <div class="lg-in">
       <div class="field lg-px"><div class="fl"><label for="ch-p">Precio ahora</label><button type="button" class="help tooltip" aria-label="Ayuda: precio ahora">?<span class="tooltiptext"><span class="p"><b>Qué es.</b> El precio actual del EURUSD. Con él se eligen el piso y el techo más cercanos y se arma el plan del día.</span><span class="p"><b>Si lo dejas vacío.</b> El plan se arma con el último cierre de tu archivo y lo dice. Para afinarlo escribe el precio de venta (SELL) de MT5 con punto decimal, por ejemplo 1.09700.</span><span class="p">Es el mismo de «Buscar niveles» y de Lógica: si lo cambias aquí cambia allá.</span></span></button></div><input class="num" id="ch-p" type="text" inputmode="decimal" autocomplete="off" placeholder="1.09700"></div>
       <div class="lg-files">
-        <div class="calrow"><label class="filebtn" for="ch-file">Cargar mi archivo de MT5</label><button type="button" class="help tooltip" aria-label="Ayuda: archivo de MT5">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo de velas de MT5 y dibuja el gráfico en tu dispositivo. No se envía a ningún lado. Es el mismo archivo de «Buscar niveles» y de Lógica: si ya lo cargaste allá, aquí ya está.</span><span class="p"><b>Cuánta historia.</b> Con velas de M1 salen todas las temporalidades; con M15, de M15 hacia arriba. Para ver 5 a 8 semanas en D1 y en el semanal hace falta un archivo de al menos 2 meses; para una semana de M1, siete días.</span><span class="p"><b>Varios archivos.</b> Puedes elegir varios a la vez. Cada archivo que cargues se suma a los anteriores, en cualquier pestaña: las velas quedan ordenadas y sin repetir, y te aviso si falta un tramo o si un archivo es de otro tamaño de vela o de otro símbolo. Lo acumulado se guarda en este navegador (mira «Copia de seguridad»).</span></span></button><input class="vh" type="file" id="ch-file" accept=".csv,.txt,text/csv,text/plain" multiple></div>
+        <div class="calrow"><label class="filebtn" for="ch-file">Cargar mi archivo de MT5</label><button type="button" class="help tooltip" aria-label="Ayuda: archivo de MT5">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo de velas de MT5 y dibuja el gráfico en tu dispositivo. Es el mismo archivo de «Buscar niveles» y de Lógica: si ya lo cargaste allá, aquí ya está.</span><span class="p"><b>Cuánta historia.</b> Con velas de M1 salen todas las temporalidades; con M15, de M15 hacia arriba. Para ver 5 a 8 semanas en D1 y en el semanal hace falta un archivo de al menos 2 meses; para una semana de M1, siete días.</span><span class="p"><b>Varios archivos.</b> Puedes elegir varios a la vez. Cada archivo que cargues se suma a los anteriores, en cualquier pestaña: las velas quedan ordenadas y sin repetir, y te aviso si falta un tramo o si un archivo es de otro tamaño de vela o de otro símbolo. Lo acumulado se guarda en este navegador (mira «Copia de seguridad»).</span></span></button><input class="vh" type="file" id="ch-file" accept=".csv,.txt,text/csv,text/plain" multiple></div>
         <div class="calrow"><label class="filebtn" for="ch-cal">Cargar el calendario</label><button type="button" class="help tooltip" aria-label="Ayuda: calendario">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Carga el ff_calendar_thisweek.csv de Forex Factory, el mismo de la Mesa. Las noticias rojas de USD y EUR se dibujan como bandas ámbar de 30 minutos antes a 30 minutos después, y el plan dice qué ventanas quedan libres para entrar.</span><span class="p">Las horas del calendario llegan en UTC y aquí se pasan a la hora de MT5 (Nueva York + 7 horas), la misma de las velas.</span><span class="p"><b>Varias semanas.</b> Puedes elegir varios archivos a la vez: se acumulan, y las rojas de semanas pasadas también se dibujan en las velas de esos días.</span></span></button><input class="vh" type="file" id="ch-cal" accept=".csv,.txt,text/csv,text/plain" multiple></div>
       </div>
     </div>
@@ -3736,10 +3753,19 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
   <details class="lv" id="bk" data-teoria="guardado">
     <summary><span class="lv-t">Copia de seguridad</span><small id="bk-sum">tus ajustes y tu archivo de MT5, en este navegador</small></summary>
     <div class="lv-body">
-      <p class="note">Lo que escribes se guarda solo en este navegador y en este dispositivo. Si borras los datos del sitio, o abres la página en otro navegador o en otro teléfono, no estará. Una copia en un archivo tuyo lo resuelve.</p>
+      <p class="note">Lo que escribes se guarda en este navegador y, con la copia en tu cuenta de Claude activada (el primer bloque), también ahí: así no se pierde si el navegador lo borra ni al abrir la página en otro teléfono. Una copia en un archivo tuyo, más abajo, es otro respaldo, fuera de la plataforma.</p>
+
+      <div class="bk-sec" id="mir">
+        <p class="lbl"><button type="button" class="lblbtn tooltip">En tu cuenta de Claude<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué es.</b> Una copia de lo que guarda esta página, en tu cuenta de Claude: tus ajustes, el calendario, los datos del Paso 1, la Bitácora y tu archivo de MT5 acumulado. Es un espacio privado: solo tú lo ves, aunque compartas la página.</span><span class="p"><b>Para qué.</b> Algunos navegadores, y la app que muestra la página, borran lo que guarda el navegador. Si pasa, la página trae la copia de vuelta sola al abrirse.</span><span class="p"><b>Cuándo se guarda.</b> Solo cuando algo cambia, unos segundos después. El archivo de MT5, comprimido, tarda más (unos 5 MB por cada 30 MB de velas de un minuto).</span><span class="p"><b>Qué no hace.</b> No toca tus archivos de .forex.json ni los envía a nadie. Si la apagas, deja de copiar y de restaurar.</span></span></button></p>
+        <p class="note" id="mir-line" role="status"></p>
+        <p class="note" id="mir-prog" role="status" hidden></p>
+        <div class="bk-row"><button type="button" class="act" id="mir-now" hidden>Guardar ahora</button><button type="button" class="act" id="mir-late" hidden>Aplicar y recargar</button><button type="button" class="act" id="mir-keep" hidden>Traer el de la cuenta</button><button type="button" class="act" id="mir-drop" hidden>Subir el de aquí</button></div>
+        <div class="bk-row"><button type="button" class="act" id="mir-pull" hidden>Traer todo de mi cuenta</button><button type="button" class="act" id="mir-onoff" hidden>Apagar la copia</button><button type="button" class="act" id="mir-del" hidden>Borrar mi copia de la cuenta</button></div>
+        <p class="note" id="mir-ls"></p>
+      </div>
 
       <div class="bk-sec">
-        <p class="lbl"><button type="button" class="lblbtn tooltip">Tus ajustes<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué son.</b> Todo lo que has escrito o marcado en la Mesa, el Laboratorio, la Lógica, el Gráfico y el BMC: capital, riesgo, stop, límites de fondeo, niveles, marcas del día, las notas del BMC, tu turno y tus horarios, la Bitácora y los datos del Paso 1 (los diarios y los números que escribiste).</span><span class="p"><b>Qué no incluye.</b> El archivo de MT5, que pesa mucho y se guarda aparte, más abajo.</span><span class="p"><b>Dónde queda.</b> En el archivo que tú guardes: nada sale de tu dispositivo.</span></span></button></p>
+        <p class="lbl"><button type="button" class="lblbtn tooltip">Tus ajustes<i aria-hidden="true">?</i><span class="tooltiptext"><span class="p"><b>Qué son.</b> Todo lo que has escrito o marcado en la Mesa, el Laboratorio, la Lógica, el Gráfico y el BMC: capital, riesgo, stop, límites de fondeo, niveles, marcas del día, las notas del BMC, tu turno y tus horarios, la Bitácora y los datos del Paso 1 (los diarios y los números que escribiste).</span><span class="p"><b>Qué no incluye.</b> El archivo de MT5, que pesa mucho y se guarda aparte, más abajo.</span><span class="p"><b>Dónde queda.</b> En el archivo que tú guardes. Si dejas activada la copia en tu cuenta de Claude, también ahí, en tu espacio privado.</span></span></button></p>
         <div class="calrow" id="bk-save-row" hidden><button type="button" class="filebtn" id="bk-save">Guardar copia en un archivo</button><button type="button" class="help tooltip" aria-label="Ayuda: guardar copia en un archivo">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Crea un archivo con tus ajustes y te pide confirmar la descarga. El nombre termina en <b>.forex.json</b> (por ejemplo Mesa-EURUSD_2026-11-21.forex.json) para que lo distingas de otros .json.</span><span class="p"><b>Cuándo.</b> Después de cambiar algo importante, o una vez por semana. Guárdalo fuera del navegador: en tu nube o enviado a ti mismo.</span><span class="p"><b>Ojo.</b> Tu navegador puede dejar el archivo en Descargas con otro nombre si ya existe uno igual.</span></span></button></div>
         <div class="calrow"><button type="button" class="filebtn" id="bk-copy">Copiar copia como texto</button><button type="button" class="help tooltip" aria-label="Ayuda: copiar copia como texto">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Copia tus ajustes como texto, por si tu navegador no deja guardar archivos desde aquí. Pégalo en una nota o en un mensaje a ti mismo.</span><span class="p"><b>Para volver a usarlo.</b> Abre «Pegar o ver el texto», pega y toca «Restaurar desde el texto».</span></span></button></div>
         <div class="calrow"><label class="filebtn" for="bk-file">Restaurar desde un archivo</label><button type="button" class="help tooltip" aria-label="Ayuda: restaurar desde un archivo">?<span class="tooltiptext"><span class="p"><b>Qué hace.</b> Lee un archivo .forex.json hecho por esta página y cambia los ajustes de este navegador por los del archivo. Después la página se recarga sola.</span><span class="p"><b>Ojo.</b> Lo que tengas ahora se reemplaza. Si dudas, guarda una copia antes.</span></span></button>
@@ -3792,6 +3818,348 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
 <script>
 (() => {
 'use strict';
+/*MIRGATE*/
+/* ---- version 20: a copy of what the page keeps, in the viewer's own Claude account (the `db` capability, private subtree data/users/<id>).
+   The browser, or the app that shows the page, can empty localStorage and IndexedDB without warning; the copy brings it back before the page reads anything.
+   Nothing here is needed for the page to work: without `db`, or with a browser that keeps everything, the page behaves as in version 19. ---- */
+const MIRP = 'mesa-eurusd-v1', MIRSM = MIRP + '-sync';
+const MIRCFG = window.__mirCfg && typeof window.__mirCfg === 'object' ? window.__mirCfg : {};   /* test hooks; empty for a real viewer */
+const MIRCH = MIRCFG.chunk || 180000, MIRTX = MIRCFG.textChunk || 60000, MIRMAX = MIRCFG.maxZ || 60e6;   /* a document may hold 256 KiB: base64 is ASCII, raw text may be 3 bytes a character */
+const MIRZ = typeof CompressionStream === 'function' && typeof DecompressionStream === 'function' && typeof Response === 'function' && typeof Blob === 'function' && !MIRCFG.noZ;
+const mirSleep = ms => new Promise(r => setTimeout(r, ms));
+const mirSlug = k => String(k).replace(/[^A-Za-z0-9_-]/g, '_');
+const mirRand = () => Math.floor(Math.random() * 2176782336).toString(36);
+function mirWith(p, ms) {   /* a promise that gives up after ms milliseconds */
+  return new Promise((ok, no) => {
+    const t = setTimeout(() => no(Object.assign(new Error('timeout'), { code: 'timeout' })), ms);
+    Promise.resolve(p).then(v => { clearTimeout(t); ok(v); }, e => { clearTimeout(t); no(e); });
+  });
+}
+function mirHash(s) {   /* cyrb53, a 53-bit hash of a string, in base 36: to tell that a text changed and to check it arrived whole */
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+function mirB64(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+function mirUn64(s) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+async function mirGz(x) { const b = typeof x === 'string' ? new Blob([x]) : x; return new Uint8Array(await new Response(b.stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer()); }
+async function mirUngz(parts, as) { const r = new Response(new Blob(parts).stream().pipeThrough(new DecompressionStream('gzip'))); return as === 'blob' ? r.blob() : r.text(); }
+const mirLsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const mirLsSet = (k, v) => { try { localStorage.setItem(k, v); return mirLsGet(k) === v; } catch (e) { return false; } };
+const mirLsDel = k => { try { localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } };
+function mirLsTest() { try { const k = MIRP + '-t'; localStorage.setItem(k, '1'); const ok = localStorage.getItem(k) === '1'; localStorage.removeItem(k); return ok; } catch (e) { return false; } }
+function mirShim() {   /* a browser that refuses localStorage: keep it in memory for this visit, so the page and the copy still work */
+  const m = new Map();
+  const shim = { getItem: k => (m.has(String(k)) ? m.get(String(k)) : null), setItem: (k, v) => { m.set(String(k), String(v)); }, removeItem: k => { m.delete(String(k)); }, clear: () => { m.clear(); }, key: i => (Array.from(m.keys())[i] === undefined ? null : Array.from(m.keys())[i]), get length() { return m.size; } };
+  try { Object.defineProperty(window, 'localStorage', { value: shim, configurable: true }); return window.localStorage === shim; } catch (e) { return false; }
+}
+function mirMetaRead() { try { const o = JSON.parse(mirLsGet(MIRSM) || 'null'); if (o && typeof o === 'object' && o.keys && typeof o.keys === 'object') return o; } catch (e) { /* damaged: start again */ } return null; }
+function mirErr(e) {
+  const c = (e && e.code) || '';
+  return c === 'quota_exceeded' ? 'Tu cuenta llegó al límite de espacio de esta página.'
+    : c === 'invalid_argument' ? 'Esta vista no me deja escribir en tu cuenta.'
+    : c === 'resource_exhausted' ? 'Demasiadas escrituras seguidas: espero y reintento.'
+    : c === 'revoked' || c === 'not_granted' || c === 'capability_disabled' || c === 'capability_removed' ? 'Esta vista no deja guardar en tu cuenta.'
+    : c === 'timeout' || c === 'unavailable' ? 'No pude llegar a tu cuenta (¿sin conexión?). Reintento solo.'
+    : 'No pude guardar en tu cuenta' + (c ? ' (' + c + ')' : '') + '.';
+}
+function mirBanner(text, acts, ms) {
+  let el = document.getElementById('mir-bn');
+  if (!el) { el = document.createElement('div'); el.id = 'mir-bn'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  el.textContent = '';
+  const t = document.createElement('span'); t.textContent = text; el.appendChild(t);
+  (acts || []).forEach(a => { const b = document.createElement('button'); b.type = 'button'; b.textContent = a[0]; b.addEventListener('click', a[1]); el.appendChild(b); });
+  const x = document.createElement('button'); x.type = 'button'; x.className = 'x'; x.setAttribute('aria-label', 'Cerrar'); x.textContent = '×'; x.addEventListener('click', () => el.remove()); el.appendChild(x);
+  clearTimeout(el._t); if (ms) el._t = setTimeout(() => el.remove(), ms);
+  return el;
+}
+async function mirOpen() {   /* → { col, uid } or null: the account is not reachable from this view */
+  try {
+    for (let i = 0; i < (MIRCFG.claudeWait !== undefined ? MIRCFG.claudeWait : 40) && !(window.claude && typeof window.claude.use === 'function'); i++) await mirSleep(50);   /* up to 2 s for the platform's object to appear */
+    const cl = window.claude;
+    if (!cl || typeof cl.use !== 'function') return null;
+    const one = n => mirWith(cl.use(n), MIRCFG.open || 12000).catch(() => null);
+    const both = await Promise.all([one('user'), one('db')]), user = both[0], db = both[1];
+    if (!db || !user || typeof user.id !== 'function') return null;
+    const uid = await mirWith(user.id(), 8000).catch(() => null);
+    return uid ? { db, uid: String(uid), col: db.collection('data/users/' + uid) } : null;
+  } catch (e) { return null; }
+}
+
+function mirApi() {
+  const st = { phase: 'idle', lsOk: true, shim: false, persisted: null, on: true, busy: '', done: 0, total: 0, last: 0, err: '', restored: null, late: null, srvKeys: 0, srvArc: null, conflict: null, z: MIRZ, uid: false };
+  const api = { st, started: false, lateData: null };
+  const subs = []; let emitT = 0;
+  api.sub = fn => { subs.push(fn); };
+  api.emit = () => { clearTimeout(emitT); emitT = setTimeout(() => subs.forEach(f => { try { f(st); } catch (e) { /* only the painting failed */ } }), 30); };
+  let A = null, man = null, manOk = false, SM = null, keys = [], arc = null, attached = false, busy = false, seen = false, nextTry = 0, arcAt = 0, arcKey = '', timer = 0, openT = 0, tries = 0;
+  const lastStr = {}, hashCur = {}, changedAt = {};
+  const deb = () => (MIRCFG.debounce !== undefined ? MIRCFG.debounce : 3000);
+  const doc = id => A.col.doc(id);
+  async function op(fn) {   /* one call to the account: gives up after 25 s, tries again when the platform says "later" */
+    let last;
+    for (let i = 0; i < 3; i++) {
+      try { return await mirWith(fn(), MIRCFG.op || 25000); }
+      catch (e) {
+        last = e; const c = e && e.code;
+        if (c === 'unavailable' || c === 'resource_exhausted' || c === 'timeout') { await mirSleep((c === 'resource_exhausted' ? 1500 : 600) * (i + 1) + Math.random() * 300); continue; }
+        throw e;
+      }
+    }
+    throw last;
+  }
+  const clone = o => JSON.parse(JSON.stringify(o));
+  async function readMan() { const s = await op(() => doc('sync').get()); return s.exists ? clone(s.data()) : null; }
+  async function patchMan(p) {   /* merge into the manifest (a nested object merges field by field; an entry always names every field it uses) */
+    const t = Date.now(), body = Object.assign({ t, dev: SM.dev }, p);
+    try { await op(() => doc('sync').update(body)); }
+    catch (e) {
+      if (!(e && e.code === 'invalid_argument')) throw e;
+      if (await readMan()) throw e;   /* it exists: the refusal was for something else */
+      await op(() => doc('sync').set(Object.assign({ v: 1, keys: {} }, body)));
+    }
+    man = man || { v: 1, keys: {} }; man.keys = man.keys || {};
+    if (p.keys) Object.keys(p.keys).forEach(k => { man.keys[k] = Object.assign({}, man.keys[k], p.keys[k]); });
+    if (p.mt5) man.mt5 = Object.assign({}, man.mt5, p.mt5);
+    man.t = t;
+    st.srvKeys = Object.keys(man.keys).filter(k => !man.keys[k].gone).length; st.srvArc = srvArc();
+  }
+  const keyIds = (k, e) => Array.from({ length: e.n || 0 }, (_, i) => 'k-' + mirSlug(k) + '-' + e.ver + '-' + i);
+  const arcIds = e => Array.from({ length: e.n || 0 }, (_, i) => 'a-' + e.ver + '-' + i);
+  async function dropDocs(ids) { for (const id of ids) { try { await op(() => doc(id).delete()); } catch (e) { /* a leftover chunk costs a few KB: not worth stopping */ } } }
+  function metaSave() { mirLsSet(MIRSM, JSON.stringify(SM)); }
+  function srvArc() { return man && man.mt5 && !man.mt5.gone && man.mt5.ver ? man.mt5 : null; }
+  async function putText(k, str) {
+    const ver = Date.now().toString(36) + mirRand().slice(0, 3), body = MIRZ ? mirB64(await mirGz(str)) : str, size = MIRZ ? MIRCH : MIRTX, n = Math.max(1, Math.ceil(body.length / size));
+    SM.pending = { ids: Array.from({ length: n }, (_, i) => 'k-' + mirSlug(k) + '-' + ver + '-' + i) }; metaSave();
+    for (let i = 0; i < n; i++) await op(() => doc(SM.pending.ids[i]).set({ d: body.slice(i * size, (i + 1) * size) }));
+    return { ver, n, z: MIRZ ? 1 : 0, len: str.length, h: mirHash(str), t: Date.now(), gone: 0 };
+  }
+  async function getText(k, e) {
+    let body = '';
+    for (let i = 0; i < (e.n || 0); i++) { const s = await op(() => doc('k-' + mirSlug(k) + '-' + e.ver + '-' + i).get()); if (!s.exists) throw Object.assign(new Error('missing'), { code: 'missing' }); body += s.data().d; }
+    const str = e.z ? await mirUngz([mirUn64(body)], 'text') : body;
+    if (mirHash(str) !== e.h) throw Object.assign(new Error('hash'), { code: 'damaged' });
+    return str;
+  }
+  async function pushKey(k, str) {
+    st.busy = 'ajustes'; st.done = 0; st.total = 0; api.emit();
+    const old = man && man.keys && man.keys[k], e = await putText(k, str);
+    await patchMan({ keys: { [k]: e } });
+    SM.keys[k] = { h: e.h, t: e.t }; delete SM.pending; metaSave();
+    if (old && !old.gone && old.ver && old.ver !== e.ver) dropDocs(keyIds(k, old));
+  }
+  async function dropKey(k) {   /* the user removed it here: remove it there, so a wipe does not bring it back */
+    const old = man && man.keys && man.keys[k], t = Date.now();
+    await patchMan({ keys: { [k]: { gone: 1, t } } });
+    delete SM.keys[k]; metaSave();
+    if (old && !old.gone && old.ver) dropDocs(keyIds(k, old));
+  }
+  async function pool(n, items, fn) {   /* a few calls at a time */
+    let i = 0;
+    await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const j = i++; await fn(items[j], j); } }));
+  }
+  async function pushArc(m, rec) {
+    const gz = await mirGz(rec.blob);
+    if (gz.length > MIRMAX) { st.err = 'Tu acumulado de MT5 comprimido pesa ' + (gz.length / 1e6).toFixed(0) + ' MB: es más de lo que guardo en tu cuenta (' + (MIRMAX / 1e6).toFixed(0) + ' MB). Sigue en este navegador.'; arcKey = m.saved + ':' + m.size; return; }
+    const per = Math.floor(MIRCH / 4) * 3, n = Math.max(1, Math.ceil(gz.length / per)), ver = Date.now().toString(36) + mirRand().slice(0, 3), ids = Array.from({ length: n }, (_, i) => 'a-' + ver + '-' + i);
+    SM.pending = { ids }; metaSave();
+    st.busy = 'archivo'; st.done = 0; st.total = n; api.emit();
+    await pool(3, ids, async (id, i) => { await op(() => doc(id).set({ d: mirB64(gz.subarray(i * per, (i + 1) * per)) })); st.done++; api.emit(); });
+    const old = srvArc();
+    await patchMan({ mt5: { ver, n, size: m.size, bsize: rec.blob.size, zsize: gz.length, saved: m.saved, meta: m, t: Date.now(), gone: 0 } });
+    SM.mt5 = { saved: m.saved, size: m.size }; delete SM.pending; delete SM.gone.mt5; metaSave();
+    if (old) dropDocs(arcIds(old));
+  }
+  async function pullArc(e) {
+    st.busy = 'archivo'; st.done = 0; st.total = e.n; api.emit();
+    const parts = new Array(e.n);
+    await pool(3, Array.from({ length: e.n }, (_, i) => i), async i => {
+      const s = await op(() => doc('a-' + e.ver + '-' + i).get());
+      if (!s.exists) throw Object.assign(new Error('missing'), { code: 'missing' });
+      parts[i] = mirUn64(s.data().d); st.done++; api.emit();
+    });
+    const blob = await mirUngz(parts, 'blob');
+    if ((e.bsize || e.size) && blob.size !== (e.bsize || e.size)) throw Object.assign(new Error('size'), { code: 'damaged' });
+    const m = e.meta || {};
+    await arc.put({ name: m.name || 'EURUSD.csv', size: m.size || blob.size, saved: m.saved || e.saved || Date.now(), blob, bars: m.bars || 0, first: m.first || 0, last: m.last || 0, base: m.base || 60, parts: m.parts || [{ name: m.name || 'EURUSD.csv', size: blob.size }], warn: m.warn || [] });
+    SM.mt5 = { saved: m.saved || e.saved, size: m.size || blob.size }; delete SM.gone.mt5; metaSave();
+  }
+  async function dropArc() {
+    const old = srvArc(); await patchMan({ mt5: { gone: 1, t: Date.now() } });
+    SM.mt5 = null; metaSave(); if (old) dropDocs(arcIds(old));
+  }
+  async function reconcileArc(force) {   /* the MT5 archive, kept in IndexedDB: compare what is here with what is in the account */
+    if (!arc || !seen || !A || !MIRZ) return;
+    const m = arc.meta(), e = srvArc(), sm = SM.mt5;
+    if (!m && !e) return;
+    if (!m) {   /* nothing here */
+      if (SM.gone.mt5) { await dropArc(); return; }
+      await pullArc(e); return;
+    }
+    if (e && m.saved === e.saved && m.size === e.size) { if (!sm || sm.saved !== m.saved) { SM.mt5 = { saved: m.saved, size: m.size }; metaSave(); } st.conflict = null; return; }
+    const key = m.saved + ':' + m.size, rec = () => arc.get();
+    if (e && sm && sm.saved === m.saved && sm.size === m.size && !force) { await pullArc(e); return; }   /* unchanged here, newer there */
+    if (e && !sm && e.saved > m.saved && !force) { st.conflict = { server: e }; api.emit(); return; }   /* never synced and the account has a newer one: ask */
+    if (!force) { if (arcKey !== key) { arcKey = key; arcAt = Date.now(); } if (Date.now() - arcAt < (MIRCFG.arcDebounce !== undefined ? MIRCFG.arcDebounce : 12000)) return; }   /* a few files in a row: wait for the last */
+    const r = await rec();
+    if (!r || !r.blob) return;
+    await pushArc(m, r); st.conflict = null;
+  }
+  api.tick = async function (force) {
+    if (busy || !A || !st.on || !attached || Date.now() < nextTry) return;
+    busy = true;
+    try {
+      if (!manOk) { await api.boot(); if (!manOk) return; }   /* the first reading failed: read it now, and never write before knowing what is there */
+      if (st.late) return;                                    /* data from the account is waiting to be applied: writing now would cover it */
+      const now = Date.now();
+      for (const k of keys) {
+        const cur = mirLsGet(k);
+        if (cur !== lastStr[k]) { lastStr[k] = cur; hashCur[k] = cur == null ? null : mirHash(cur); changedAt[k] = now; }
+        const synced = SM.keys[k] ? SM.keys[k].h : null;
+        if (hashCur[k] === synced) continue;
+        if (!force && now - changedAt[k] < deb()) continue;
+        if (cur == null) { if (synced) await dropKey(k); } else await pushKey(k, cur);
+      }
+      await reconcileArc(force);
+      st.err = st.err && /pesa/.test(st.err) ? st.err : ''; st.last = Date.now(); st.phase = 'ready';
+    } catch (e) { st.err = mirErr(e); nextTry = Date.now() + ((e && e.code) === 'resource_exhausted' ? 8000 : 30000); }
+    finally { busy = false; st.busy = ''; api.emit(); }
+  };
+  api.boot = async function () {   /* before the page reads its keys */
+    if (!A) {
+      SM = mirMetaRead();
+      st.lsOk = !st.shim && mirLsTest(); st.on = !(SM && SM.on === false);   /* with the memory stand-in installed the test always passes: the browser itself is what failed */
+      if (!st.on) { st.phase = 'off'; return; }
+      st.phase = 'opening'; api.emit();
+      A = await mirOpen();
+      if (!A) { st.phase = 'unavailable'; return; }
+      st.uid = true;
+      if (SM && SM.uid && SM.uid !== A.uid) SM = null;   /* another account used this browser: start again */
+      SM = Object.assign({ v: 1, dev: mirRand(), on: true, keys: {}, mt5: null, gone: {} }, SM || {}); SM.uid = A.uid; SM.keys = SM.keys || {}; SM.gone = SM.gone || {};
+      if (SM.pending && SM.pending.ids) { const ids = SM.pending.ids; delete SM.pending; metaSave(); dropDocs(ids); }   /* a copy that was cut short: its pieces are not used */
+    }
+    man = await readMan(); manOk = true;
+    st.phase = 'ready'; st.err = '';
+    if (!man) return;
+    st.srvKeys = Object.keys(man.keys || {}).filter(k => !man.keys[k].gone).length; st.srvArc = srvArc();
+    const got = [], stash = [], late = {};
+    for (const k of Object.keys(man.keys || {})) {
+      const e = man.keys[k];
+      if (!e || e.gone || k.indexOf(MIRP) !== 0 || k === MIRSM) continue;
+      const have = mirLsGet(k), lm = SM.keys[k];
+      let pull = false;
+      if (have == null) pull = !lm;                                                       /* gone from here and never synced from here: it was wiped */
+      else if (!lm) { if (e.h === mirHash(have)) { SM.keys[k] = { h: e.h, t: e.t }; } else pull = true; }   /* never synced from here, and the account has other data: the account wins, this one is kept aside */
+      else if (mirHash(have) === lm.h) pull = e.h !== lm.h && (e.t || 0) > (lm.t || 0);   /* not changed here: take what changed there */
+      if (!pull) continue;
+      let str; try { str = await getText(k, e); } catch (x) { st.err = x && x.code === 'damaged' ? 'Una parte de tu copia en la cuenta llegó dañada y no la usé.' : mirErr(x); continue; }
+      if (api.started) { late[k] = { str, e }; continue; }
+      if (have != null) { mirLsSet(k + '-prev', have); stash.push(k); }
+      if (mirLsSet(k, str)) { SM.keys[k] = { h: e.h, t: e.t }; got.push(k); }
+    }
+    metaSave();
+    if (got.length) st.restored = { keys: got, stash };
+    if (Object.keys(late).length) { api.lateData = late; st.late = Object.keys(late); }
+  };
+  api.applyLate = function () {   /* the account answered after the page had started: write it and start again */
+    const L = api.lateData || {};
+    Object.keys(L).forEach(k => { const have = mirLsGet(k); if (have != null) mirLsSet(k + '-prev', have); if (mirLsSet(k, L[k].str)) SM.keys[k] = { h: L[k].e.h, t: L[k].e.t }; });
+    metaSave(); location.reload();
+  };
+  let looping = false;
+  api.startLoop = function () {
+    if (!attached || !A || !st.on || looping) return;
+    looping = true;
+    keys.forEach(k => { const cur = mirLsGet(k); lastStr[k] = cur; hashCur[k] = cur == null ? null : mirHash(cur); changedAt[k] = 0; });
+    clearInterval(timer); timer = setInterval(() => { if (document.visibilityState !== 'hidden') api.tick(false); }, MIRCFG.tick || 4000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') api.tick(true); });
+    api.tick(false);
+  };
+  api.attach = function (c) {
+    keys = c.keys; arc = c.archive; attached = true;
+    if (A && st.on) api.startLoop();
+    else if (!A && st.on) {   /* the platform's object may show up later: look again now and then */
+      clearInterval(openT); openT = setInterval(async () => {
+        if (A || ++tries > 12) { clearInterval(openT); return; }
+        if (window.claude && typeof window.claude.use === 'function') { clearInterval(openT); try { await api.boot(); } catch (e) { st.err = mirErr(e); } if (A) { if (st.late) mirBanner('Tus datos de la cuenta llegaron cuando la página ya había empezado.', [['Aplicar y recargar', api.applyLate]]); api.startLoop(); } api.emit(); }
+      }, 10000);
+    }
+    api.emit();
+  };
+  api.archiveSeen = function () { seen = true; if (attached && A) api.tick(false); };
+  api.archiveChanged = function () { if (SM) { delete SM.gone.mt5; metaSave(); } arcKey = ''; };
+  api.archiveForgotten = function () { if (SM) { SM.gone.mt5 = true; metaSave(); } if (attached && A) api.tick(true); };
+  api.flush = function () { nextTry = 0; return api.tick(true); };
+  api.retry = async function () {
+    nextTry = 0; st.err = ''; api.emit();
+    if (!A) { try { await api.boot(); } catch (e) { st.err = mirErr(e); } if (A && attached) { keys.forEach(k => { const cur = mirLsGet(k); lastStr[k] = cur; hashCur[k] = cur == null ? null : mirHash(cur); changedAt[k] = 0; }); } }
+    await api.tick(true);
+  };
+  api.setOn = function (v) {
+    SM = SM || Object.assign({ v: 1, dev: mirRand(), keys: {}, mt5: null, gone: {} }, mirMetaRead() || {});
+    SM.on = !!v; metaSave(); st.on = !!v;
+    if (v) location.reload(); else { clearInterval(timer); st.phase = 'off'; api.emit(); }
+  };
+  api.pullAll = async function () {   /* "bring everything from my account": the account wins, what is here is kept aside */
+    if (!A) throw new Error('no account');
+    st.busy = 'trayendo'; api.emit();
+    try {
+      man = await readMan(); if (!man) { st.err = 'Todavía no hay copia en tu cuenta.'; return false; }
+      for (const k of Object.keys(man.keys || {})) {
+        const e = man.keys[k]; if (!e || e.gone || k.indexOf(MIRP) !== 0 || k === MIRSM) continue;
+        const str = await getText(k, e), have = mirLsGet(k); if (have != null && have !== str) mirLsSet(k + '-prev', have);
+        mirLsSet(k, str); SM.keys[k] = { h: e.h, t: e.t };
+      }
+      const e = srvArc(); if (e && arc && MIRZ) await pullArc(e);
+      metaSave(); return true;
+    } catch (e) { st.err = e && e.code === 'damaged' ? 'Una parte de tu copia en la cuenta llegó dañada y no la usé.' : mirErr(e); return false; }
+    finally { st.busy = ''; api.emit(); }
+  };
+  api.wipe = async function () {   /* delete my copy from the account, and stop copying */
+    if (!A) throw new Error('no account');
+    st.busy = 'borrando'; api.emit();
+    try {
+      man = await readMan() || man;
+      if (man) { for (const k of Object.keys(man.keys || {})) { const e = man.keys[k]; if (e && !e.gone && e.ver) await dropDocs(keyIds(k, e)); } const a = srvArc(); if (a) await dropDocs(arcIds(a)); await op(() => doc('sync').delete()); }
+      man = null; SM.keys = {}; SM.mt5 = null; SM.gone = {}; SM.on = false; delete SM.pending; metaSave(); st.on = false; st.phase = 'off'; st.srvKeys = 0; st.srvArc = null; clearInterval(timer);
+      return true;
+    } catch (e) { st.err = mirErr(e); return false; }
+    finally { st.busy = ''; api.emit(); }
+  };
+  api.pullArchive = async function () { try { await pullArc(st.conflict.server); st.conflict = null; } catch (e) { st.err = mirErr(e); } api.emit(); };
+  api.pushArchive = async function () { try { await reconcileArc(true); } catch (e) { st.err = mirErr(e); } api.emit(); };
+  api.sum = function () { return st.phase === 'unavailable' || st.phase === 'idle' ? ' · solo en este navegador' : st.phase === 'off' ? ' · copia en tu cuenta apagada' : st.err ? ' · sin copia en tu cuenta' : st.busy ? ' · guardando en tu cuenta…' : st.last ? ' · copia en tu cuenta al día' : ''; };
+  return api;
+}
+
+function mirGate(run) {
+  const api = mirApi(), st = api.st;
+  let started = false, bn = null, showT = 0, ceilT = 0;
+  const go = () => {
+    if (started) return;
+    started = true; api.started = true; clearTimeout(showT); clearTimeout(ceilT);
+    if (bn) { bn.remove(); bn = null; }
+    run(api);
+  };
+  st.lsOk = mirLsTest(); if (!st.lsOk) st.shim = mirShim();
+  try { if (navigator.storage && navigator.storage.persisted) navigator.storage.persisted().then(v => { st.persisted = !!v; api.emit(); }, () => {}); } catch (e) { /* not offered */ }
+  if (!window.claude || typeof window.claude.use !== 'function') { st.phase = 'unavailable'; go(); return; }
+  showT = setTimeout(() => { if (!started) bn = mirBanner('Recuperando tus datos de tu cuenta…', [['Seguir sin esperar', go]]); }, MIRCFG.showAfter !== undefined ? MIRCFG.showAfter : 500);
+  ceilT = setTimeout(go, MIRCFG.wait || 25000);
+  api.boot().catch(e => { st.err = mirErr(e); st.phase = st.phase === 'opening' ? 'unavailable' : st.phase; }).then(() => {
+    if (started) {
+      if (st.late) mirBanner('Tus datos de la cuenta llegaron cuando la página ya había empezado.', [['Aplicar y recargar', api.applyLate]]);
+      api.startLoop(); api.emit(); return;
+    }
+    go();
+    if (st.restored) mirBanner('Recuperé tus datos de tu cuenta de Claude' + (st.restored.stash.length ? ' (los distintos que había aquí quedaron aparte)' : '') + ': este navegador los había borrado o no los tenía.', [], 20000);
+  });
+}
+/*END MIRGATE*/
+const __main = (MIR) => {
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -5388,7 +5756,7 @@ async function labLoadFile(f, ac) {
     if (ac && ac.rec) acStore(ac.rec);   /* several files joined: the joined file is what is kept */
     else if (ac && ac.single) bkRemember(f, { bars: m0.bars, first: day(m0.first), last: day(m0.last), base: m0.base });
     const w = labWarns(R).concat(ac && ac.warn ? ac.warn : []); warn.hidden = !w.length; warn.textContent = w.join(' ');
-    msg.textContent = 'Listo: ' + fInt(R.meta.bars) + ' velas leídas en este dispositivo. El archivo no se envió a ningún lado.' + (ac && ac.note ? ' ' + ac.note : '');
+    msg.textContent = 'Listo: ' + fInt(R.meta.bars) + ' velas leídas en este dispositivo. El archivo se lee aquí y no se envió a ningún sitio para leerlo.' + (ac && ac.note ? ' ' + ac.note : '');
     $('#lb-bar').hidden = true;
     L.b = Math.min(L.b, LNB(L.tf) - 1);
     labRender();
@@ -8727,7 +9095,13 @@ try { if (window.claude && typeof window.claude.use === 'function') window.claud
 
 /* -- 5. The MT5 archive, kept in IndexedDB (it is too big for localStorage): one record, every file joined into it (version 18) -- */
 const BKDB = 'mesa-eurusd-archivo', BKST = 'mt5', BKID = 'ultimo', BKMES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-let bkMeta = null, bkErr = '', bkDbOk = typeof indexedDB !== 'undefined' && !!indexedDB;
+let bkMeta = null, bkErr = '', bkDbOk = true, bkUseMem = typeof indexedDB === 'undefined' || !indexedDB;
+const BKMEM = new Map();   /* when the browser will not open IndexedDB: the archive lives here while the page is open */
+function bkMemTx(mode, make) {
+  const st = { get: k => ({ result: BKMEM.get(k) }), put: (v, k) => { BKMEM.set(k, v); return { result: k }; }, delete: k => { BKMEM.delete(k); return { result: undefined }; } };
+  const rq = make(st);
+  return Promise.resolve(rq ? rq.result : undefined);
+}
 function bkOpen() {
   return new Promise((ok, no) => {
     let q;
@@ -8739,7 +9113,8 @@ function bkOpen() {
   });
 }
 function bkTx(mode, make) {
-  return bkOpen().then(db => new Promise((ok, no) => {
+  if (bkUseMem) return bkMemTx(mode, make);
+  return bkOpen().catch(e => { bkUseMem = true; return null; }).then(db => !db ? bkMemTx(mode, make) : new Promise((ok, no) => {
     let out;
     try {
       const tx = db.transaction(BKST, mode), rq = make(tx.objectStore(BKST));
@@ -8769,13 +9144,14 @@ function bkInfo() {
   const m = bkMeta;
   return '<b>' + lvEsc(m.name) + '</b> (' + bkSize(m.size) + (m.bars ? ', ' + fInt(m.bars) + ' velas de ' + lvTf(m.base) + ', del ' + acD(m.first) + ' al ' + acD(m.last) : '') + '; guardado el ' + bkWhen(m.saved) + ')';
 }
+const bkSumBase = () => (bkMeta || CAL.length ? 'tus ajustes y tus datos acumulados' : 'tus ajustes, tu archivo de MT5 y tu calendario');
 function bkRefresh() {
   const mt = $('#bk-mt5'), info = bkMeta ? bkInfo() : '';
-  mt.innerHTML = !bkDbOk ? 'Este navegador no deja guardar archivos aquí (¿ventana privada?): tendrás que cargar tu archivo de MT5 cada vez.'
-    : bkMeta ? 'En este navegador: ' + info + '. Cada archivo de MT5 que cargues, en cualquier pestaña, se suma a él. No va dentro de la copia de ajustes de arriba.' + (bkErr ? ' ' + lvEsc(bkErr) : '')
-    : bkErr ? lvEsc(bkErr) : 'Cuando cargues un archivo de MT5 en cualquier pestaña, lo guardo aquí, en este navegador, y los siguientes se suman a él: quedan ordenados y sin velas repetidas. No sale de tu dispositivo.';
+  const mem = bkUseMem ? ' Este navegador no deja guardar archivos: queda solo mientras la página está abierta' + (MIR.st.phase === 'ready' ? ' y en tu cuenta de Claude.' : '.') : '';
+  mt.innerHTML = bkMeta ? (bkUseMem ? 'Ahora: ' : 'En este navegador: ') + info + '. Cada archivo de MT5 que cargues, en cualquier pestaña, se suma a él. No va dentro de la copia de ajustes de arriba; con la copia en tu cuenta activa, va aparte, en tu cuenta.' + mem + (bkErr ? ' ' + lvEsc(bkErr) : '')
+    : bkErr ? lvEsc(bkErr) + mem : 'Cuando cargues un archivo de MT5 en cualquier pestaña, lo guardo aquí, en este navegador, y los siguientes se suman a él: quedan ordenados y sin velas repetidas. Se lee en tu dispositivo; con la copia en tu cuenta activa, también se guarda en tu espacio privado de tu cuenta de Claude, y solo ahí.' + mem;
   $('#bk-load').hidden = !bkMeta || lvBusy; $('#bk-forget').hidden = !bkMeta;
-  $('#bk-sum').textContent = bkMeta || CAL.length ? 'tus ajustes y tus datos acumulados' : 'tus ajustes, tu archivo de MT5 y tu calendario, en este navegador';
+  $('#bk-sum').textContent = bkSumBase() + MIR.sum();
   const show = !!bkMeta && !LVfile && !lvBusy, showLab = !!bkMeta && !LDsrc && !labBusy && !acBusy;
   bkRows.forEach(r => { r.hidden = !show; if (show) $('.bk-t', r).innerHTML = 'Guardado en este navegador: ' + info; });
   bkLabRow.hidden = !showLab; if (showLab) $('.bk-t', bkLabRow).innerHTML = 'Guardado en este navegador: ' + info;
@@ -8802,7 +9178,7 @@ async function bkLoadSavedLab(note) {
   labLoadFile(acFile(r.blob, r.name), Object.assign(acFromRec(r), { note: typeof note === 'string' ? note : '' }));
 }
 async function bkForget() {
-  try { await bkTx('readwrite', st => st.delete(BKID)); bkMeta = null; bkErr = ''; } catch (e) { bkErr = 'No pude borrar el archivo guardado.'; }
+  try { await bkTx('readwrite', st => st.delete(BKID)); bkMeta = null; bkErr = ''; MIR.archiveForgotten(); } catch (e) { bkErr = 'No pude borrar el archivo guardado.'; }
   bkRefresh();
 }
 /* forgetting the archive takes two taps: it may hold many files joined, and it is the only joined copy */
@@ -8826,6 +9202,7 @@ document.addEventListener('click', e => {
 (async () => {
   if (bkDbOk) { try { const r = await bkTx('readonly', st => st.get(BKID)); if (r && r.blob) bkMeta = acMeta(r); } catch (e) { bkDbOk = false; } }
   bkRefresh();
+  MIR.archiveSeen();
 })();
 bkReady = true;
 
@@ -8896,7 +9273,7 @@ const acFromRec = r => { const m = acMeta(r); return { n: m.parts.length, bars: 
 async function acStore(rec) {
   if (!bkDbOk) return;
   const job = (async () => {
-    try { await bkTx('readwrite', st => st.put(rec, BKID)); bkMeta = acMeta(rec); bkErr = ''; }
+    try { await bkTx('readwrite', st => st.put(rec, BKID)); bkMeta = acMeta(rec); bkErr = ''; MIR.archiveChanged(); }
     catch (e) { bkErr = 'No pude guardar el acumulado en el navegador (' + ((e && e.name) || 'error') + '): ¿poco espacio o ventana privada? Lo que cargaste sigue en pantalla, pero no queda guardado.'; }
   })();
   acPending = job; await job;
@@ -9171,8 +9548,57 @@ function go(h, from) {
 window.addEventListener('hashchange', () => route(hashNow()));
 
 $$('.th').forEach(c => { const h = $('h2', c); if (h) { h.id = 'h-' + c.id; c.setAttribute('aria-labelledby', h.id); } }); /* a card is announced by its title when it takes focus */
+/*MIRMAIN*/
+/* -- version 20, inside the page: the block «En tu cuenta de Claude» in the backup section, and the links to the archive and the keys -- */
+const MIRE = { line: $('#mir-line'), prog: $('#mir-prog'), ls: $('#mir-ls'), now: $('#mir-now'), pull: $('#mir-pull'), onoff: $('#mir-onoff'), del: $('#mir-del'), keep: $('#mir-keep'), drop: $('#mir-drop'), late: $('#mir-late'), sum: $('#bk-sum') };
+const mirAgo = t => { const s = Math.max(0, Math.round((Date.now() - t) / 1000)); return s < 15 ? 'hace un momento' : s < 90 ? 'hace ' + s + ' s' : s < 5400 ? 'hace ' + Math.round(s / 60) + ' min' : s < 129600 ? 'hace ' + Math.round(s / 3600) + ' h' : 'hace ' + Math.round(s / 86400) + ' días'; };
+const mirSize = n => (n >= 1e6 ? (n / 1e6).toFixed(n < 1e7 ? 1 : 0) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' KB');
+let mirArm = 0, mirArmT = 0, mirArmK = '';
+function mirDisarm() { mirArm = 0; clearTimeout(mirArmT); [['pull', 'Traer todo de mi cuenta'], ['del', 'Borrar mi copia de la cuenta']].forEach(x => { if (MIRE[x[0]]) MIRE[x[0]].textContent = x[1]; }); mirArmK = ''; }
+function mirTwice(k, label, fn) {   /* two taps within 6 seconds for what replaces or deletes */
+  if (mirArmK === k && Date.now() - mirArm < 6000) { mirDisarm(); fn(); return; }
+  mirDisarm(); mirArm = Date.now(); mirArmK = k; MIRE[k].textContent = label; mirArmT = setTimeout(mirDisarm, 6000);
+}
+function mirPaint(s) {
+  if (!MIRE.line) return;
+  const a = s.srvArc, un = s.phase === 'unavailable' || s.phase === 'idle', off = s.phase === 'off';
+  let t;
+  if (un) t = 'Tu cuenta de Claude no está disponible desde esta vista: lo que guardas queda solo en este navegador' + (s.lsOk ? '.' : ', y este navegador ni siquiera deja guardar ajustes: se pierden al cerrar la página.');
+  else if (off) t = 'La copia en tu cuenta está apagada: lo que guardas queda solo en este navegador.';
+  else if (s.err && !s.last) t = s.err;
+  else t = (s.last ? 'Copia en tu cuenta de Claude: ' + (s.busy ? 'guardando…' : 'al día (' + mirAgo(s.last) + ')') + '. ' : 'Copia en tu cuenta de Claude: ' + (s.busy ? 'guardando…' : 'preparando…') + ' ') + (a ? 'Tu acumulado de MT5 (' + mirSize(a.size || 0) + ') también está ahí.' : (MIRZ ? '' : 'Este navegador no sabe comprimir: tu archivo de MT5 no se copia a la cuenta.'));
+  MIRE.line.textContent = t + (s.err && s.last ? ' ' + s.err : '');
+  if (s.conflict && s.conflict.server) {
+    const e = s.conflict.server, m = e.meta || {};
+    MIRE.line.textContent += ' En tu cuenta hay un acumulado de MT5 distinto' + (m.bars ? ' (' + fInt(m.bars) + ' velas, guardado el ' + bkWhen(m.saved || e.saved) + ')' : '') + ' y aquí no sé cuál es más nuevo.';
+  }
+  MIRE.prog.hidden = !(s.busy && s.total);
+  if (!MIRE.prog.hidden) MIRE.prog.textContent = (s.busy === 'archivo' ? 'Archivo de MT5: ' : '') + s.done + ' de ' + s.total + ' partes';
+  const ok = !un;
+  MIRE.now.hidden = !ok || off; MIRE.pull.hidden = !ok || off || !s.srvKeys && !a; MIRE.del.hidden = !ok || (off && !s.srvKeys && !a) ;
+  MIRE.onoff.hidden = un; MIRE.onoff.textContent = off ? 'Encender la copia' : 'Apagar la copia';
+  MIRE.keep.hidden = MIRE.drop.hidden = !(s.conflict && s.conflict.server);
+  MIRE.late.hidden = !s.late;
+  if (s.late) MIRE.line.textContent = 'En tu cuenta hay datos que llegaron cuando la página ya había empezado y no los apliqué. Mientras no lo hagas, no guardo nada nuevo en tu cuenta, para no taparlos.';
+  MIRE.ls.textContent = 'Este navegador: ajustes ' + (s.lsOk ? 'sí se guardan' : 'NO se guardan') + ' · archivos ' + (bkUseMem ? 'NO se guardan' : 'sí se guardan') + (s.persisted === true ? ' · almacenamiento protegido' : s.persisted === false ? ' · almacenamiento sin protección contra borrado' : '') + '.';
+  MIRE.sum.textContent = bkSumBase() + MIR.sum();
+}
+MIRE.now.addEventListener('click', () => MIR.flush());
+MIRE.onoff.addEventListener('click', () => MIR.setOn(MIR.st.phase === 'off'));
+MIRE.pull.addEventListener('click', () => mirTwice('pull', 'Toca otra vez: reemplaza lo de aquí', async () => { if (await MIR.pullAll()) location.reload(); }));
+MIRE.del.addEventListener('click', () => mirTwice('del', 'Toca otra vez para borrarla', () => MIR.wipe()));
+MIRE.keep.addEventListener('click', () => MIR.pullArchive());
+MIRE.drop.addEventListener('click', () => MIR.pushArchive());
+MIRE.late.addEventListener('click', () => MIR.applyLate());
+async function mirPutRec(rec) { await bkTx('readwrite', st => st.put(rec, BKID)); bkMeta = acMeta(rec); bkErr = ''; bkRefresh(); }
+MIR.sub(mirPaint);
+MIR.attach({ keys: BKKEYS.map(x => x[0]), archive: { meta: () => bkMeta, get: acGet, put: mirPutRec } });
+mirPaint(MIR.st);
+/*END MIRMAIN*/
 render(); drawCal(); tick(); setInterval(tick, 30000);
 route(hashNow());
+};
+mirGate(__main);
 })();
 </script>
 </body></html>
