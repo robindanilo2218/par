@@ -1083,6 +1083,22 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
 #mir-bn button{font:inherit;padding:6px 10px;border:1px solid var(--edge);border-radius:8px;background:var(--key);color:var(--ink);cursor:pointer}
 #mir-bn button.x{padding:2px 9px;font-size:18px;line-height:1;border-color:transparent;background:transparent;color:var(--ink-2)}
 
+/* version 21: the state of the copy, always in sight in the header */
+.mir-chip{grid-row:1;grid-column:-2/-1;justify-self:end;display:inline-flex;align-items:center;gap:.35rem;max-width:100%;min-width:0;appearance:none;background:transparent;border:0;color:inherit;padding:.25rem 0;font:600 .6875rem/1.2 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;opacity:.85;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mir-chip[hidden]{display:none}
+.mir-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.mir-chip i{flex:none;width:.5rem;height:.5rem;border-radius:50%;box-shadow:inset 0 0 0 1.5px currentColor}
+.mir-chip[data-k="ok"] i{background:currentColor}
+.mir-chip[data-k="work"] i{animation:mirpulse 1.1s ease-in-out infinite}
+.mir-chip[data-k="none"]{opacity:.55}
+.mir-chip[data-k="warn"]{opacity:1;text-decoration:underline;text-underline-offset:.15em}
+.mir-chip[data-k="warn"] i{background:currentColor;border-radius:1px;transform:rotate(45deg)}
+@keyframes mirpulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.mir-chip[data-k="work"] i{animation:none}}
+#mir{scroll-margin-top:12rem}
+.bk-opt{display:flex;gap:.55rem;align-items:flex-start;margin-top:.6rem;font-size:.8125rem;line-height:1.35;color:var(--ink)}
+.bk-opt input{flex:none;width:1.1rem;height:1.1rem;margin:.08rem 0 0;accent-color:var(--ink)}
+
 /* ---------- version 7: box plots in the Cuartiles card (same fills as the Laboratorio's chart) ---------- */
 .dg-q90{fill:var(--line);stroke:var(--edge);stroke-width:1}
 .dg-q50{fill:var(--edge)}
@@ -1093,6 +1109,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
 <header class="tape" id="tape">
   <div class="wrap tape-in">
     <h1 class="eyebrow">Mesa<span class="hs"> de decisión</span> · EURUSD</h1>
+    <button type="button" class="mir-chip" id="mir-chip" data-k="work" hidden aria-label="Estado de la copia en tu cuenta de Claude"><i aria-hidden="true"></i><span>Preparando…</span></button>
     <strong class="verdict tooltip" tabindex="0" data-teoria="veredicto"><span id="verdict" aria-live="polite">ESPERAR</span><span class="tooltiptext"><span class="p"><b>Qué dice cada veredicto.</b></span><span class="p"><b>ESPERAR:</b> falta el sesgo macro o la tendencia, o el macro está dividido.</span><span class="p"><b>NO OPERAR:</b> macro y tendencia apuntan a lados opuestos.</span><span class="p"><b>BUSCAR COMPRA o VENTA:</b> hay dirección; falta el nivel, el gatillo o algún permiso.</span><span class="p"><b>COMPRAR o VENDER:</b> las cuatro luces apuntan al mismo lado y están los 7 permisos.</span><span class="p"><b>SALIR o REDUCIR:</b> marcaste una condición del paso 6.</span></span></strong>
     <p class="why" id="why">Empieza por el sesgo macro y la tendencia.</p>
     <button type="button" class="lamps tooltip" id="lamps" aria-label="Resumen de la lista" data-teoria="veredicto">
@@ -2978,12 +2995,14 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
     <p>Es el primer bloque de «Copia de seguridad». Está activada desde el principio, y puedes apagarla.</p>
     <ul>
       <li><b>Qué copia.</b> Los mismos ajustes que lleva el .forex.json (con el calendario, los datos del Paso 1 y la Bitácora) y tu EURUSD acumulado. Los ajustes pesan unos kilobytes. El archivo de MT5 se comprime antes de subirlo: 30 MB de velas de un minuto quedan en unos 6 MB. Si comprimido pasara de 60 MB, no lo sube y te lo dice.</li>
-      <li><b>Cuándo guarda.</b> Unos segundos después de cada cambio y al pasar la página a segundo plano. El archivo de MT5, 12 segundos después de la última carga, para no subir uno a medias cuando cargas varios seguidos. Solo sube lo que cambió.</li>
-      <li><b>Cuándo trae de vuelta.</b> Al abrir la página, antes de que lea nada: si a este navegador le falta algo que la cuenta tiene, lo restaura y te avisa. El archivo de MT5 lo baja después, con una barra de avance. Si la cuenta tiene un dato más nuevo de otro teléfono y aquí no lo cambiaste, lo toma.</li>
+      <li><b>Cuándo guarda.</b> Un par de segundos después de cada cambio, y al pasar la página a segundo plano o cerrarla. El archivo de MT5, unos 3 segundos después de la última carga (para no subir uno a medias cuando cargas varios seguidos); tarda más porque son varios megas, y si se corta a la mitad sigue por donde iba. <b>Mientras sube, deja la página abierta:</b> arriba, junto al título, una palabra dice cómo va: «Subiendo 12/42», «Guardando…» o «Copia al día». Solo sube lo que cambió.</li>
+      <li><b>Cuándo trae de vuelta.</b> Al abrir la página, antes de que lea nada: si a este navegador le falta algo que la cuenta tiene, lo restaura y te avisa. El archivo de MT5 lo baja después, con una barra de avance («Trayendo 12/42», arriba). Si la cuenta tiene un dato más nuevo de otro teléfono y aquí no lo cambiaste, lo toma.</li>
+      <li><b>Y se abre con los datos.</b> Si hay un acumulado de MT5 guardado, la página lo carga sola al abrir (Niveles, Lógica y Gráfico), sin tocar «Cargar». Se apaga con la casilla de «Tu EURUSD acumulado». El Laboratorio es más pesado y sigue con su botón.</li>
       <li><b>Cuando no coinciden.</b> Si aquí hay datos distintos a los de la cuenta y nunca se habían sincronizado, gana la cuenta y lo de aquí queda guardado aparte. Si cada lado tiene un acumulado de MT5 distinto, la página te pregunta cuál quieres.</li>
       <li><b>Lo que borras no vuelve.</b> Si vacías el calendario o olvidas el acumulado, la copia también lo borra; si no, el siguiente borrado del navegador lo resucitaría.</li>
       <li><b>Privacidad.</b> Va a un espacio de tu cuenta que ningún otro visitante de la página puede leer, aunque compartas el enlace. No se envía a nadie más. Si borras la página, se borra con ella.</li>
-      <li><b>Si no puede.</b> Sin conexión, o en una vista donde la plataforma no da acceso a tu cuenta, la página funciona como antes y el bloque dice que lo guardado está solo en este navegador. Si el navegador ni siquiera deja guardar, la página lo mantiene en memoria mientras está abierta y la copia en tu cuenta lo recupera la próxima vez.</li>
+      <li><b>Si no puede.</b> Sin conexión, o en una vista donde la plataforma no da acceso a tu cuenta, la página funciona como antes y el bloque dice que lo guardado está solo en este navegador. Si el navegador no deja guardar el archivo grande (poco espacio, ventana privada, algunas apps), la página lo mantiene en memoria mientras está abierta y lo sube igual a tu cuenta; la próxima vez lo recupera de ahí.</li>
+      <li><b>Registro técnico.</b> Junto a la copia, la página guarda en tu cuenta un registro corto de lo que pasó al abrir y al guardar (avisos, errores, tipo de navegador, espacio disponible), sin ningún dato tuyo. Sirve para encontrar fallos en vez de adivinar. «Borrar mi copia de la cuenta» lo borra también.</li>
     </ul>
     <h3>Por qué dos sistemas</h3>
     <p>En el navegador hay dos almacenes. Los ajustes son unos pocos kilobytes de texto: <b>localStorage</b> los guarda al instante y sin complicaciones. El archivo de MT5 pesa decenas de megabytes y localStorage no lo aguanta (suele limitarse a unos 5 MB): para eso se usa <b>IndexedDB</b>. Pasar los ajustes a IndexedDB no los haría más seguros: se pierden en los mismos casos. Por eso la copia en tu cuenta es un tercer sitio, fuera del navegador.</p>
@@ -3789,6 +3808,7 @@ button.filebtn{appearance:none;color:inherit;text-align:center}
           <div class="lv-body"><ul class="bk-parts" id="bk-parts-l"></ul></div>
         </details>
         <div class="bk-row"><button type="button" class="act" id="bk-load" hidden>Cargar el acumulado</button><button type="button" class="act" id="bk-sv-mt5" hidden>Guardar en un archivo .csv</button><button type="button" class="act" id="bk-forget" hidden>Olvidar el acumulado</button></div>
+        <label class="bk-opt" for="bk-auto"><input type="checkbox" id="bk-auto"><span>Cargar mi acumulado solo al abrir la página (Niveles, Lógica y Gráfico). El Laboratorio se carga con su botón.</span></label>
         <div class="bk-row" id="bk-years" hidden></div>
       </div>
 
@@ -3889,15 +3909,34 @@ async function mirOpen() {   /* → { col, uid } or null: the account is not rea
 }
 
 function mirApi() {
-  const st = { phase: 'idle', lsOk: true, shim: false, persisted: null, on: true, busy: '', done: 0, total: 0, last: 0, err: '', restored: null, late: null, srvKeys: 0, srvArc: null, conflict: null, z: MIRZ, uid: false };
+  const st = { phase: 'idle', lsOk: true, shim: false, persisted: null, on: true, busy: '', done: 0, total: 0, last: 0, err: '', restored: null, late: null, srvKeys: 0, srvArc: null, conflict: null, z: MIRZ, uid: false, dir: 'up', dirty: false };
   const api = { st, started: false, lateData: null };
   const subs = []; let emitT = 0;
   api.sub = fn => { subs.push(fn); };
   api.emit = () => { clearTimeout(emitT); emitT = setTimeout(() => subs.forEach(f => { try { f(st); } catch (e) { /* only the painting failed */ } }), 30); };
   let A = null, man = null, manOk = false, SM = null, keys = [], arc = null, attached = false, busy = false, seen = false, nextTry = 0, arcAt = 0, arcKey = '', timer = 0, openT = 0, tries = 0;
   const lastStr = {}, hashCur = {}, changedAt = {};
-  const deb = () => (MIRCFG.debounce !== undefined ? MIRCFG.debounce : 3000);
+  const deb = () => (MIRCFG.debounce !== undefined ? MIRCFG.debounce : 1200);
   const doc = id => A.col.doc(id);
+  /* a short technical log, kept in the account beside the copy, so a failure can be found without guessing (none of your data goes in it) */
+  const DG = { log: [], t0: Date.now(), dirty: false, timer: 0, base: null, busy: false };
+  api.diag = function (msg) {
+    try {
+      DG.log.push([Math.round((Date.now() - DG.t0) / 1000), String(msg).slice(0, 180)]);
+      if (DG.log.length > 70) DG.log.splice(0, DG.log.length - 70);
+      DG.dirty = true; clearTimeout(DG.timer); DG.timer = setTimeout(diagFlush, MIRCFG.diag !== undefined ? MIRCFG.diag : 6000);
+    } catch (e) { /* a log must never break the page */ }
+  };
+  async function diagFlush() {
+    if (!A || !st.on || DG.busy || !DG.dirty) return;
+    DG.busy = true; DG.dirty = false;
+    try {
+      if (!DG.base) { const s = await op(() => doc('diag').get()); DG.base = s.exists && s.data() && Array.isArray(s.data().sessions) ? s.data().sessions.slice(-3) : []; }
+      let est = null; try { if (navigator.storage && navigator.storage.estimate) { const q = await navigator.storage.estimate(); est = [Math.round((q.usage || 0) / 1e6), Math.round((q.quota || 0) / 1e6)]; } } catch (e) { /* not offered */ }
+      const cur = { t: DG.t0, v: 21, ua: String(navigator.userAgent || '').slice(0, 150), w: window.innerWidth, ls: st.lsOk, shim: st.shim, persisted: st.persisted, idb: typeof indexedDB !== 'undefined' && !!indexedDB, z: MIRZ, estMB: est, log: DG.log };
+      await op(() => doc('diag').set({ sessions: DG.base.concat([cur]) }));
+    } catch (e) { DG.dirty = true; } finally { DG.busy = false; }
+  }
   async function op(fn) {   /* one call to the account: gives up after 25 s, tries again when the platform says "later" */
     let last;
     for (let i = 0; i < 3; i++) {
@@ -3961,21 +4000,30 @@ function mirApi() {
     let i = 0;
     await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const j = i++; await fn(items[j], j); } }));
   }
+  let arcJob = null;   /* the upload in progress, or cut short: tried again with the same pieces, so only what is missing goes up */
   async function pushArc(m, rec) {
-    const gz = await mirGz(rec.blob);
-    if (gz.length > MIRMAX) { st.err = 'Tu acumulado de MT5 comprimido pesa ' + (gz.length / 1e6).toFixed(0) + ' MB: es más de lo que guardo en tu cuenta (' + (MIRMAX / 1e6).toFixed(0) + ' MB). Sigue en este navegador.'; arcKey = m.saved + ':' + m.size; return; }
-    const per = Math.floor(MIRCH / 4) * 3, n = Math.max(1, Math.ceil(gz.length / per)), ver = Date.now().toString(36) + mirRand().slice(0, 3), ids = Array.from({ length: n }, (_, i) => 'a-' + ver + '-' + i);
-    SM.pending = { ids }; metaSave();
-    st.busy = 'archivo'; st.done = 0; st.total = n; api.emit();
-    await pool(3, ids, async (id, i) => { await op(() => doc(id).set({ d: mirB64(gz.subarray(i * per, (i + 1) * per)) })); st.done++; api.emit(); });
+    const key = m.saved + ':' + m.size;
+    if (!arcJob || arcJob.key !== key) {
+      if (arcJob && arcJob.done.size) dropDocs(arcJob.ids);   /* another archive now: the pieces of the old attempt are of no use */
+      const gz = await mirGz(rec.blob);
+      if (gz.length > MIRMAX) { st.err = 'Tu acumulado de MT5 comprimido pesa ' + (gz.length / 1e6).toFixed(0) + ' MB: es más de lo que guardo en tu cuenta (' + (MIRMAX / 1e6).toFixed(0) + ' MB). Sigue en este navegador.'; arcKey = key; api.diag('archivo: demasiado grande para la cuenta (' + (gz.length / 1e6).toFixed(1) + ' MB comprimido)'); return; }
+      const per = Math.floor(MIRCH / 4) * 3, n = Math.max(1, Math.ceil(gz.length / per)), ver = Date.now().toString(36) + mirRand().slice(0, 3);
+      arcJob = { key, gz, per, n, ver, ids: Array.from({ length: n }, (_, i) => 'a-' + ver + '-' + i), done: new Set(), t0: Date.now() };
+      SM.pending = { ids: arcJob.ids }; metaSave();
+      api.diag('archivo: subo ' + n + ' partes (' + (gz.length / 1e6).toFixed(1) + ' MB comprimido de ' + (rec.blob.size / 1e6).toFixed(1) + ' MB)');
+    }
+    const J = arcJob;
+    st.busy = 'archivo'; st.dir = 'up'; st.done = J.done.size; st.total = J.n; api.emit();
+    await pool(3, J.ids.map((x, i) => i).filter(i => !J.done.has(i)), async i => { await op(() => doc(J.ids[i]).set({ d: mirB64(J.gz.subarray(i * J.per, (i + 1) * J.per)) })); J.done.add(i); st.done = J.done.size; api.emit(); });
     const old = srvArc();
-    await patchMan({ mt5: { ver, n, size: m.size, bsize: rec.blob.size, zsize: gz.length, saved: m.saved, meta: m, t: Date.now(), gone: 0 } });
+    await patchMan({ mt5: { ver: J.ver, n: J.n, size: m.size, bsize: rec.blob.size, zsize: J.gz.length, saved: m.saved, meta: m, t: Date.now(), gone: 0 } });
     SM.mt5 = { saved: m.saved, size: m.size }; delete SM.pending; delete SM.gone.mt5; metaSave();
+    api.diag('archivo: subida lista en ' + Math.round((Date.now() - J.t0) / 1000) + ' s'); arcJob = null;
     if (old) dropDocs(arcIds(old));
   }
   async function pullArc(e) {
-    st.busy = 'archivo'; st.done = 0; st.total = e.n; api.emit();
-    const parts = new Array(e.n);
+    st.busy = 'archivo'; st.dir = 'down'; st.done = 0; st.total = e.n; api.emit();
+    const t0 = Date.now(), parts = new Array(e.n); api.diag('archivo: bajo ' + e.n + ' partes de la cuenta');
     await pool(3, Array.from({ length: e.n }, (_, i) => i), async i => {
       const s = await op(() => doc('a-' + e.ver + '-' + i).get());
       if (!s.exists) throw Object.assign(new Error('missing'), { code: 'missing' });
@@ -3986,6 +4034,7 @@ function mirApi() {
     const m = e.meta || {};
     await arc.put({ name: m.name || 'EURUSD.csv', size: m.size || blob.size, saved: m.saved || e.saved || Date.now(), blob, bars: m.bars || 0, first: m.first || 0, last: m.last || 0, base: m.base || 60, parts: m.parts || [{ name: m.name || 'EURUSD.csv', size: blob.size }], warn: m.warn || [] });
     SM.mt5 = { saved: m.saved || e.saved, size: m.size || blob.size }; delete SM.gone.mt5; metaSave();
+    api.diag('archivo: bajado y guardado aquí en ' + Math.round((Date.now() - t0) / 1000) + ' s');
   }
   async function dropArc() {
     const old = srvArc(); await patchMan({ mt5: { gone: 1, t: Date.now() } });
@@ -4003,10 +4052,16 @@ function mirApi() {
     const key = m.saved + ':' + m.size, rec = () => arc.get();
     if (e && sm && sm.saved === m.saved && sm.size === m.size && !force) { await pullArc(e); return; }   /* unchanged here, newer there */
     if (e && !sm && e.saved > m.saved && !force) { st.conflict = { server: e }; api.emit(); return; }   /* never synced and the account has a newer one: ask */
-    if (!force) { if (arcKey !== key) { arcKey = key; arcAt = Date.now(); } if (Date.now() - arcAt < (MIRCFG.arcDebounce !== undefined ? MIRCFG.arcDebounce : 12000)) return; }   /* a few files in a row: wait for the last */
+    if (!force) { if (arcKey !== key) { arcKey = key; arcAt = Date.now(); } if (Date.now() - arcAt < (MIRCFG.arcDebounce !== undefined ? MIRCFG.arcDebounce : 2500)) return; }   /* a few files in a row: wait for the last */
     const r = await rec();
     if (!r || !r.blob) return;
     await pushArc(m, r); st.conflict = null;
+  }
+  function dirtyNow() {   /* is there something here that the account does not have yet? */
+    if (!A || !st.on || !SM) return false;
+    for (const k of keys) { const h = hashCur[k] === undefined ? null : hashCur[k], s = SM.keys[k] ? SM.keys[k].h : null; if (h !== s) return true; }
+    const m = arc && arc.meta ? arc.meta() : null, e = srvArc();
+    return !!(m && MIRZ && !st.conflict && (!e || e.saved !== m.saved || e.size !== m.size) && !(st.err && /pesa/.test(st.err)));
   }
   api.tick = async function (force) {
     if (busy || !A || !st.on || !attached || Date.now() < nextTry) return;
@@ -4025,8 +4080,8 @@ function mirApi() {
       }
       await reconcileArc(force);
       st.err = st.err && /pesa/.test(st.err) ? st.err : ''; st.last = Date.now(); st.phase = 'ready';
-    } catch (e) { st.err = mirErr(e); nextTry = Date.now() + ((e && e.code) === 'resource_exhausted' ? 8000 : 30000); }
-    finally { busy = false; st.busy = ''; api.emit(); }
+    } catch (e) { st.err = mirErr(e); nextTry = Date.now() + ((e && e.code) === 'resource_exhausted' || arcJob ? 8000 : 30000); api.diag('error: ' + ((e && e.code) || '') + ' ' + String((e && e.message) || e).slice(0, 90)); }
+    finally { busy = false; st.busy = ''; st.dirty = dirtyNow(); api.emit(); }
   };
   api.boot = async function () {   /* before the page reads its keys */
     if (!A) {
@@ -4074,8 +4129,9 @@ function mirApi() {
     if (!attached || !A || !st.on || looping) return;
     looping = true;
     keys.forEach(k => { const cur = mirLsGet(k); lastStr[k] = cur; hashCur[k] = cur == null ? null : mirHash(cur); changedAt[k] = 0; });
-    clearInterval(timer); timer = setInterval(() => { if (document.visibilityState !== 'hidden') api.tick(false); }, MIRCFG.tick || 4000);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') api.tick(true); });
+    clearInterval(timer); timer = setInterval(() => { if (document.visibilityState !== 'hidden') api.tick(false); }, MIRCFG.tick || 2000);
+    document.addEventListener('visibilitychange', () => { api.diag('pestaña ' + document.visibilityState); if (document.visibilityState === 'hidden') api.tick(true); });
+    window.addEventListener('pagehide', () => { api.diag('pagehide'); api.tick(true); });
     api.tick(false);
   };
   api.attach = function (c) {
@@ -4090,7 +4146,11 @@ function mirApi() {
     api.emit();
   };
   api.archiveSeen = function () { seen = true; if (attached && A) api.tick(false); };
-  api.archiveChanged = function () { if (SM) { delete SM.gone.mt5; metaSave(); } arcKey = ''; };
+  let persistAsked = false;
+  api.archiveChanged = function () {
+    if (SM) { delete SM.gone.mt5; metaSave(); } arcKey = ''; if (A && st.on) { st.dirty = true; api.emit(); }
+    if (!persistAsked) { persistAsked = true; try { if (navigator.storage && navigator.storage.persist && st.persisted !== true) navigator.storage.persist().then(v => { st.persisted = !!v; api.diag('almacenamiento protegido: ' + (v ? 'sí' : 'no')); api.emit(); }, () => {}); } catch (e) { /* not offered */ } }
+  };
   api.archiveForgotten = function () { if (SM) { SM.gone.mt5 = true; metaSave(); } if (attached && A) api.tick(true); };
   api.flush = function () { nextTry = 0; return api.tick(true); };
   api.retry = async function () {
@@ -4124,6 +4184,7 @@ function mirApi() {
     try {
       man = await readMan() || man;
       if (man) { for (const k of Object.keys(man.keys || {})) { const e = man.keys[k]; if (e && !e.gone && e.ver) await dropDocs(keyIds(k, e)); } const a = srvArc(); if (a) await dropDocs(arcIds(a)); await op(() => doc('sync').delete()); }
+      try { await op(() => doc('diag').delete()); } catch (e) { /* none */ }
       man = null; SM.keys = {}; SM.mt5 = null; SM.gone = {}; SM.on = false; delete SM.pending; metaSave(); st.on = false; st.phase = 'off'; st.srvKeys = 0; st.srvArc = null; clearInterval(timer);
       return true;
     } catch (e) { st.err = mirErr(e); return false; }
@@ -4149,7 +4210,9 @@ function mirGate(run) {
   if (!window.claude || typeof window.claude.use !== 'function') { st.phase = 'unavailable'; go(); return; }
   showT = setTimeout(() => { if (!started) bn = mirBanner('Recuperando tus datos de tu cuenta…', [['Seguir sin esperar', go]]); }, MIRCFG.showAfter !== undefined ? MIRCFG.showAfter : 500);
   ceilT = setTimeout(go, MIRCFG.wait || 25000);
+  const T0 = Date.now();
   api.boot().catch(e => { st.err = mirErr(e); st.phase = st.phase === 'opening' ? 'unavailable' : st.phase; }).then(() => {
+    api.diag('abrir: ' + st.phase + ' en ' + (Date.now() - T0) + ' ms' + (started ? ' (la página ya había empezado)' : '') + (st.restored ? '; restauré ' + st.restored.keys.length + ' claves' : '') + (st.late ? '; llegaron tarde ' + st.late.length : '') + (st.err ? '; ' + String(st.err).slice(0, 70) : '') + '; ls ' + (st.lsOk ? 'ok' : 'NO'));
     if (started) {
       if (st.late) mirBanner('Tus datos de la cuenta llegaron cuando la página ya había empezado.', [['Aplicar y recargar', api.applyLate]]);
       api.startLoop(); api.emit(); return;
@@ -6219,7 +6282,8 @@ async function lvLoad(f, fromStore, ac) {
     else if (!R.sw.length) w.push('No encontré máximos ni mínimos de H4 en las últimas dos semanas del archivo.');
     if (ac && ac.warn) ac.warn.forEach(x => w.push(x));
     warn.hidden = !w.length; warn.textContent = w.join(' ');
-    $('#lv').open = true; lvRun();
+    if (!(ac && ac.quiet)) $('#lv').open = true;
+    lvRun();
   } catch (e) { st.textContent = String((e && e.message) || e) + ' Sigo con lo que había.'; }
   lvBusy = false; lgHook(); bkRefresh();
 }
@@ -9159,17 +9223,17 @@ function bkRefresh() {
   acPanel();
 }
 async function bkRemember(f, m) {   /* one file, nothing saved yet: keep it as it is; m = what the page already knows about it */
-  if (!bkDbOk || !f) return;
+  if (!f) return;
   m = m || {};
   const p = { name: f.name, size: f.size };
   if (m.bars) { p.bars = m.bars; p.first = m.first; p.last = m.last; }
   await acStore({ name: f.name, size: f.size, saved: Date.now(), blob: f, bars: m.bars || 0, first: m.first || 0, last: m.last || 0, base: m.base || 60, parts: [p], warn: [] });
 }
-async function bkLoadSaved(note) {
+async function bkLoadSaved(note, quiet) {
   if (lvBusy || acBusy) return;
   const r = await acGet();
   if (!r) { bkMeta = null; bkErr = 'No encontré el archivo guardado.'; bkRefresh(); return; }
-  lvLoad(acFile(r.blob, r.name), true, Object.assign(acFromRec(r), { note: typeof note === 'string' ? note : '' }));
+  lvLoad(acFile(r.blob, r.name), true, Object.assign(acFromRec(r), { note: typeof note === 'string' ? note : '', quiet: quiet === true }));
 }
 async function bkLoadSavedLab(note) {
   if (lvBusy || acBusy || labBusy) return;
@@ -9199,10 +9263,24 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-bk]');
   if (b) { const k = b.dataset.bk; if (k === 'load') bkLoadSaved(); else if (k === 'loadlab') bkLoadSavedLab(); else if (k === 'forget') bkForgetAsk(); }
 });
+/* opening the page: if an archive is saved here (or just came back from the account), load it by itself, so the charts are not empty. The switch is in «Tu EURUSD acumulado». */
+let bkAutoDone = false, bkAutoLoaded = false;
+const bkAutoKey = 'mesa-eurusd-v1-auto';
+const bkAutoOn = () => { try { return localStorage.getItem(bkAutoKey) !== '0'; } catch (e) { return true; } };
+const bkAutoBox = $('#bk-auto');
+if (bkAutoBox) { bkAutoBox.checked = bkAutoOn(); bkAutoBox.addEventListener('change', () => { try { localStorage.setItem(bkAutoKey, bkAutoBox.checked ? '1' : '0'); } catch (e) { /* this browser keeps nothing: it applies until you close the page */ } }); }
+function bkAuto() {
+  if (bkAutoDone || !bkMeta || !bkAutoOn()) return;
+  bkAutoDone = true;
+  if (lvBusy || acBusy || LVfile) return;
+  bkAutoLoaded = true; MIR.diag('abrir: cargo solo el acumulado (' + (bkMeta.bars || 0) + ' velas)');
+  bkLoadSaved('Se cargó solo al abrir la página.', true);
+}
 (async () => {
-  if (bkDbOk) { try { const r = await bkTx('readonly', st => st.get(BKID)); if (r && r.blob) bkMeta = acMeta(r); } catch (e) { bkDbOk = false; } }
+  try { const r = await bkTx('readonly', st => st.get(BKID)); if (r && r.blob) bkMeta = acMeta(r); } catch (e) { bkUseMem = true; MIR.diag('archivo: no pude leer el navegador (' + ((e && e.name) || 'error') + ')'); }
   bkRefresh();
   MIR.archiveSeen();
+  setTimeout(bkAuto, 700);
 })();
 bkReady = true;
 
@@ -9271,10 +9349,13 @@ async function acGet() { await acPending; try { const r = await bkTx('readonly',
 const acMeta = r => ({ name: r.name, size: r.size, saved: r.saved, bars: r.bars || 0, first: r.first || 0, last: r.last || 0, base: r.base || 60, parts: r.parts && r.parts.length ? r.parts : [{ name: r.name, size: r.size }], warn: r.warn || [] });
 const acFromRec = r => { const m = acMeta(r); return { n: m.parts.length, bars: m.bars, first: m.first, last: m.last, warn: m.warn, note: '', rec: null }; };
 async function acStore(rec) {
-  if (!bkDbOk) return;
   const job = (async () => {
-    try { await bkTx('readwrite', st => st.put(rec, BKID)); bkMeta = acMeta(rec); bkErr = ''; MIR.archiveChanged(); }
-    catch (e) { bkErr = 'No pude guardar el acumulado en el navegador (' + ((e && e.name) || 'error') + '): ¿poco espacio o ventana privada? Lo que cargaste sigue en pantalla, pero no queda guardado.'; }
+    let why = '';
+    try { await bkTx('readwrite', st => st.put(rec, BKID)); }
+    catch (e) { why = (e && e.name) || 'error'; BKMEM.set(BKID, rec); bkUseMem = true; MIR.diag('archivo: el navegador no lo guardó (' + why + ', ' + bkSize(rec.size || 0) + '); queda en memoria'); }   /* not lost: it stays in memory for this visit and still goes to the account */
+    bkMeta = acMeta(rec);
+    bkErr = why ? 'El navegador no dejó guardar el acumulado (' + why + '): ¿poco espacio o ventana privada? ' + (MIR.st.phase === 'ready' ? 'Queda en memoria mientras la página esté abierta y lo subo a tu cuenta de Claude: no la cierres hasta que arriba diga «Copia al día».' : 'Queda en pantalla mientras la página esté abierta, pero no queda guardado.') : '';
+    MIR.archiveChanged();
   })();
   acPending = job; await job;
   bkRefresh();
@@ -9559,7 +9640,30 @@ function mirTwice(k, label, fn) {   /* two taps within 6 seconds for what replac
   if (mirArmK === k && Date.now() - mirArm < 6000) { mirDisarm(); fn(); return; }
   mirDisarm(); mirArm = Date.now(); mirArmK = k; MIRE[k].textContent = label; mirArmT = setTimeout(mirDisarm, 6000);
 }
+const mirChip = $('#mir-chip');
+function mirChipPaint(s) {   /* one short word in the header: is what you have kept also in your account? */
+  if (!mirChip) return;
+  const un = s.phase === 'unavailable' || s.phase === 'idle', off = s.phase === 'off';
+  let k, t, d;
+  if (s.phase === 'opening') { k = 'work'; t = 'Conectando…'; d = 'Conectando con tu cuenta de Claude.'; }
+  else if (un) { k = 'none'; t = 'Sin copia'; d = 'Tu cuenta de Claude no está disponible desde esta vista: lo que guardas queda solo en este navegador.'; }
+  else if (off) { k = 'none'; t = 'Copia apagada'; d = 'La copia en tu cuenta está apagada.'; }
+  else if (s.late || s.conflict) { k = 'warn'; t = 'Falta decidir'; d = 'Hay datos distintos en tu cuenta: toca para decidir.'; }
+  else if (s.busy === 'archivo') { k = 'work'; t = (s.dir === 'down' ? 'Trayendo ' : 'Subiendo ') + s.done + '/' + s.total; d = 'Tu acumulado de MT5 ' + (s.dir === 'down' ? 'baja de' : 'sube a') + ' tu cuenta. No cierres la página hasta que diga «Copia al día».'; }
+  else if (s.busy) { k = 'work'; t = 'Guardando…'; d = 'Guardando en tu cuenta de Claude.'; }
+  else if (s.err) { k = 'warn'; t = 'Revisa la copia'; d = s.err; }
+  else if (s.dirty) { k = 'work'; t = 'Guardando…'; d = 'Guardando en tu cuenta de Claude.'; }
+  else if (s.last) { k = 'ok'; t = 'Copia al día'; d = 'Copia en tu cuenta de Claude: al día (' + mirAgo(s.last) + ').'; }
+  else { k = 'work'; t = 'Preparando…'; d = 'Preparando la copia en tu cuenta de Claude.'; }
+  mirChip.hidden = false; mirChip.dataset.k = k; mirChip.lastElementChild.textContent = t; mirChip.title = d + ' Toca para ver el detalle.';
+}
+if (mirChip) mirChip.addEventListener('click', () => {
+  if (view !== 'mesa') go('');
+  $('#bk').open = true;
+  setTimeout(() => { const t = $('#mir'); if (t) t.scrollIntoView({ block: 'start' }); }, 80);
+});
 function mirPaint(s) {
+  mirChipPaint(s);
   if (!MIRE.line) return;
   const a = s.srvArc, un = s.phase === 'unavailable' || s.phase === 'idle', off = s.phase === 'off';
   let t;
@@ -9590,9 +9694,15 @@ MIRE.del.addEventListener('click', () => mirTwice('del', 'Toca otra vez para bor
 MIRE.keep.addEventListener('click', () => MIR.pullArchive());
 MIRE.drop.addEventListener('click', () => MIR.pushArchive());
 MIRE.late.addEventListener('click', () => MIR.applyLate());
-async function mirPutRec(rec) { await bkTx('readwrite', st => st.put(rec, BKID)); bkMeta = acMeta(rec); bkErr = ''; bkRefresh(); }
+async function mirPutRec(rec) {
+  try { await bkTx('readwrite', st => st.put(rec, BKID)); }
+  catch (e) { BKMEM.set(BKID, rec); bkUseMem = true; MIR.diag('archivo traído: el navegador no lo guardó (' + ((e && e.name) || 'error') + '); queda en memoria'); }
+  bkMeta = acMeta(rec); bkErr = ''; bkRefresh();
+  if (bkAutoLoaded && bkAutoOn() && !lvBusy && !acBusy) bkLoadSaved('Se actualizó con lo de tu cuenta.', true);   /* a newer one came: what was loaded by itself is replaced */
+  else setTimeout(bkAuto, 150);                                                                                       /* it is here now: the page loads it by itself */
+}
 MIR.sub(mirPaint);
-MIR.attach({ keys: BKKEYS.map(x => x[0]), archive: { meta: () => bkMeta, get: acGet, put: mirPutRec } });
+MIR.attach({ keys: BKKEYS.map(x => x[0]).concat([bkAutoKey]), archive: { meta: () => bkMeta, get: acGet, put: mirPutRec } });
 mirPaint(MIR.st);
 /*END MIRMAIN*/
 render(); drawCal(); tick(); setInterval(tick, 30000);
